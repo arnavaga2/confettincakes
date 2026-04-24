@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu | CONFETTINCAKE</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        :root { --bg-cream: #FFF7EA; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
+
+        header { position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px; background: rgba(255, 247, 234, 0.95); backdrop-filter: blur(15px); z-index: 9000; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05);}
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: center; }
+        .page-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 600;}
+
+        /* ANNOUNCEMENT BAR */
+        .announcement-bar { position: fixed; top: 60px; left: 0; width: 100%; background: var(--text-dark); color: white; padding: 10px 0; z-index: 8900; overflow: hidden; display: flex; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .ticker-track { display: inline-block; animation: ticker 25s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 30px; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+        .ticker-item span { color: var(--accent-color); margin-right: 8px; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        main { padding-top: 110px; padding-bottom: 90px; min-height: 100vh; max-width: 800px; margin: 0 auto;}
+
+        /* GRADIENT PROMO CARDS */
+        .promo-scroll { display: flex; overflow-x: auto; gap: 15px; padding: 10px 20px 25px; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; }
+        .promo-scroll::-webkit-scrollbar { display: none; }
+        
+        .promo-banner { min-width: 85%; max-width: 320px; height: 140px; border-radius: 16px; padding: 20px; color: var(--text-dark); scroll-snap-align: center; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); flex-shrink: 0;}
+        .promo-banner.pink { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
+        .promo-banner.dark { background: linear-gradient(135deg, #2D3748 0%, #1A202C 100%); color: white; }
+        .promo-banner.gold { background: linear-gradient(135deg, #F6D365 0%, #FDA085 100%); }
+        .promo-banner.red { background: linear-gradient(135deg, #FF0844 0%, #FFB199 100%); color: white; }
+        .promo-banner.blue { background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%); }
+
+        .promo-banner h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 5px; z-index: 2;}
+        .promo-banner p { font-size: 0.85rem; opacity: 0.9; z-index: 2;}
+        .promo-bg-icon { position: absolute; right: -10px; bottom: -20px; font-size: 6rem; opacity: 0.2; transform: rotate(-15deg); z-index: 1;}
+
+        .section-heading { padding: 0 20px; font-size: 1.1rem; font-family: 'Playfair Display', serif; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-end;}
+
+        /* QUICK ICONS */
+        .quick-icons { display: flex; overflow-x: auto; gap: 15px; padding: 0 20px 25px; scrollbar-width: none; }
+        .quick-icons::-webkit-scrollbar { display: none; }
+        .icon-item { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: var(--text-dark); min-width: 75px; cursor: pointer;}
+        .icon-circle { width: 65px; height: 65px; border-radius: 50%; background: var(--card-bg); display: flex; justify-content: center; align-items: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid transparent; transition: 0.3s;}
+        .icon-item:hover .icon-circle { border-color: var(--accent-color); transform: translateY(-3px);}
+        .icon-item span { font-size: 0.75rem; font-weight: 600; text-align: center;}
+
+        /* CLOUDINARY IMAGE SLIDER */
+        .image-banner-scroll { display: flex; overflow-x: auto; gap: 15px; padding: 0 20px 25px; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; display: none; }
+        .image-banner-scroll::-webkit-scrollbar { display: none; }
+        .promo-image-slide { min-width: 90%; height: 160px; border-radius: 16px; object-fit: cover; scroll-snap-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid #EAEAEA; }
+        @media (min-width: 768px) { .promo-image-slide { height: 250px; min-width: 70%; } }
+
+        /* 🔥 DYNAMIC UNIFORM GRID */
+        .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px 30px; }
+        .bento-card { position: relative; border-radius: 16px; overflow: hidden; background: var(--card-bg); box-shadow: 0 8px 20px rgba(0,0,0,0.05); aspect-ratio: 1 / 1; text-decoration: none; transition: 0.3s ease; }
+        .bento-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(255, 107, 129, 0.2); }
+        .bento-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .bento-card:hover .bento-img { transform: scale(1.05); }
+        .card-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; height: 70%; pointer-events: none; }
+        .card-title { color: white; font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 2px; }
+        .card-subtitle { color: rgba(255,255,255,0.8); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* MOBILE BOTTOM NAV */
+        .mobile-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #EAEAEA; display: none; justify-content: space-around; padding: 12px 0 15px; z-index: 999; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); gap: 4px; transition: 0.2s;}
+        .nav-item.active { color: var(--accent-color); }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        @media (max-width: 768px) { 
+            .mobile-nav { display: flex; } 
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
+        <h2 class="page-title">OUR MENU</h2>
+    </header>
+
+    <div class="announcement-bar">
+        <div class="ticker-track" id="ticker-track"></div>
+    </div>
+
+    <main>
+        <div class="promo-scroll" id="css-promo-container"></div>
+
+        <div class="section-heading">
+            <h3>Quick Bites</h3>
+        </div>
+        <div class="quick-icons" id="quick-bites-container">
+            <p style="padding: 10px 20px; color: #A0AEC0; font-size: 0.85rem;">Loading quick bites...</p>
+        </div>
+
+        <div class="section-heading">
+            <h3>Featured Collections</h3>
+        </div>
+        
+        <div class="image-banner-scroll" id="image-banner-container"></div>
+        
+        <div class="bento-grid" id="bento-categories-container"></div>
+    </main>
+
+    <nav class="mobile-nav">
+        <a href="index.html" class="nav-item">
+            <i class="ri-home-smile-line"></i><span class="nav-label">Home</span>
+        </a>
+        <a href="menu.html" class="nav-item active">
+            <i class="ri-restaurant-fill"></i><span class="nav-label">Menu</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+            <i class="ri-shopping-bag-3-line"></i><span class="nav-label">Orders</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="ri-user-smile-line"></i><span class="nav-label">Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        async function loadMenuData() {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    
+                    // 1. RENDER ANNOUNCEMENTS
+                    if (settings.announcements && settings.announcements.length > 0) {
+                        const track = document.getElementById('ticker-track');
+                        let tickerHTML = '';
+                        settings.announcements.forEach(text => { tickerHTML += `<div class="ticker-item"><span>⚡</span> ${text}</div>`; });
+                        track.innerHTML = tickerHTML + tickerHTML;
+                    }
+
+                    // 2. RENDER GRADIENT PROMO CARDS
+                    const promoContainer = document.getElementById('css-promo-container');
+                    if (settings.promoCards && settings.promoCards.length > 0) {
+                        settings.promoCards.forEach(card => {
+                            promoContainer.innerHTML += `
+                                <div class="promo-banner ${card.color}">
+                                    <div class="promo-bg-icon">${card.icon}</div>
+                                    <h3>${card.title}</h3>
+                                    <p>${card.desc}</p>
+                                </div>
+                            `;
+                        });
+                        
+                        setInterval(() => {
+                            if (promoContainer.scrollLeft + promoContainer.clientWidth >= promoContainer.scrollWidth - 10) {
+                                promoContainer.scrollTo({ left: 0, behavior: 'smooth' });
+                            } else {
+                                promoContainer.scrollBy({ left: promoContainer.clientWidth * 0.85, behavior: 'smooth' });
+                            }
+                        }, 3500);
+                    } else {
+                        promoContainer.style.display = 'none';
+                    }
+
+                    // 🚀 3. RENDER DYNAMIC QUICK BITES
+                    const quickIconsContainer = document.getElementById('quick-bites-container');
+                    if (settings.quickBites && settings.quickBites.length > 0) {
+                        quickIconsContainer.innerHTML = ''; 
+                        
+                        settings.quickBites.forEach(qb => {
+                            quickIconsContainer.innerHTML += `
+                                <a href="products.html?category=${qb.link}" class="icon-item">
+                                    <div class="icon-circle" style="padding: 2px; overflow: hidden;">
+                                        <img src="${qb.image}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                    </div>
+                                    <span>${qb.title}</span>
+                                </a>
+                            `;
+                        });
+                        
+                        quickIconsContainer.innerHTML += `
+                            <a href="products.html" class="icon-item">
+                                <div class="icon-circle" style="font-size: 1.8rem;">✨</div>
+                                <span>View All</span>
+                            </a>
+                        `;
+                    } else {
+                        quickIconsContainer.innerHTML = `<p style="padding: 10px 20px; color: #A0AEC0; font-size: 0.85rem;">No Quick Bites added yet.</p>`;
+                    }
+
+                    // 4. RENDER IMAGE BANNERS
+                    const imageContainer = document.getElementById('image-banner-container');
+                    if (settings.banners && settings.banners.length > 0) {
+                        imageContainer.style.display = 'flex';
+                        settings.banners.forEach(url => {
+                            imageContainer.innerHTML += `<img src="${url}" class="promo-image-slide" alt="Promo Banner">`;
+                        });
+
+                        setInterval(() => {
+                            if (imageContainer.scrollLeft + imageContainer.clientWidth >= imageContainer.scrollWidth - 10) {
+                                imageContainer.scrollTo({ left: 0, behavior: 'smooth' });
+                            } else {
+                                imageContainer.scrollBy({ left: imageContainer.clientWidth * 0.85, behavior: 'smooth' });
+                            }
+                        }, 4000); 
+                    }
+
+                    // 5. RENDER DYNAMIC BENTO CATEGORIES
+                    const bentoContainer = document.getElementById('bento-categories-container');
+                    if (settings.categories && settings.categories.length > 0) {
+                        bentoContainer.innerHTML = ''; 
+                        
+                        settings.categories.forEach(cat => {
+                            let catName = typeof cat === 'string' ? cat : cat.name;
+                            let catImg = (typeof cat !== 'string' && cat.image) 
+                                ? cat.image 
+                                : 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&q=80';
+
+                            bentoContainer.innerHTML += `
+                                <a href="products.html?category=${catName}" class="bento-card">
+                                    <img src="${catImg}" class="bento-img" loading="lazy">
+                                    <div class="card-overlay">
+                                        <h3 class="card-title" style="text-transform: capitalize;">${catName}</h3>
+                                        <span class="card-subtitle">Explore</span>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                    } else {
+                        bentoContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #A0AEC0; padding: 20px;">No collections available yet. Add some in Admin Inventory!</p>`;
+                    }
+                }
+            } catch (err) {
+                console.log("Could not load database settings.");
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadMenuData);
+    </script>
+</body>
+</html>

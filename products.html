@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --bg-cream: #FFF7EA; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; overflow-y: auto; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; }
+
+        /* HEADER */
+        header { position: fixed; top: 0; left: 0; width: 100%; height: 60px; padding: 0 20px; background: rgba(255, 247, 234, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 9000; display: flex; align-items: center; justify-content: space-between; }
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: center; }
+        .page-title { font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 700;}
+
+        main { padding-top: 60px; padding-bottom: 100px; max-width: 1200px; margin: 0 auto; min-height: 100vh; }
+        
+        /* 🔥 DYNAMIC ANNOUNCEMENT BAR */
+        .announcement-bar { position: sticky; top: 60px; background: var(--accent-color); color: white; padding: 8px 0; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px; overflow: hidden; white-space: nowrap; z-index: 8950; display: none; box-shadow: 0 4px 10px rgba(255, 107, 129, 0.2); }
+        .announcement-track { display: inline-block; padding-left: 100%; animation: scrollLeft 25s linear infinite; }
+        @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        /* IN-PAGE SEARCH BAR */
+        .search-container { padding: 15px 15px 20px; position: sticky; top: 92px; background: var(--bg-cream); z-index: 8900; }
+        .search-box { display: flex; background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #E2E8F0; }
+        .search-box input { flex-grow: 1; padding: 10px 15px; border: none; outline: none; font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .search-box span { padding: 10px 15px; color: #A0AEC0; }
+
+        .category-header { text-align: center; padding: 0 15px 15px; }
+        .category-header h1 { font-size: 1.8rem; text-transform: capitalize; }
+        
+        /* 📱 MOBILE-FIRST 2-COLUMN GRID */
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 15px; }
+        
+        /* 💻 DESKTOP GRID ADJUSTMENT */
+        @media (min-width: 768px) {
+            .product-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 0 20px; }
+        }
+
+        /* COMPACT PRODUCT CARDS */
+        .product-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s ease; display: flex; flex-direction: column; border: 1px solid #EAEAEA;}
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 107, 129, 0.15); border-color: rgba(255, 107, 129, 0.3);}
+        
+        .img-container { width: 100%; padding-top: 100%; position: relative; background: #F7FAFC; }
+        .product-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        
+        .product-info { padding: 10px; text-align: left; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        
+        .product-name { font-size: 0.95rem; margin-bottom: 4px; color: var(--text-dark); font-family: 'Playfair Display', serif; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .product-meta { font-size: 0.7rem; color: #A0AEC0; margin-bottom: 8px; font-weight: 600; line-height: 1.4;}
+        
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto;}
+        .product-price { font-weight: 700; color: var(--text-dark); font-size: 1rem; }
+
+        .add-btn { padding: 6px 12px; border: none; border-radius: 6px; background: rgba(255, 107, 129, 0.1); color: var(--accent-color); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-transform: uppercase;}
+        .add-btn:hover { background: var(--accent-color); color: white; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: #666; grid-column: 1 / -1; }
+
+        /* FLOATING CART */
+        .floating-cart { position: fixed; bottom: 20px; right: 20px; background: var(--text-dark); color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; text-decoration: none; box-shadow: 0 8px 20px rgba(0,0,0,0.2); z-index: 9999; transition: 0.3s ease; }
+        .floating-cart:hover { transform: scale(1.05); background: var(--accent-color); }
+        .cart-badge { position: absolute; top: -3px; right: -3px; background: var(--accent-color); color: white; font-size: 0.75rem; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg-cream); }
+        
+        #toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: white; padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 0.85rem; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10000; opacity: 0; box-shadow: 0 10px 20px rgba(255, 107, 129, 0.3); }
+        #toast.show { bottom: 40px; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="menu.html" class="back-btn">←</a>
+        <h2 class="page-title" id="dynamic-title">Menu</h2>
+    </header>
+
+    <main>
+        <div class="announcement-bar" id="announcement-bar">
+            <div class="announcement-track" id="announcement-track"></div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="live-search" placeholder="Search bakery..." onkeyup="executeLiveSearch()">
+            </div>
+        </div>
+
+        <div class="category-header">
+            <h1 id="dynamic-header">Loading...</h1>
+        </div>
+        <div class="product-grid" id="product-container"></div>
+    </main>
+
+    <a href="cart.html" class="floating-cart">
+        🛒 <div class="cart-badge" id="cartCount">0</div>
+    </a>
+    
+    <div id="toast">Added to Cart!</div>
+
+    <script>
+        let inventory = [];
+
+        // 🍰 THE DUMMY FALLBACK DATA
+        const dummyData = [
+            { id: "d1", cat: "cakes", name: "Rich Truffle Cake", price: "550", weight: "500g", time: "2 Hrs Prep", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&q=80" },
+            { id: "d2", cat: "cakes", name: "Classic Black Forest", price: "450", weight: "500g", time: "1 Hr Prep", img: "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500&q=80" },
+            { id: "d3", cat: "cookies", name: "Choco Chip Cookies", price: "150", weight: "Pack of 6", time: "Ready to Ship", img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500&q=80" },
+            { id: "d4", cat: "brownies", name: "Fudgy Walnut Brownie", price: "120", weight: "2 Pieces", time: "Ready to Ship", img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80" },
+            { id: "d5", cat: "cakes", name: "Red Velvet Bliss", price: "600", weight: "500g", time: "3 Hrs Prep", img: "https://images.unsplash.com/photo-1616541823729-00fe0aacd32c?w=500&q=80" },
+            { id: "d6", cat: "cupcakes", name: "Vanilla Bean Cupcakes", price: "200", weight: "Pack of 4", time: "1 Hr Prep", img: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=500&q=80" },
+            { id: "d7", cat: "cookies", name: "Oatmeal Raisin", price: "140", weight: "Pack of 6", time: "Ready to Ship", img: "https://images.unsplash.com/photo-1620062793264-a74cb5b9f7a7?w=500&q=80" },
+            { id: "d8", cat: "pastries", name: "Pineapple Pastry", price: "80", weight: "1 Slice", time: "Available", img: "https://images.unsplash.com/photo-1601314212595-5735f4153835?w=500&q=80" }
+        ];
+
+        // --- FETCH REAL INVENTORY FROM SERVER ---
+        async function fetchInventory() {
+            try {
+                const response = await fetch('/api/inventory');
+                if (response.ok) {
+                    const dbData = await response.json();
+                    inventory = dbData.length > 0 ? dbData : dummyData; 
+                    applyFiltersAndRender();
+                } else {
+                    inventory = dummyData; 
+                    applyFiltersAndRender();
+                }
+            } catch (err) {
+                console.log("Server not found, using dummy data.");
+                inventory = dummyData; 
+                applyFiltersAndRender();
+            }
+        }
+
+        // --- URL PARAMETERS & FILTERING ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategory = urlParams.get('category');
+        const searchQuery = urlParams.get('search');
+
+        function applyFiltersAndRender() {
+            let filteredProducts = [];
+
+            if(selectedCategory) {
+                document.getElementById('dynamic-title').innerText = selectedCategory;
+                document.getElementById('dynamic-header').innerText = selectedCategory + " Menu";
+                filteredProducts = inventory.filter(item => item.cat === selectedCategory);
+            } else if (searchQuery) {
+                document.getElementById('dynamic-title').innerText = "Search";
+                document.getElementById('dynamic-header').innerText = `Results for "${searchQuery}"`;
+                document.getElementById('live-search').value = searchQuery;
+                executeLiveSearch(); 
+                return;
+            } else {
+                document.getElementById('dynamic-title').innerText = "All Treats";
+                document.getElementById('dynamic-header').innerText = "Our Bakery Menu";
+                filteredProducts = inventory;
+            }
+
+            renderGrid(filteredProducts);
+            renderAnnouncements(filteredProducts);
+        }
+
+        // --- LIVE SEARCH FILTER LOGIC ---
+        function executeLiveSearch() {
+            const query = document.getElementById('live-search').value.toLowerCase().trim();
+            
+            if(query === "") {
+                applyFiltersAndRender();
+                return;
+            }
+
+            document.getElementById('dynamic-header').innerText = `Search: "${query}"`;
+
+            const results = inventory.filter(item => {
+                const n = (item.name || "").toLowerCase();
+                const d = (item.desc || "").toLowerCase();
+                return n.includes(query) || d.includes(query);
+            });
+
+            let finalResults = selectedCategory ? results.filter(item => item.cat === selectedCategory) : results;
+            
+            renderGrid(finalResults);
+            document.getElementById('announcement-bar').style.display = 'none'; 
+        }
+
+        // --- UPGRADED: DYNAMIC ANNOUNCEMENT LOGIC ---
+        function renderAnnouncements(productsList) {
+            const bar = document.getElementById('announcement-bar');
+            const track = document.getElementById('announcement-track');
+
+            if (!productsList || productsList.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+
+            // The varied phrase bank
+            const promoPhrases = [
+                "✨ Try our brand new {name}!",
+                "🎉 Just added: {name} — Fresh from the oven!",
+                "🎂 Treat yourself to the delicious {name} today.",
+                "🔥 Now available: {name}!",
+                "😋 Craving something sweet? Grab a {name}!"
+            ];
+
+            // Grab the 5 most recently added items
+            const recentItems = [...productsList].reverse().slice(0, 5);
+
+            // Loop through the recent items and assign a different phrase to each one
+            const textParts = recentItems.map((item, index) => {
+                // This ensures we cycle through the phrases cleanly
+                const template = promoPhrases[index % promoPhrases.length]; 
+                return template.replace('{name}', item.name);
+            });
+
+            // Glue them together and duplicate for a seamless scrolling loop
+            track.innerText = textParts.join(" 🍰 ") + " 🍰 " + textParts.join(" 🍰 ");
+
+            bar.style.display = 'block';
+        }
+
+        // --- RENDER GRID FUNCTION ---
+        function renderGrid(productsToRender) {
+            const container = document.getElementById('product-container');
+            container.innerHTML = '';
+
+            if(productsToRender.length > 0) {
+                productsToRender.forEach(product => {
+                    let displayPrice = String(product.price).includes('₹') ? product.price : '₹' + product.price;
+                    let cleanPrice = displayPrice.replace('₹', '').trim();
+                    
+                    let metaItems = [];
+                    if(product.weight) metaItems.push(product.weight);
+                    if(product.time) metaItems.push("⏳ " + product.time);
+                    let metaText = metaItems.length > 0 ? metaItems.join(" | ") : "Freshly Baked";
+
+                    container.innerHTML += `
+                        <div class="product-card">
+                            <div class="img-container">
+                                <img src="${product.img}" class="product-img" loading="lazy">
+                            </div>
+                            <div class="product-info">
+                                <div>
+                                    <h3 class="product-name">${product.name}</h3>
+                                    <p class="product-meta">${metaText}</p>
+                                </div>
+                                <div class="price-row">
+                                    <p class="product-price">${displayPrice}</p>
+                                    <button class="add-btn" onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', '${cleanPrice}', '${product.img}')">+ ADD</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = `<div class="empty-state"><h3>No matches found</h3><p>We couldn't find any treats matching your criteria.</p></div>`;
+            }
+        }
+
+        // --- CART LOGIC ---
+        function addToCart(id, name, price, img) {
+            let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+            let existingItem = cart.find(item => item.id == id);
+            if(existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ id, name, price: Number(price), img, qty: 1 });
+            }
+            localStorage.setItem('confettinCart', JSON.stringify(cart));
+            updateCartCount();
+            
+            const toast = document.getElementById('toast');
+            toast.innerText = `Added to Cart`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function updateCartCount() {
+            let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+            let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartCount').innerText = totalItems;
+        }
+
+        window.onload = () => {
+            updateCartCount();
+            fetchInventory(); 
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>if(localStorage.getItem('isAdminLoggedIn') !== 'true') window.location.replace('../admin-login.html'); </script>
+    <style>
+        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; }
+        .brand { font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; }
+        .nav-links a.active { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        .header { margin-bottom: 20px; }
+        
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; font-size: 1rem; font-weight: 600; color: #A0AEC0; padding: 10px 20px; cursor: pointer; transition: 0.3s; border-radius: 8px; }
+        .tab-btn.active { color: white; background: var(--sidebar-bg); }
+
+        .tab-section { display: none; animation: fadeIn 0.3s ease; }
+        .tab-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start;}
+        .card { background: var(--white); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; margin-bottom: 25px;}
+        .card h3 { font-size: 1.1rem; color: var(--sidebar-bg); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #E2E8F0;}
+        
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; color: #718096; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+        input[type="text"], input[type="password"], input[type="number"], select { width: 100%; padding: 12px; border: 1px solid #E2E8F0; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif;}
+        .helper-text { font-size: 0.75rem; color: #A0AEC0; margin-top: 5px; display: block;}
+
+        .save-btn, .add-btn { background: var(--sidebar-bg); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; width: 100%; text-transform: uppercase;}
+        .save-btn:hover { background: var(--accent); }
+        .add-btn { background: #48BB78; width: auto; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; background: #F7FAFC; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #E2E8F0;}
+        .list-text { font-size: 0.85rem; color: #4A5568; font-weight: 600; }
+        .del-btn { color: #E53E3E; background: none; border: none; cursor: pointer; font-weight: 600; font-size: 1.2rem;}
+        
+        .add-row { display: flex; gap: 10px; margin-top: 15px; }
+        
+        .banner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .banner-item { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; }
+        .banner-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
+        .banner-del-btn { position: absolute; top: 5px; right: 5px; background: white; border: none; width: 24px; height: 24px; border-radius: 50%; color: #E53E3E; font-weight: 700; cursor: pointer; }
+
+        .drop-area { border: 2px dashed #CBD5E0; border-radius: 12px; padding: 30px 20px; text-align: center; cursor: pointer; background: #F7FAFC; transition: 0.3s;}
+        .drop-area.dragover { border-color: var(--accent); background: rgba(255, 107, 129, 0.05); }
+        
+        .css-promo-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: white; text-transform: uppercase; margin-right: 10px;}
+        .bg-pink { background: #FF9A9E; } .bg-dark { background: #2D3748; } .bg-gold { background: #F6D365; } .bg-red { background: #FF0844; } .bg-blue { background: #8EC5FC; }
+
+        #custom-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #2D3748; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 600; z-index: 10000; opacity: 0; transition: all 0.4s; }
+        #custom-toast.show { bottom: 40px; opacity: 1; border-left: 5px solid #48BB78;}
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand">CONFETTIN<span style="color:var(--accent)">CAKE</span></div>
+        <ul class="nav-links">
+            <li><a href="admin-dashboard.html">Dashboard</a></li>
+            <li><a href="admin-inventory.html">Inventory</a></li>
+            <li><a href="admin-orders.html">Orders</a></li>
+            <li><a href="admin-users.html">Users</a></li>
+            <li><a href="admin-settings.html" class="active">Settings</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Store Configuration</h1>
+            <p style="color: #718096;">Manage operations, menus, and front-end text.</p>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('admin', this)">Admin</button>
+            <button class="tab-btn" onclick="switchTab('menu', this)">Menu View</button>
+            <button class="tab-btn" onclick="switchTab('home', this)">Home Page</button>
+        </div>
+
+        <div id="tab-admin" class="tab-section active">
+            <div class="settings-grid">
+                <div class="card">
+                    <h3>🔒 Security</h3>
+                    <div class="input-group">
+                        <label>Master Admin Password</label>
+                        <input type="password" id="admin-pass" placeholder="Enter new password">
+                    </div>
+                    <button class="save-btn" onclick="savePassword()">Update Password</button>
+                </div>
+                <div class="card">
+                    <h3>🛵 Delivery Zones</h3>
+                    <div class="input-group">
+                        <label>Accepted Pincode Prefixes</label>
+                        <input type="text" id="admin-pins" placeholder="e.g., 110, 111">
+                    </div>
+                    <button class="save-btn" onclick="savePincodes()">Update Zones</button>
+                </div>
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🎟️ Promo & Discount Codes</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Generate random codes or create custom ones for your customers to use at checkout.</p>
+                    
+                    <div id="promo-code-list" style="margin-bottom: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;"></div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="pc-code" placeholder="Code (e.g. SAVE20)" style="text-transform: uppercase;">
+                        <input type="number" id="pc-discount" placeholder="% Off (e.g. 15)" style="width: 120px;">
+                        
+                        <button class="btn" style="background: #E2E8F0; color: var(--text-dark); border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="generateRandomCode()">🎲 Generate</button>
+                        <button class="add-btn" onclick="addDiscountCode()">Add Code</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-menu" class="tab-section">
+            <div class="settings-grid">
+                <div class="card">
+                    <h3>📢 Announcement Bar</h3>
+                    <div id="announcement-list"></div>
+                    <div class="add-row">
+                        <input type="text" id="new-announce" placeholder="Type new announcement...">
+                        <button class="add-btn" onclick="addAnnouncement()">Add</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>✨ Gradient Promo Cards</h3>
+                    <div id="promo-cards-list"></div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                        <select id="pc-color" style="width: 100px; padding: 10px;">
+                            <option value="pink">Pink</option>
+                            <option value="dark">Dark</option>
+                            <option value="gold">Gold</option>
+                            <option value="red">Red</option>
+                            <option value="blue">Blue</option>
+                        </select>
+                        <input type="text" id="pc-icon" placeholder="Emoji (🎂)" style="width: 80px; padding: 10px;">
+                        <input type="text" id="pc-title" placeholder="Title" style="flex-grow: 1; padding: 10px;">
+                        <input type="text" id="pc-desc" placeholder="Description text..." style="width: 100%; padding: 10px;">
+                        <button class="add-btn" onclick="addPromoCard()" style="width: 100%;">Add Gradient Card</button>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🍔 Quick Bites Icons</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Add small circle icon images that link directly to your categories.</p>
+                    <div id="qb-list" style="margin-bottom: 20px;"></div>
+                    <div style="border-top: 1px dashed #E2E8F0; padding-top: 20px;">
+                        <div class="upload-area drop-area" id="qb-drop-area" onclick="document.getElementById('qb-file').click()" style="height: 120px; margin-bottom: 15px;">
+                            <p id="qb-prompt">Drag & Drop Category Thumbnail</p>
+                            <img id="qb-preview" src="" style="display:none; height: 80px; width: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto;">
+                            <input type="file" id="qb-file" hidden accept="image/*">
+                        </div>
+                        <div class="row">
+                            <input type="text" id="qb-title" placeholder="Title (e.g. Cupcakes)">
+                            <input type="text" id="qb-link" placeholder="Target Category (e.g. cupcakes)" style="text-transform: lowercase;">
+                            <button class="add-btn" id="qb-add-btn" onclick="addQuickBite()">Add Quick Bite</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🖼️ Image Banners (Cloudinary)</h3>
+                    <div id="banner-list" class="banner-grid"></div>
+                    <div id="banner-drop-area" class="drop-area" onclick="document.getElementById('new-banner').click()">
+                        <div style="font-size: 2rem;">☁️</div>
+                        <p style="font-weight: 600; color: var(--text-dark);">Drag & Drop an image here</p>
+                        <input type="file" id="new-banner" accept="image/*" style="display: none;">
+                    </div>
+                    <div id="banner-preview-container" style="display: none; text-align: center; margin-top: 10px;">
+                        <img id="banner-temp-preview" src="" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                        <button class="save-btn" id="upload-banner-btn" onclick="uploadAndAddBanner()">Upload to Menu</button>
+                        <button onclick="cancelBannerUpload()" style="margin-top: 15px; background: none; color: #E53E3E; border: none; cursor: pointer; font-weight: 600;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-home" class="tab-section">
+            <div class="settings-grid">
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🎥 Hero Video Background</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Upload a short MP4 (Max 10MB) for the home page background.</p>
+                    
+                    <div id="video-drop-area" class="drop-area" onclick="document.getElementById('new-video').click()">
+                        <div style="font-size: 2rem;">🎬</div>
+                        <p style="font-weight: 600; color: var(--text-dark);">Drag & Drop a Video here (MP4)</p>
+                        <input type="file" id="new-video" accept="video/mp4,video/x-m4v,video/*" style="display: none;">
+                    </div>
+                    
+                    <div id="video-preview-container" style="display: none; text-align: center; margin-top: 10px;">
+                        <video id="video-temp-preview" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;" controls></video>
+                        <button class="save-btn" id="upload-video-btn" onclick="uploadHeroVideo()">Upload Live Video</button>
+                        <button onclick="cancelVideoUpload()" style="margin-top: 15px; background: none; color: #E53E3E; border: none; cursor: pointer; font-weight: 600;">Cancel</button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <label>Current Video URL (or paste external link)</label>
+                        <input type="text" id="home-vid" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📝 Main Hero Text</h3>
+                    <div class="input-group">
+                        <label>Main Title (H1)</label>
+                        <input type="text" id="home-h1" placeholder="Delicious cakes...">
+                    </div>
+                    <div class="input-group">
+                        <label>Subtitle / Tagline</label>
+                        <input type="text" id="home-sub" placeholder="100% Eggless...">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📌 Section Titles</h3>
+                    <div class="input-group">
+                        <label>Categories Section Title</label>
+                        <input type="text" id="home-sec1" placeholder="What's on your mind?">
+                    </div>
+                    <div class="input-group">
+                        <label>Trending Section Title</label>
+                        <input type="text" id="home-sec2" placeholder="Trending Today">
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🔽 Footer & Developer Credits</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <div class="input-group">
+                                <label>General Footer Text</label>
+                                <input type="text" id="home-footer" placeholder="Baking joy across the city.">
+                            </div>
+                            <div class="input-group">
+                                <label>Instagram Handle</label>
+                                <input type="text" id="home-soc-handle" placeholder="@confettincakes">
+                            </div>
+                            <div class="input-group">
+                                <label>Instagram Link (URL)</label>
+                                <input type="text" id="home-soc-link" placeholder="https://instagram.com/confettincakes">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="input-group">
+                                <label>Developer Name</label>
+                                <input type="text" id="home-dev-name" placeholder="Arnav Agarwal">
+                            </div>
+                            <div class="input-group">
+                                <label>Developer Phone Number</label>
+                                <input type="number" id="home-dev-phone" placeholder="9365717848">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>🛡️ Trust Badges (USPs)</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div style="background: #F7FAFC; padding: 15px; border-radius: 8px;">
+                            <label>Badge 1 (Plant Icon)</label>
+                            <input type="text" id="usp1-title" placeholder="Title" style="margin-bottom: 5px;">
+                            <input type="text" id="usp1-desc" placeholder="Description">
+                        </div>
+                        <div style="background: #F7FAFC; padding: 15px; border-radius: 8px;">
+                            <label>Badge 2 (Chef Icon)</label>
+                            <input type="text" id="usp2-title" placeholder="Title" style="margin-bottom: 5px;">
+                            <input type="text" id="usp2-desc" placeholder="Description">
+                        </div>
+                        <div style="background: #F7FAFC; padding: 15px; border-radius: 8px;">
+                            <label>Badge 3 (Bike Icon)</label>
+                            <input type="text" id="usp3-title" placeholder="Title" style="margin-bottom: 5px;">
+                            <input type="text" id="usp3-desc" placeholder="Description">
+                        </div>
+                    </div>
+                    <button class="save-btn" style="margin-top: 20px;" onclick="saveHomeText()">Save All Home Text</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-toast">Settings Saved!</div>
+
+    <script>
+        // ☁️ CLOUDINARY KEYS 
+        const CLOUD_NAME = "do869nzhe"; 
+        const UPLOAD_PRESET = "bakery_uploads";  
+
+        let globalSettings = { home: {} };
+        let pendingBannerFile = null;
+        let pendingVideoFile = null;
+        let pendingQbFile = null;
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/settings');
+                if(res.ok) {
+                    const data = await res.json();
+                    globalSettings = { ...globalSettings, ...data }; 
+                    if(!globalSettings.home) globalSettings.home = {};
+
+                    document.getElementById('admin-pins').value = globalSettings.pincodes || "110";
+                    
+                    // Home Texts
+                    document.getElementById('home-vid').value = globalSettings.home.heroVideo || "";
+                    document.getElementById('home-h1').value = globalSettings.home.heroTitle || "";
+                    document.getElementById('home-sub').value = globalSettings.home.heroSub || "";
+                    document.getElementById('home-sec1').value = globalSettings.home.sec1Title || "";
+                    document.getElementById('home-sec2').value = globalSettings.home.sec2Title || "";
+                    
+                    // Footer & Dev Credits
+                    document.getElementById('home-footer').value = globalSettings.footerText || "";
+                    document.getElementById('home-soc-handle').value = globalSettings.home.socialHandle || "@confettincakes";
+                    document.getElementById('home-soc-link').value = globalSettings.home.socialLink || "https://instagram.com/confettincakes";
+                    document.getElementById('home-dev-name').value = globalSettings.home.devName || "Arnav Agarwal";
+                    document.getElementById('home-dev-phone').value = globalSettings.home.devPhone || "9365717848";
+
+                    document.getElementById('usp1-title').value = globalSettings.home.usp1Title || "";
+                    document.getElementById('usp1-desc').value = globalSettings.home.usp1Desc || "";
+                    document.getElementById('usp2-title').value = globalSettings.home.usp2Title || "";
+                    document.getElementById('usp2-desc').value = globalSettings.home.usp2Desc || "";
+                    document.getElementById('usp3-title').value = globalSettings.home.usp3Title || "";
+                    document.getElementById('usp3-desc').value = globalSettings.home.usp3Desc || "";
+
+                    renderAnnouncements();
+                    renderPromoCards();
+                    renderBanners();
+                    renderDiscountCodes();
+                    renderQuickBites();
+                }
+            } catch(err) {}
+        }
+
+        async function saveToServer(msg) {
+            await fetch('/api/admin/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(globalSettings) });
+            showToast(msg);
+        }
+
+        function savePassword() { const v = document.getElementById('admin-pass').value; if(v) { globalSettings.adminPass = v; document.getElementById('admin-pass').value = ''; saveToServer("Password Updated!"); } }
+        function savePincodes() { globalSettings.pincodes = document.getElementById('admin-pins').value; saveToServer("Zones Updated!"); }
+        
+        function saveHomeText() { 
+            globalSettings.home.heroVideo = document.getElementById('home-vid').value;
+            globalSettings.home.heroTitle = document.getElementById('home-h1').value;
+            globalSettings.home.heroSub = document.getElementById('home-sub').value;
+            globalSettings.home.sec1Title = document.getElementById('home-sec1').value;
+            globalSettings.home.sec2Title = document.getElementById('home-sec2').value;
+            
+            globalSettings.footerText = document.getElementById('home-footer').value; 
+            globalSettings.home.socialHandle = document.getElementById('home-soc-handle').value;
+            globalSettings.home.socialLink = document.getElementById('home-soc-link').value;
+            globalSettings.home.devName = document.getElementById('home-dev-name').value;
+            globalSettings.home.devPhone = document.getElementById('home-dev-phone').value;
+
+            globalSettings.home.usp1Title = document.getElementById('usp1-title').value;
+            globalSettings.home.usp1Desc = document.getElementById('usp1-desc').value;
+            globalSettings.home.usp2Title = document.getElementById('usp2-title').value;
+            globalSettings.home.usp2Desc = document.getElementById('usp2-desc').value;
+            globalSettings.home.usp3Title = document.getElementById('usp3-title').value;
+            globalSettings.home.usp3Desc = document.getElementById('usp3-desc').value;
+            saveToServer("Home Config Saved!"); 
+        }
+
+        function prevDef(e) { e.preventDefault(); e.stopPropagation(); }
+
+        // --- ANNOUNCEMENTS, PROMOS & BANNERS LOGIC ---
+        function renderAnnouncements() {
+            const list = document.getElementById('announcement-list'); list.innerHTML = '';
+            (globalSettings.announcements || []).forEach((text, i) => {
+                list.innerHTML += `<div class="list-item"><span class="list-text">${text}</span><button class="del-btn" onclick="removeAnnouncement(${i})">×</button></div>`;
+            });
+        }
+        function addAnnouncement() { const val = document.getElementById('new-announce').value; if(val) { globalSettings.announcements.push(val); document.getElementById('new-announce').value = ''; renderAnnouncements(); saveToServer("Added!"); } }
+        function removeAnnouncement(i) { globalSettings.announcements.splice(i, 1); renderAnnouncements(); saveToServer("Removed!"); }
+
+        function renderPromoCards() {
+            const list = document.getElementById('promo-cards-list'); list.innerHTML = '';
+            if(!globalSettings.promoCards) globalSettings.promoCards = [];
+            globalSettings.promoCards.forEach((card, i) => {
+                list.innerHTML += `<div class="list-item"><div><span class="css-promo-badge bg-${card.color}">${card.color}</span><span class="list-text">${card.icon} <strong>${card.title}</strong></span></div><button class="del-btn" onclick="removePromoCard(${i})">×</button></div>`;
+            });
+        }
+        function addPromoCard() {
+            const color = document.getElementById('pc-color').value; const icon = document.getElementById('pc-icon').value; const title = document.getElementById('pc-title').value; const desc = document.getElementById('pc-desc').value;
+            if(!title || !desc) return showToast("Title and Description required!");
+            globalSettings.promoCards.push({ color, icon, title, desc });
+            document.getElementById('pc-icon').value = ''; document.getElementById('pc-title').value = ''; document.getElementById('pc-desc').value = ''; renderPromoCards(); saveToServer("Gradient Card Added!");
+        }
+        function removePromoCard(i) { globalSettings.promoCards.splice(i, 1); renderPromoCards(); saveToServer("Card Removed!"); }
+
+        function renderBanners() {
+            const list = document.getElementById('banner-list'); list.innerHTML = '';
+            (globalSettings.banners || []).forEach((url, i) => { list.innerHTML += `<div class="banner-item"><img src="${url}"><button class="banner-del-btn" onclick="removeBanner(${i})">×</button></div>`; });
+        }
+        const bDrop = document.getElementById('banner-drop-area'); const bInput = document.getElementById('new-banner');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { bDrop.addEventListener(e, prevDef, false); });
+        ['dragenter', 'dragover'].forEach(e => bDrop.addEventListener(e, () => bDrop.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(e => bDrop.addEventListener(e, () => bDrop.classList.remove('dragover'), false));
+        bDrop.addEventListener('drop', (e) => { handleBannerFile(e.dataTransfer.files[0]); }, false);
+        bInput.addEventListener('change', (e) => { handleBannerFile(e.target.files[0]); });
+
+        function handleBannerFile(file) {
+            if(file && file.type.startsWith('image/')) {
+                pendingBannerFile = file; const reader = new FileReader();
+                reader.onload = (ev) => { document.getElementById('banner-temp-preview').src = ev.target.result; bDrop.style.display = 'none'; document.getElementById('banner-preview-container').style.display = 'block'; };
+                reader.readAsDataURL(file);
+            }
+        }
+        function cancelBannerUpload() { pendingBannerFile = null; bInput.value = ''; bDrop.style.display = 'block'; document.getElementById('banner-preview-container').style.display = 'none'; }
+        async function uploadAndAddBanner() {
+            if(!pendingBannerFile) return;
+            const btn = document.getElementById('upload-banner-btn'); btn.innerText = "UPLOADING..."; btn.disabled = true;
+            const fd = new FormData(); fd.append('file', pendingBannerFile); fd.append('upload_preset', UPLOAD_PRESET);
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+                const data = await res.json();
+                if(!globalSettings.banners) globalSettings.banners = [];
+                globalSettings.banners.push(data.secure_url);
+                cancelBannerUpload(); renderBanners(); saveToServer("Banner Published!");
+            } catch(err) { showToast("Upload failed."); }
+            btn.innerText = "Upload to Menu"; btn.disabled = false;
+        }
+        function removeBanner(i) { globalSettings.banners.splice(i, 1); renderBanners(); saveToServer("Banner Removed!"); }
+
+        // ✂️ SMART AUTO-CROPPER FOR QUICK BITES
+        function renderQuickBites() {
+            const list = document.getElementById('qb-list'); list.innerHTML = '';
+            if(!globalSettings.quickBites) globalSettings.quickBites = [];
+            
+            globalSettings.quickBites.forEach((qb, i) => {
+                list.innerHTML += `
+                <div class="list-item">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <img src="${qb.image}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #E2E8F0;">
+                        <span class="list-text"><strong>${qb.title}</strong> <span style="color:#A0AEC0; font-size: 0.75rem;">→ /${qb.link}</span></span>
+                    </div>
+                    <button class="del-btn" onclick="removeQuickBite(${i})">×</button>
+                </div>`;
+            });
+        }
+
+        const qbDrop = document.getElementById('qb-drop-area'); 
+        const qbInput = document.getElementById('qb-file');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { qbDrop.addEventListener(e, prevDef, false); });
+        ['dragenter', 'dragover'].forEach(e => qbDrop.addEventListener(e, () => qbDrop.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(e => qbDrop.addEventListener(e, () => qbDrop.classList.remove('dragover'), false));
+        
+        qbDrop.addEventListener('drop', (e) => { handleQbFile(e.dataTransfer.files[0]); }, false);
+        qbInput.addEventListener('change', (e) => { handleQbFile(e.target.files[0]); });
+
+        function handleQbFile(file) {
+            if (!file || !file.type.startsWith('image/')) return showToast("Please upload a valid image file.");
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const size = 300; 
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+
+                    let sourceX = 0, sourceY = 0, sourceSize = img.width;
+                    if (img.width > img.height) {
+                        sourceSize = img.height;
+                        sourceX = (img.width - img.height) / 2; 
+                    } else {
+                        sourceSize = img.width;
+                        sourceY = (img.height - img.width) / 2; 
+                    }
+
+                    ctx.drawImage(img, sourceX, sourceY, sourceSize, sourceSize, 0, 0, size, size);
+
+                    pendingQbFile = canvas.toDataURL('image/jpeg', 0.9);
+
+                    document.getElementById('qb-preview').src = pendingQbFile; 
+                    document.getElementById('qb-prompt').style.display = 'none'; 
+                    document.getElementById('qb-preview').style.display = 'block'; 
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function addQuickBite() {
+            const title = document.getElementById('qb-title').value.trim();
+            const link = document.getElementById('qb-link').value.trim().toLowerCase();
+            
+            if(!title || !link || !pendingQbFile) return showToast("Image, Title, and Target link are required!");
+            
+            const btn = document.getElementById('qb-add-btn');
+            btn.innerText = "UPLOADING ☁️..."; btn.disabled = true;
+            
+            const fd = new FormData(); 
+            fd.append('file', pendingQbFile); 
+            fd.append('upload_preset', UPLOAD_PRESET);
+            
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                if(!globalSettings.quickBites) globalSettings.quickBites = [];
+                globalSettings.quickBites.push({ title, link, image: data.secure_url });
+                
+                document.getElementById('qb-title').value = '';
+                document.getElementById('qb-link').value = '';
+                pendingQbFile = null;
+                document.getElementById('qb-preview').src = '';
+                document.getElementById('qb-preview').style.display = 'none';
+                document.getElementById('qb-prompt').style.display = 'block';
+                
+                renderQuickBites();
+                saveToServer("Quick Bite Added!");
+            } catch(err) { showToast("Upload failed"); }
+            
+            btn.innerText = "Add Quick Bite"; btn.disabled = false;
+        }
+
+        function removeQuickBite(i) {
+            globalSettings.quickBites.splice(i, 1);
+            renderQuickBites();
+            saveToServer("Quick Bite Removed!");
+        }
+
+        // --- VIDEO UPLOAD LOGIC ---
+        const vDrop = document.getElementById('video-drop-area'); const vInput = document.getElementById('new-video');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { vDrop.addEventListener(e, prevDef, false); });
+        ['dragenter', 'dragover'].forEach(e => vDrop.addEventListener(e, () => vDrop.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(e => vDrop.addEventListener(e, () => vDrop.classList.remove('dragover'), false));
+        vDrop.addEventListener('drop', (e) => { handleVideoFile(e.dataTransfer.files[0]); }, false);
+        vInput.addEventListener('change', (e) => { handleVideoFile(e.target.files[0]); });
+
+        function handleVideoFile(file) {
+            if(file && file.type.startsWith('video/')) {
+                pendingVideoFile = file; const url = URL.createObjectURL(file);
+                document.getElementById('video-temp-preview').src = url; vDrop.style.display = 'none'; document.getElementById('video-preview-container').style.display = 'block';
+            } else { showToast("Please upload an MP4 video."); }
+        }
+        function cancelVideoUpload() { pendingVideoFile = null; vInput.value = ''; vDrop.style.display = 'block'; document.getElementById('video-preview-container').style.display = 'none'; }
+        async function uploadHeroVideo() {
+            if(!pendingVideoFile) return;
+            const btn = document.getElementById('upload-video-btn'); btn.innerText = "UPLOADING..."; btn.disabled = true;
+            const fd = new FormData(); fd.append('file', pendingVideoFile); fd.append('upload_preset', UPLOAD_PRESET);
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`, { method: 'POST', body: fd });
+                const data = await res.json();
+                document.getElementById('home-vid').value = data.secure_url;
+                cancelVideoUpload(); saveHomeText(); showToast("Video Published!");
+            } catch(err) { showToast("Upload failed."); }
+            btn.innerText = "Upload Live Video"; btn.disabled = false;
+        }
+
+        // --- PROMO CODE LOGIC ---
+        function renderDiscountCodes() {
+            const list = document.getElementById('promo-code-list'); list.innerHTML = '';
+            if(!globalSettings.discountCodes) globalSettings.discountCodes = [];
+            globalSettings.discountCodes.forEach((codeObj, i) => {
+                list.innerHTML += `
+                    <div class="list-item" style="margin-bottom: 0;">
+                        <span class="list-text"><strong>${codeObj.code}</strong> <span style="color: #48BB78;">(${codeObj.discount}% OFF)</span></span>
+                        <button class="del-btn" onclick="removeDiscountCode(${i})">×</button>
+                    </div>`;
+            });
+        }
+        function generateRandomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let result = 'CAKE';
+            for (let i = 0; i < 5; i++) { result += chars.charAt(Math.floor(Math.random() * chars.length)); }
+            document.getElementById('pc-code').value = result;
+        }
+        function addDiscountCode() {
+            const code = document.getElementById('pc-code').value.trim().toUpperCase();
+            const discount = document.getElementById('pc-discount').value;
+            if(!code || !discount) return showToast("Enter a code and discount %!");
+            if(!globalSettings.discountCodes) globalSettings.discountCodes = [];
+            if(globalSettings.discountCodes.find(c => c.code === code)) return showToast("This code already exists!");
+            globalSettings.discountCodes.push({ code, discount });
+            document.getElementById('pc-code').value = ''; document.getElementById('pc-discount').value = ''; 
+            renderDiscountCodes(); saveToServer("Promo Code Created!");
+        }
+        function removeDiscountCode(i) { globalSettings.discountCodes.splice(i, 1); renderDiscountCodes(); saveToServer("Promo Code Deleted!"); }
+
+        function showToast(msg) { const t = document.getElementById('custom-toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>

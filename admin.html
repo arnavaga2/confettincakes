@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Dashboard | Confettincake</title>
+    <link rel="stylesheet" href="css/admin-style.css">
+</head>
+<body class="admin-body">
+
+    <div id="admin-login" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <h2 style="font-family: serif;">Merchant Access</h2>
+            <p>Enter password to manage orders</p>
+            <input type="password" id="admin-pass" placeholder="••••••••">
+            <button class="cta-btn" style="width: 100%; margin-top: 15px;" onclick="verifyAdmin()">Login</button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" style="display: none;">
+        
+        <aside class="admin-sidebar">
+            <div class="logo">ADMIN PRO</div>
+            <nav class="sidebar-nav">
+                <button onclick="showTab('dashboard')" id="btn-dashboard" class="active">🏠 Dashboard</button>
+                <button onclick="showTab('orders')" id="btn-orders">📦 Orders</button>
+                <button onclick="showTab('inventory')" id="btn-inventory">🍰 Inventory</button>
+                <button onclick="showTab('users')" id="btn-users">👥 Users</button>
+                <button onclick="showTab('customize')" id="btn-customize">🎨 Customize</button>
+            </nav>
+            <button class="cta-btn logout-btn" onclick="logoutAdmin()">Logout</button>
+        </aside>
+
+        <div class="mobile-dock">
+            <button onclick="showTab('dashboard')">🏠<span>Home</span></button>
+            <button onclick="showTab('orders')">📦<span>Orders</span></button>
+            <button onclick="showTab('inventory')">🍰<span>Items</span></button>
+            <button onclick="showTab('customize')">🎨<span>Edit</span></button>
+        </div>
+
+        <main class="admin-main">
+            <section id="tab-dashboard" class="admin-tab">
+                <h1>Business <span class="highlight">Overview</span></h1>
+                <div class="form-grid" style="margin-top:20px;">
+                    <div class="glass-card"><h3>Total Orders</h3><p id="stat-orders">0</p></div>
+                    <div class="glass-card"><h3>Live Items</h3><p id="stat-items">0</p></div>
+                </div>
+            </section>
+
+            <section id="tab-orders" class="admin-tab" style="display:none;">
+                <h1>Customer <span class="highlight">Orders</span></h1>
+                <div id="admin-orders-list" style="margin-top:20px;">
+                    <p>No new orders.</p>
+                </div>
+            </section>
+
+            <section id="tab-inventory" class="admin-tab" style="display:none;">
+                <h1>Manage <span class="highlight">Inventory</span></h1>
+                
+                <div class="glass-card" style="margin-top: 20px;">
+                    <h3>Add New Item</h3>
+                    <div class="form-grid">
+                        <input type="text" id="new-name" placeholder="Product Name *">
+                        <input type="number" id="new-cost" placeholder="Cost (₹) *">
+                        <select id="new-cat">
+                            <option value="Cakes">Cakes</option>
+                            <option value="Cupcakes">Cupcakes</option>
+                            <option value="Cookies">Cookies</option>
+                            <option value="Hampers">Hampers</option>
+                        </select>
+                        <input type="text" id="new-weight" placeholder="Weight (e.g. 500g)">
+                        <input type="text" id="new-time" placeholder="Prep Time">
+                        <input type="text" id="new-img" placeholder="Image URL">
+                    </div>
+                    <button class="cta-btn" onclick="addNewProduct()" style="margin-top: 15px;">Add to Website</button>
+                </div>
+
+                <div class="glass-card" style="margin-top: 30px; overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-users" class="admin-tab" style="display:none;">
+                <h1>Registered <span class="highlight">Users</span></h1>
+                <div id="user-list" class="glass-card" style="margin-top:20px;">
+                    <p>Fetching user data...</p>
+                </div>
+            </section>
+
+            <section id="tab-customize" class="admin-tab" style="display:none;">
+                <h1>Website <span class="highlight">Customization</span></h1>
+                <p>Features to change hero text and colors coming soon.</p>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="js/admin.js"></script>
+</body>
+</html>

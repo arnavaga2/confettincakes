@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Orders | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        if(localStorage.getItem('isAdminLoggedIn') !== 'true') {
+            window.location.replace('../admin-login.html'); 
+        }
+    </script>
+
+    <style>
+        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; }
+        .brand { font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; }
+        .nav-links a.active { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        .header { margin-bottom: 20px; }
+
+        /* 🔥 STATUS FILTER PILLS */
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab { padding: 8px 16px; border: none; border-radius: 20px; background: white; color: #718096; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: 1px solid #E2E8F0; transition: 0.3s; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .filter-tab:hover { border-color: var(--accent); color: var(--accent); }
+        .filter-tab.active { background: var(--sidebar-bg); color: white; border-color: var(--sidebar-bg); }
+
+        .order-card {
+            background: var(--white); border-radius: 12px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0;
+            display: grid; grid-template-columns: 1fr 2.5fr 2fr 1.5fr; align-items: start; gap: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .order-id { font-weight: 600; color: #718096; font-size: 0.9rem; }
+        .order-date { font-size: 0.75rem; color: #A0AEC0; margin-top: 5px; }
+        
+        .customer-info h4 { font-size: 1.1rem; color: var(--text-dark); text-transform: capitalize; margin-bottom: 5px;}
+        .customer-info p { font-size: 0.85rem; color: #4A5568; line-height: 1.4;}
+        .customer-info span { font-weight: 600; color: #2D3748; }
+        
+        .order-details { font-size: 0.9rem; color: #4A5568; line-height: 1.5; }
+        .order-total { color: var(--accent); font-weight: 600; font-size: 1.2rem; margin-top: 10px; display: block;}
+
+        .action-group { display: flex; flex-direction: column; gap: 10px; }
+        .status-select-group { display: flex; flex-direction: column; gap: 5px; }
+        
+        select { padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0; outline: none; font-size: 0.85rem; background: #F7FAFC; color: var(--text-dark); font-weight: 600; }
+        .update-btn { padding: 10px; border-radius: 6px; background: var(--text-dark); color: rgb(216, 11, 11); border: none; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: 0.3s; }
+        .update-btn:hover { background: var(--accent); }
+        
+        /* PER-ORDER EXPORT BUTTONS */
+        .per-order-exports { display: flex; gap: 5px; margin-top: 10px; }
+        .btn-mini { flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
+        .btn-excel { background: #E6FFFA; color: #319795; border: 1px solid #B2F5EA; }
+        .btn-pdf { background: #FFF5F5; color: #E53E3E; border: 1px solid #FEB2B2; }
+        .btn-del { background: white; color: #A0AEC0; border: 1px solid #E2E8F0; margin-top: 5px;}
+
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 50px 20px; color: #A0AEC0; font-weight: 600; background: white; border-radius: 12px; border: 1px dashed #CBD5E0;}
+
+        /* TOAST NOTIFICATION */
+        #custom-toast {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            background: #2D3748; color: white; padding: 15px 30px; border-radius: 8px;
+            font-weight: 600; font-size: 0.95rem; z-index: 10000; opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        #custom-toast.show { bottom: 40px; opacity: 1; }
+        #custom-toast.success { border-left: 5px solid #48BB78; }
+        #custom-toast.error { border-left: 5px solid #F56565; }
+
+        /* 🖨️ PRINT BRAND (Hidden on screen, visible on PDF) */
+        .print-brand { display: none; text-align: center; font-size: 2.2rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 2px dashed #E2E8F0; padding-bottom: 15px; }
+
+        /* MAGIC PDF PRINT CSS */
+        @media print {
+            body { background: white; }
+            .sidebar, .header, .filter-tabs, .action-group, .empty-state { display: none !important; }
+            .main-content { padding: 0; }
+            .order-card { display: none; } 
+            .order-card.print-active { display: block; box-shadow: none; border: 2px solid #000; page-break-inside: avoid; margin: 0; padding: 40px;}
+            
+            /* Show the brand name and force printers to print the red color */
+            .order-card.print-active .print-brand { display: block; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">CONFETTIN<span style="color:var(--accent)">CAKE</span></div>
+        <ul class="nav-links">
+            <li><a href="admin-dashboard.html">Dashboard</a></li>
+            <li><a href="admin-inventory.html">Inventory</a></li>
+            <li><a href="admin-orders.html" class="active">Orders</a></li>
+            <li><a href="admin-users.html">Users</a></li>
+            <li><a href="admin-settings.html">Settings</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Live Orders</h1>
+            <p>Process orders and generate individual receipts.</p>
+        </div>
+
+        <div class="filter-tabs" id="status-filters">
+            <button class="filter-tab" onclick="setFilter('all', this)">All Orders</button>
+            <button class="filter-tab active" onclick="setFilter('pending', this)">⏳ Pending</button>
+            <button class="filter-tab" onclick="setFilter('baking', this)">👨‍🍳 Baking</button>
+            <button class="filter-tab" onclick="setFilter('out', this)">🛵 Out for Delivery</button>
+            <button class="filter-tab" onclick="setFilter('delivered', this)">🎁 Delivered</button>
+            <button class="filter-tab" onclick="setFilter('canceled', this)">❌ Canceled</button>
+        </div>
+
+        <div id="orders-list"></div>
+    </div>
+
+    <div id="custom-toast">Message goes here</div>
+
+    <script>
+        let liveOrders = [];
+        let currentFilter = 'pending'; // Default filter state 
+
+        // --- 1. FILTER LOGIC ---
+        function setFilter(status, btnElement) {
+            currentFilter = status;
+            
+            // Highlight the active button
+            document.querySelectorAll('.filter-tab').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            // Re-draw the list
+            renderOrders();
+        }
+
+        // --- 2. FETCH ORDERS FROM SERVER ---
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/admin/orders');
+                if(response.ok) {
+                    liveOrders = await response.json();
+                    renderOrders();
+                } else {
+                    console.error("Failed to load orders from database.");
+                }
+            } catch(err) {
+                console.error("Server connection error:", err);
+            }
+        }
+
+        // --- 3. RENDER THE TABLE ---
+        function renderOrders() {
+            const container = document.getElementById('orders-list');
+
+            // Apply the active filter
+            const filteredOrders = currentFilter === 'all' 
+                ? liveOrders 
+                : liveOrders.filter(o => o.status === currentFilter);
+
+            if(filteredOrders.length === 0) {
+                let statusText = currentFilter === 'all' ? '' : ` ${currentFilter}`;
+                container.innerHTML = `<div class="empty-state">No${statusText} orders found.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+
+            // Reverse array to show newest at the top
+            filteredOrders.slice().reverse().forEach(order => {
+                let statusClass = 's-' + order.status; 
+                
+                // Parse the JSON string from SQLite back into an array
+                let parsedItems = [];
+                try { parsedItems = JSON.parse(order.items); } catch(e) { parsedItems = []; }
+                let itemsList = parsedItems.map(i => `<strong>${i.qty}x</strong> ${i.name}`).join('<br>');
+
+                // Fallbacks
+                let phone = order.customerPhone || "N/A";
+                let address = order.customerAddress || "N/A";
+                let pin = order.customerPin || "N/A";
+
+                const card = `
+                    <div class="order-card" id="card-${order.id}">
+                        <div class="print-brand" style="grid-column: 1 / -1;">
+                            CONFETTI<span style="color: red;">N</span>CAKE
+                        </div>
+                        <div>
+                            <div class="order-id">${order.id}</div>
+                            <div class="order-date">${order.date}</div>
+                        </div>
+                        <div class="customer-info">
+                            <h4>${order.customer}</h4>
+                            <p><span>📞 Phone:</span> ${phone}</p>
+                            <p><span>📍 Address:</span> ${address}, ${pin}</p>
+                        </div>
+                        <div class="order-details">
+                            ${itemsList}
+                            <span class="order-total">${order.total}</span>
+                        </div>
+                        <div class="action-group">
+                            <div class="status-select-group">
+                                <select id="status-${order.id}">
+                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                                    <option value="baking" ${order.status === 'baking' ? 'selected' : ''}>👨‍🍳 Baking</option>
+                                    <option value="out" ${order.status === 'out' ? 'selected' : ''}>🛵 Out for Delivery</option>
+                                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>🎁 Delivered</option>
+                                    <option value="canceled" ${order.status === 'canceled' ? 'selected' : ''}>❌ Canceled</option>
+                                </select>
+                                <button class="update-btn" onclick="updateStatus('${order.id}')">Update Status</button>
+                            </div>
+                            <div class="per-order-exports">
+                                <button class="btn-mini btn-excel" onclick="exportSingleExcel('${order.id}')">Excel</button>
+                                <button class="btn-mini btn-pdf" onclick="exportSinglePDF('${order.id}')">PDF Receipt</button>
+                            </div>
+                            <button class="btn-mini btn-del" onclick="deleteOrder('${order.id}')">Delete Order</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        // --- 4. UPDATE STATUS IN DATABASE ---
+        async function updateStatus(orderId) {
+            const newStatus = document.getElementById(`status-${orderId}`).value;
+            try {
+                const response = await fetch('/api/admin/orders/' + orderId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if(response.ok) {
+                    showToast(`Status for ${orderId} successfully updated!`, 'success');
+                    fetchOrders(); // Refresh to update live state
+                }
+            } catch(err) {
+                showToast("Failed to update status.", 'error');
+            }
+        }
+
+        // --- 5. DELETE ORDER LOGIC ---
+        async function deleteOrder(orderId) {
+            if(confirm('Delete this order entirely? This cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/admin/orders/' + orderId, { method: 'DELETE' });
+                    if(response.ok) {
+                        showToast(`Order ${orderId} deleted.`, 'error');
+                        fetchOrders();
+                    } else {
+                        showToast("Failed to delete order.", 'error');
+                    }
+                } catch(err) {
+                    showToast("Server error.", 'error');
+                }
+            }
+        }
+
+        // --- 6. EXPORT FUNCTIONS ---
+        function exportSingleExcel(orderId) {
+            const o = liveOrders.find(x => x.id === orderId);
+            if(!o) return;
+            
+            let safeTotal = String(o.total).replace('₹', '').replace(',', '');
+            
+            let parsedItems = [];
+            try { parsedItems = JSON.parse(o.items); } catch(e) { parsedItems = []; }
+            let itemsString = parsedItems.map(i => `${i.qty}x ${i.name}`).join(' | ');
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Order ID,Date,Customer,Phone,Address,Items,Total,Status\n";
+            csvContent += `${o.id},${o.date},${o.customer},${o.customerPhone},"${o.customerAddress || 'N/A'}-${o.customerPin || 'N/A'}","${itemsString}",${safeTotal},${o.status}\n`;
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Receipt_${orderId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Excel receipt generated", "success");
+        }
+
+        function exportSinglePDF(orderId) {
+            document.getElementById(`card-${orderId}`).classList.add('print-active');
+            window.print();
+            setTimeout(() => {
+                document.getElementById(`card-${orderId}`).classList.remove('print-active');
+            }, 1000); 
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('custom-toast');
+            toast.innerText = message;
+            toast.className = ''; 
+            toast.classList.add('show', type);
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        window.onload = fetchOrders;
+    </script>
+</body>
+</html>

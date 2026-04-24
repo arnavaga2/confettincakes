@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your Hamper | Confettincake</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="toast" class="toast"></div>
+    <div id="redirect-overlay" class="overlay"><div class="loader"></div></div>
+
+    <div id="side-menu" class="side-nav">
+        <button class="close-btn" onclick="toggleMenu()">&times;</button>
+        
+        <div class="sidebar-header">
+            <div class="logo-circle">
+                <img src="https://via.placeholder.com/80/ffafcc/432818?text=Logo" alt="Confetti Logo" style="width: 100%; border-radius: 50%;">
+            </div>
+            <p id="nav-username">Welcome, Guest!</p>
+        </div>
+
+        <ul class="side-links">
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="products.html">🧁 Our Menu</a></li>
+            <li><a href="hampers.html">🎁 Build a Hamper</a></li>
+            <li><a href="profile.html">👤 My Profile</a></li>
+            <li><a href="orders.html">📦 Track Orders</a></li>
+        </ul>
+    </div>
+
+    <header class="top-nav">
+        <div class="nav-left">
+            <div class="menu-trigger" onclick="toggleMenu()">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+        <div class="nav-center">
+            <a href="index.html" class="logo">CONFETTINCAKE</a>
+        </div>
+        <div class="nav-right"></div>
+    </header>
+
+    <main class="hamper-builder">
+        <section class="builder-steps">
+            <div class="step active" id="s1">1. Choose Box</div>
+            <div class="step" id="s2">2. Add Treats</div>
+            <div class="step" id="s3">3. Final Touch</div>
+        </section>
+
+        <div id="step-1" class="builder-content">
+            <h2>Select your base</h2>
+            <div class="grid box-grid" id="box-options"></div>
+        </div>
+
+        <div id="step-2" class="builder-content" style="display:none;">
+            <h2>Fill your box <span id="counter" style="color: var(--primary-pink);">(0/6 items)</span></h2>
+            <div id="item-options" class="treats-grid" style="margin-top:20px;"></div>
+        </div>
+
+        <div id="step-3" class="builder-content" style="display:none;"></div>
+
+        <div class="builder-footer">
+            <div class="footer-left">
+                <button id="back-btn" class="cta-btn secondary small back-btn" type="button" onclick="prevStep()" style="display:none;">← Back</button>
+                <p style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: bold;">Total: ₹<span id="hamper-total">0</span></p>
+            </div>
+            <button id="next-btn" class="cta-btn" type="button" onclick="nextStep()">Next Step</button>
+        </div>
+    </main>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('side-menu');
+            menu.classList.toggle('active');
+        }
+        
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('side-menu');
+            const trigger = document.querySelector('.menu-trigger');
+            if (menu.classList.contains('active') && !menu.contains(e.target) && !trigger.contains(e.target)) {
+                menu.classList.remove('active');
+            }
+        });
+    </script>
+    <script src="js/auth.js"></script>
+    <script src="js/hamper-logic.js"></script>
+</body>
+</html>

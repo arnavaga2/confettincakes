@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        :root { --bg-color: #FAFAFA; --text-dark: #1C1C1C; --accent: #E23744; --white: #FFFFFF; --gray-light: #F8F9FA; --text-muted: #696969; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; padding-bottom: 90px; }
+
+        /* HEADER */
+        header { position: sticky; top: 0; left: 0; width: 100%; padding: 20px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); z-index: 100; border-bottom: 1px solid #EAEAEA; display: flex; align-items: center; justify-content: center; }
+        .page-title { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); text-transform: uppercase; letter-spacing: 1px;}
+        .back-btn { position: absolute; left: 20px; font-size: 1.5rem; color: var(--text-dark); text-decoration: none; }
+
+        main { max-width: 600px; margin: 0 auto; padding: 20px; }
+
+        /* USER CARD */
+        .user-card { background: var(--white); border-radius: 16px; padding: 25px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 30px; }
+        .user-card-left { display: flex; align-items: center; gap: 20px; }
+        .user-avatar { width: 70px; height: 70px; background: #FFF5F5; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: var(--accent); font-weight: 700; text-transform: uppercase; flex-shrink: 0;}
+        .user-info h2 { font-size: 1.3rem; margin-bottom: 2px; color: var(--text-dark); }
+        .user-info p { font-size: 0.85rem; color: var(--text-muted); }
+        
+        .edit-btn { background: #F8F9FA; color: var(--text-dark); border: 1px solid #EAEAEA; padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 5px;}
+        .edit-btn:hover { background: var(--text-dark); color: white; border-color: var(--text-dark); }
+
+        /* MENU LIST */
+        .profile-menu { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #F0F0F0; text-decoration: none; color: var(--text-dark); transition: 0.3s; cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:hover { background: #F8F9FA; }
+        .menu-left { display: flex; align-items: center; gap: 15px; }
+        .menu-icon { font-size: 1.3rem; color: var(--text-muted); background: #F7FAFC; padding: 8px; border-radius: 10px; }
+        .menu-text { font-size: 0.95rem; font-weight: 500; }
+        .menu-arrow { color: #CBD5E0; font-size: 1.2rem; }
+
+        .logout-item .menu-icon { color: #E53E3E; background: #FFF5F5; }
+        .logout-item .menu-text { color: #E53E3E; font-weight: 600; }
+
+        /* CUSTOM MODALS */
+        .glass-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: flex-end; z-index: 20000; opacity: 0; transition: opacity 0.3s ease; }
+        .glass-overlay.show { display: flex; opacity: 1; }
+        
+        .modal-box { background: var(--white); width: 100%; max-width: 450px; padding: 30px 20px 40px; border-radius: 24px 24px 0 0; text-align: center; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.1); position: relative; max-height: 90vh; overflow-y: auto;}
+        .glass-overlay.show .modal-box { transform: translateY(0); }
+        
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: #A0AEC0; transition: 0.3s; line-height: 1; }
+        .close-modal:hover { color: var(--accent); }
+
+        .modal-icon { font-size: 3rem; color: #E53E3E; margin-bottom: 10px; display: inline-block;}
+        .modal-box h2 { font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: var(--text-dark); margin-bottom: 8px; }
+        .modal-box p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 25px; }
+        
+        /* Edit Form Elements */
+        .modal-box input { width: 100%; padding: 14px 15px; margin: 8px 0; border: 1px solid #E2E8F0; border-radius: 8px; background: #F7FAFC; outline: none; font-size: 0.95rem; transition: 0.3s; }
+        .modal-box input:focus { border-color: var(--accent); background: var(--white); }
+        .modal-box .row { display: flex; gap: 10px; }
+        .error-msg { display: none; color: #E53E3E; font-size: 0.85rem; font-weight: 600; margin-top: 5px; text-align: left;}
+
+        .modal-actions { display: flex; gap: 15px; margin-top: 20px;}
+        .btn { flex: 1; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; border: none; transition: 0.3s; width: 100%;}
+        .btn-cancel { background: #F1F5F9; color: #4A5568; }
+        .btn-cancel:hover { background: #E2E8F0; }
+        .btn-logout { background: #E53E3E; color: white; box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3); }
+        .btn-logout:hover { background: #C53030; }
+        .btn-save { background: var(--accent); color: white; box-shadow: 0 4px 15px rgba(226, 55, 68, 0.3); }
+        .btn-save:hover { background: #C53030; }
+
+        /* FOOTER */
+        footer { padding: 40px 20px 20px; text-align: center; color: #A0AEC0; }
+        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #CBD5E0; margin-bottom: 5px; }
+
+        /* MOBILE BOTTOM NAV */
+        .mobile-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #EAEAEA; display: flex; justify-content: space-around; padding: 12px 0 15px; z-index: 999; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); gap: 4px; transition: 0.2s;}
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        /* CUSTOM TOAST */
+        #custom-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #1C1C1C; color: white; padding: 14px 28px; border-radius: 30px; font-weight: 600; font-size: 0.95rem; z-index: 99999; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
+        @media (min-width: 768px) {
+            .mobile-nav { display: none; }
+            .modal-box { border-radius: 20px; margin-bottom: 50px; transform: scale(0.9); }
+            .glass-overlay { align-items: center; }
+            .glass-overlay.show .modal-box { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
+        <h1 class="page-title">My Account</h1>
+    </header>
+
+    <main>
+        <div class="user-card" id="user-profile-card">
+            <div class="user-card-left">
+                <div class="user-avatar" id="user-initial">?</div>
+                <div class="user-info">
+                    <h2 id="user-name">Guest User</h2>
+                    <p id="user-phone">Please log in to see details</p>
+                </div>
+            </div>
+            <button class="edit-btn" onclick="openEditModal()"><i class="ri-pencil-fill"></i> Edit</button>
+        </div>
+
+        <div class="profile-menu">
+            <a href="orders.html" class="menu-item">
+                <div class="menu-left">
+                    <i class="ri-shopping-bag-3-fill menu-icon"></i>
+                    <span class="menu-text">My Orders</span>
+                </div>
+                <i class="ri-arrow-right-s-line menu-arrow"></i>
+            </a>
+            
+            <a href="menu.html" class="menu-item">
+                <div class="menu-left">
+                    <i class="ri-restaurant-fill menu-icon" style="color: #3182CE; background: #EBF8FF;"></i>
+                    <span class="menu-text">Explore Menu</span>
+                </div>
+                <i class="ri-arrow-right-s-line menu-arrow"></i>
+            </a>
+
+            <a href="gallery.html" class="menu-item">
+                <div class="menu-left">
+                    <i class="ri-gallery-fill menu-icon" style="color: #D69E2E; background: #FFFFF0;"></i>
+                    <span class="menu-text">Photo Gallery</span>
+                </div>
+                <i class="ri-arrow-right-s-line menu-arrow"></i>
+            </a>
+
+            <div class="menu-item logout-item" onclick="openLogoutModal()">
+                <div class="menu-left">
+                    <i class="ri-logout-box-r-line menu-icon"></i>
+                    <span class="menu-text">Log Out</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="logout-modal" class="glass-overlay">
+        <div class="modal-box">
+            <i class="ri-error-warning-fill modal-icon"></i>
+            <h2>Sign Out?</h2>
+            <p>Are you sure you want to log out of your ConfettinCake account?</p>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn btn-logout" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="glass-overlay">
+        <div class="modal-box">
+            <span class="close-modal" onclick="closeEditModal()">×</span>
+            <h2 style="margin-bottom: 20px;">Edit Profile</h2>
+            
+            <input type="text" id="ed-name" placeholder="Full Name" required>
+            <input type="tel" id="ed-phone" placeholder="Phone Number" required>
+            <input type="text" id="ed-address" placeholder="Street Address" required>
+            
+            <input type="number" id="ed-pin" placeholder="6-Digit Pincode" onkeyup="checkEditPincode()" required>
+            <p id="ed-pin-error" class="error-msg">We don't deliver here yet.</p>
+            
+            <div class="row">
+                <input type="text" id="ed-city" placeholder="City" readonly>
+                <input type="text" id="ed-state" placeholder="State" readonly>
+            </div>
+            
+            <input type="password" id="ed-pass" placeholder="New Password (leave blank to keep old)">
+            
+            <button class="btn btn-save" style="margin-top: 15px;" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-brand">CONFETTINCAKE</div>
+        <p id="dynamic-footer" style="font-size: 0.8rem;">Baking joy across the city.</p>
+    </footer>
+
+    <nav class="mobile-nav">
+        <a href="index.html" class="nav-item">
+            <i class="ri-home-smile-line"></i><span class="nav-label">Home</span>
+        </a>
+        <a href="menu.html" class="nav-item">
+            <i class="ri-restaurant-line"></i><span class="nav-label">Menu</span>
+        </a>
+        <a href="orders.html" class="nav-item">
+            <i class="ri-shopping-bag-3-line"></i><span class="nav-label">Orders</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="ri-user-smile-fill"></i><span class="nav-label">Profile</span>
+        </a>
+    </nav>
+
+    <div id="custom-toast">Success!</div>
+
+    <script>
+        // Store their original phone number globally so the database knows who to update
+        let originalPhone = "";
+
+        // --- INITIALIZE PROFILE ---
+        window.onload = () => {
+            const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
+            
+            if(!activeUser) {
+                window.location.replace('index.html');
+                return;
+            }
+
+            // Populate User Card
+            document.getElementById('user-name').innerText = activeUser.name;
+            document.getElementById('user-phone').innerText = "+91 " + activeUser.phone;
+            
+            // Set Avatar Initial
+            const initial = activeUser.name.charAt(0).toUpperCase();
+            document.getElementById('user-initial').innerText = initial;
+
+            loadHomeSettings();
+        };
+
+        function showToast(message) {
+            let toast = document.getElementById('custom-toast');
+            toast.innerText = message; toast.style.bottom = '90px'; toast.style.opacity = '1';
+            setTimeout(() => { toast.style.bottom = '-100px'; toast.style.opacity = '0'; }, 3000);
+        }
+
+        // --- CUSTOM LOGOUT LOGIC ---
+        function openLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function executeLogout() {
+            localStorage.removeItem('confettinActiveUser');
+            window.location.replace('index.html');
+        }
+
+        // --- EDIT PROFILE LOGIC ---
+        function openEditModal() {
+            const user = JSON.parse(localStorage.getItem('confettinActiveUser'));
+            if(!user) return;
+
+            originalPhone = user.phone; // Save this to identify the user in the backend!
+            
+            // Pre-fill fields
+            document.getElementById('ed-name').value = user.name || '';
+            document.getElementById('ed-phone').value = user.phone || '';
+            document.getElementById('ed-address').value = user.address || '';
+            document.getElementById('ed-pin').value = user.pin || '';
+            document.getElementById('ed-city').value = user.city || '';
+            document.getElementById('ed-state').value = user.state || '';
+            document.getElementById('ed-pass').value = '';
+
+            const modal = document.getElementById('edit-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function checkEditPincode() {
+            const pin = document.getElementById('ed-pin').value;
+            const err = document.getElementById('ed-pin-error');
+            const city = document.getElementById('ed-city');
+            const state = document.getElementById('ed-state');
+
+            const allowedPins = localStorage.getItem('confettinPincodes') || "110";
+            const pinPrefixes = allowedPins.split(',').map(p => p.trim());
+
+            if(pin.length >= 3) {
+                const isValid = pinPrefixes.some(prefix => pin.startsWith(prefix));
+
+                if(isValid && pin.length === 6) {
+                    err.style.display = 'none';
+                    if(pin.startsWith('110')) {
+                        city.value = "New Delhi"; state.value = "Delhi";
+                    } else {
+                        city.removeAttribute("readonly"); state.removeAttribute("readonly");
+                    }
+                } else if (pin.length === 6) {
+                    err.style.display = 'block';
+                    city.value = ""; state.value = "";
+                }
+            }
+        }
+
+        async function saveProfileChanges() {
+            const name = document.getElementById('ed-name').value.trim();
+            const phone = document.getElementById('ed-phone').value.trim();
+            const address = document.getElementById('ed-address').value.trim();
+            const pin = document.getElementById('ed-pin').value.trim();
+            const city = document.getElementById('ed-city').value.trim();
+            const state = document.getElementById('ed-state').value.trim();
+            const password = document.getElementById('ed-pass').value;
+
+            if(!name || !phone || !address || !pin || !city) return showToast("Please fill all required fields.");
+            if(!/^\d{10}$/.test(phone)) return showToast("Valid 10-digit phone required.");
+
+            try {
+                const response = await fetch('/api/auth/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ originalPhone, name, phone, address, pin, city, state, password })
+                });
+
+                const data = await response.json();
+                
+                if(response.ok) {
+                    // Update Local Storage with fresh data
+                    localStorage.setItem('confettinActiveUser', JSON.stringify(data.user));
+                    showToast("Profile Updated!");
+                    closeEditModal();
+                    
+                    // Update UI instantly
+                    document.getElementById('user-name').innerText = data.user.name;
+                    document.getElementById('user-phone').innerText = "+91 " + data.user.phone;
+                    document.getElementById('user-initial').innerText = data.user.name.charAt(0).toUpperCase();
+                } else {
+                    showToast(data.error || "Update failed.");
+                }
+            } catch(err) {
+                showToast("Server connection error.");
+            }
+        }
+
+        // Close modals if user clicks the dark background outside the box
+        window.onclick = function(event) {
+            const logoutModal = document.getElementById('logout-modal');
+            const editModal = document.getElementById('edit-modal');
+            if (event.target === logoutModal) closeLogoutModal();
+            if (event.target === editModal) closeEditModal();
+        }
+
+        // --- LOAD DYNAMIC FOOTER ---
+        async function loadHomeSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    if (settings.footerText) { 
+                        document.getElementById('dynamic-footer').innerHTML = settings.footerText; 
+                    }
+                }
+            } catch (err) { console.log("Could not load dynamic settings."); }
+        }
+    </script>
+</body>
+</html>

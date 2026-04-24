@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        if(localStorage.getItem('isAdminLoggedIn') !== 'true') {
+            window.location.replace('../admin-login.html');
+        }
+    </script>
+
+    <style>
+        :root { --bg-color: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { background-color: var(--bg-color); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- ADMIN SIDEBAR --- */
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; }
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 40px; color: white; text-align: center; letter-spacing: 1px;}
+        .brand span { color: var(--accent); }
+
+        .nav-links { list-style: none; flex-grow: 1; }
+        .nav-links li { margin-bottom: 10px; }
+        .nav-links a { text-decoration: none; color: #A0AEC0; font-size: 0.95rem; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+
+        .logout-btn { background: transparent; color: #A0AEC0; border: 1px solid #A0AEC0; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 600; }
+        .logout-btn:hover { background: #D9534F; color: white; border-color: #D9534F; }
+
+        /* --- MAIN DASHBOARD AREA --- */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        header h1 { font-size: 2rem; color: #2D3748; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; display: flex; flex-direction: column; justify-content: center;}
+        .stat-title { color: #A0AEC0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600;}
+        .stat-value { font-size: 2.2rem; color: #2D3748; font-weight: 600; }
+        .stat-sub { font-size: 0.8rem; margin-top: 5px; font-weight: 600; color: #718096;}
+
+        /* Charts Area */
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
+        .chart-box h2 { font-size: 1.1rem; color: #2D3748; margin-bottom: 20px; }
+        
+        /* Leaderboards Area */
+        .leaderboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .board-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
+        .board-box h2 { font-size: 1.1rem; color: #2D3748; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed #E2E8F0; }
+        
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F7FAFC; }
+        .list-item:last-child { border-bottom: none; }
+        .item-name { font-size: 0.95rem; font-weight: 600; color: #4A5568; text-transform: capitalize; }
+        .item-metric { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+        .rank-badge { background: #EDF2F7; color: #718096; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: 700; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
+        <ul class="nav-links">
+            <li><a href="admin-dashboard.html" class="active">Dashboard</a></li>
+            <li><a href="admin-inventory.html">Inventory</a></li>
+            <li><a href="admin-orders.html">Orders</a></li>
+            <li><a href="admin-users.html">Users</a></li>
+            <li><a href="admin-settings.html">Settings</a></li>
+        </ul>
+        <button class="logout-btn" onclick="logoutAdmin()">Secure Logout</button>
+    </nav>
+
+    <div class="main-content">
+        <header>
+            <div>
+                <h1>Analytics & Revenue</h1>
+                <p style="color: #718096;">Tracking delivered orders and store performance.</p>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Today's Revenue</div>
+                <div class="stat-value" id="dash-revenue">₹0</div>
+                <div class="stat-sub" style="color: #48BB78;">Delivered Orders Only</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Pending Deliveries</div>
+                <div class="stat-value" id="dash-pending" style="color: var(--accent);">0</div>
+                <div class="stat-sub">Requires action</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">All-Time Revenue</div>
+                <div class="stat-value" id="dash-all-time">₹0</div>
+                <div class="stat-sub" style="color: #48BB78;">Total Delivered Value</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Total Customers</div>
+                <div class="stat-value" id="dash-users">0</div>
+                <div class="stat-sub">Registered accounts</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-box">
+                <h2>Revenue Timeline (Last 7 Days)</h2>
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+            <div class="chart-box">
+                <h2>Top Selling Categories</h2>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="leaderboard-grid">
+            <div class="board-box">
+                <h2>🏆 Top 5 VIP Customers</h2>
+                <div id="top-users-list">
+                    <p style="color: #A0AEC0; font-size: 0.9rem;">Not enough data yet.</p>
+                </div>
+            </div>
+            <div class="board-box">
+                <h2>🔥 Top 5 Best Sellers</h2>
+                <div id="top-products-list">
+                    <p style="color: #A0AEC0; font-size: 0.9rem;">Not enough data yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboardMetrics() {
+            try {
+                const response = await fetch('/api/admin/dashboard');
+                const data = await response.json();
+                
+                const orders = data.orders || [];
+                document.getElementById('dash-users').innerText = data.totalUsers || 0;
+                
+                const todayStr = new Date().toLocaleDateString();
+
+                // 1. DATA CONTAINERS
+                let todaysRevenue = 0;
+                let allTimeRevenue = 0;
+                let pendingDeliveriesCount = 0;
+
+                let revenueByDate = {};
+                let userTotals = {};
+                let productSales = {};
+                let categorySales = { "Cakes": 0, "Cupcakes": 0, "Cookies": 0, "Other": 0 };
+
+                // 2. PROCESS ORDERS
+                orders.forEach(order => {
+                    // Count pending items
+                    if (['pending', 'baking', 'out'].includes(order.status)) {
+                        pendingDeliveriesCount++;
+                    }
+
+                    // STRICT RULE: ONLY CALCULATE MONEY IF DELIVERED
+                    if (order.status === 'delivered') {
+                        let cleanTotal = Number(order.total.replace(/[^0-9.-]+/g, ""));
+                        
+                        // All-time & Today's Revenue
+                        allTimeRevenue += cleanTotal;
+                        if (order.date === todayStr) { todaysRevenue += cleanTotal; }
+
+                        // Revenue by Date (For Chart)
+                        revenueByDate[order.date] = (revenueByDate[order.date] || 0) + cleanTotal;
+
+                        // VIP Customers Tracker
+                        let userKey = order.customer; 
+                        userTotals[userKey] = (userTotals[userKey] || 0) + cleanTotal;
+
+                        // Top Products & Categories Tracker
+                        try {
+                            let items = JSON.parse(order.items);
+                            items.forEach(item => {
+                                // Track individual product quantity
+                                productSales[item.name] = (productSales[item.name] || 0) + item.qty;
+
+                                // Infer Category (Basic text matching for the Doughnut Chart)
+                                let n = item.name.toLowerCase();
+                                if (n.includes('cake') && !n.includes('cupcake')) categorySales["Cakes"] += item.qty;
+                                else if (n.includes('cupcake')) categorySales["Cupcakes"] += item.qty;
+                                else if (n.includes('cookie')) categorySales["Cookies"] += item.qty;
+                                else categorySales["Other"] += item.qty;
+                            });
+                        } catch(e) {}
+                    }
+                });
+
+                // Update Top Stats UI
+                document.getElementById('dash-revenue').innerText = '₹' + todaysRevenue.toLocaleString('en-IN');
+                document.getElementById('dash-all-time').innerText = '₹' + allTimeRevenue.toLocaleString('en-IN');
+                document.getElementById('dash-pending').innerText = pendingDeliveriesCount;
+
+                // 3. RENDER LEADERBOARDS
+                
+                // VIP Customers (Sort by total spent, take top 5)
+                const topUsers = Object.entries(userTotals).sort((a,b) => b[1] - a[1]).slice(0,5);
+                const usersHtml = document.getElementById('top-users-list');
+                if(topUsers.length > 0) {
+                    usersHtml.innerHTML = '';
+                    topUsers.forEach((user, index) => {
+                        usersHtml.innerHTML += `
+                            <div class="list-item">
+                                <div><span class="rank-badge">${index + 1}</span><span class="item-name">${user[0]}</span></div>
+                                <span class="item-metric">₹${user[1].toLocaleString('en-IN')}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Best Sellers (Sort by quantity sold, take top 5)
+                const topProducts = Object.entries(productSales).sort((a,b) => b[1] - a[1]).slice(0,5);
+                const productsHtml = document.getElementById('top-products-list');
+                if(topProducts.length > 0) {
+                    productsHtml.innerHTML = '';
+                    topProducts.forEach((product, index) => {
+                        productsHtml.innerHTML += `
+                            <div class="list-item">
+                                <div><span class="rank-badge">${index + 1}</span><span class="item-name">${product[0]}</span></div>
+                                <span class="item-metric">${product[1]} Sold</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                // 4. RENDER CHART.JS GRAPHS
+
+                // Prep Revenue Data (Get last 7 unique dates that had sales)
+                const sortedDates = Object.keys(revenueByDate).sort();
+                const recentDates = sortedDates.slice(-7); 
+                const recentRevenues = recentDates.map(date => revenueByDate[date]);
+
+                // Line Chart: Revenue
+                const revCtx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(revCtx, {
+                    type: 'line',
+                    data: {
+                        labels: recentDates.length > 0 ? recentDates : ['No Data Yet'],
+                        datasets: [{
+                            label: 'Revenue (₹)',
+                            data: recentRevenues.length > 0 ? recentRevenues : [0],
+                            borderColor: '#FF6B81',
+                            backgroundColor: 'rgba(255, 107, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Doughnut Chart: Categories
+                const catCtx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cakes', 'Cupcakes', 'Cookies', 'Other'],
+                        datasets: [{
+                            data: [categorySales["Cakes"], categorySales["Cupcakes"], categorySales["Cookies"], categorySales["Other"]],
+                            backgroundColor: ['#FF6B81', '#F6D365', '#8EC5FC', '#E2E8F0'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Failed to fetch dashboard data:", err);
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.replace('../admin-login.html');
+        }
+
+        window.onload = loadDashboardMetrics;
+    </script>
+</body>
+</html>

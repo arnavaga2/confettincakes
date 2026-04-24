@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --bg-cream: #FFF7EA; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
+
+        header { position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px; background: rgba(255, 247, 234, 0.85); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 9000; display: flex; align-items: center; justify-content: space-between; }
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: center; }
+        .page-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 600;}
+
+        main { padding: 90px 20px 120px; max-width: 600px; margin: 0 auto; min-height: 100vh;}
+        .section-title { font-size: 1rem; color: #718096; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+        
+        .user-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+        .user-icon { width: 40px; height: 40px; background: rgba(255, 107, 129, 0.1); color: var(--accent-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+        .user-name { font-size: 1.1rem; font-weight: 600; text-transform: capitalize;}
+        .user-address { color: #718096; font-size: 0.9rem; line-height: 1.5; }
+
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; color: #4A5568;}
+        .summary-row.total { border-top: 1px dashed #CBD5E0; padding-top: 15px; margin-top: 5px; font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
+
+        .pay-option { display: flex; align-items: center; padding: 15px; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 10px; cursor: pointer;}
+        .pay-option.disabled { opacity: 0.6; cursor: not-allowed; background: #F7FAFC; }
+        .pay-option input { margin-right: 15px; accent-color: var(--accent-color); transform: scale(1.2); }
+        .pay-label { font-weight: 600; display: flex; flex-direction: column; }
+        .pay-desc { font-size: 0.8rem; color: #A0AEC0; font-weight: 400; margin-top: 2px;}
+
+        .checkout-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 9000;}
+        .total-text { font-size: 0.9rem; color: #718096; }
+        .total-price { font-size: 1.5rem; font-weight: 600; }
+        .checkout-btn { background: var(--accent-color); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; text-transform: uppercase; }
+
+        /* LOGIN WARNING OVERLAY */
+        #auth-warning { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 10000; display: none; justify-content: center; align-items: center; }
+        .warning-box { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
+        .warning-box h2 { font-family: 'Playfair Display', serif; color: var(--accent-color); margin-bottom: 10px; }
+        .warning-btn { background: var(--text-dark); color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; margin-top: 20px; cursor: pointer; width: 100%;}
+    </style>
+</head>
+<body>
+
+    <div id="auth-warning">
+        <div class="warning-box">
+            <h2>Access Denied</h2>
+            <p style="color: #666; font-size: 0.9rem;">You must be logged in to securely place an order.</p>
+            <button class="warning-btn" onclick="window.location.href='index.html'">Go to Login</button>
+        </div>
+    </div>
+
+    <header>
+        <a href="cart.html" class="back-btn">←</a>
+        <h2 class="page-title">Payment</h2>
+    </header>
+
+    <main>
+        <div class="section-title">Delivery Details</div>
+        <div class="card">
+            <div class="user-header">
+                <div class="user-icon">📍</div>
+                <div class="user-name" id="display-name">Loading...</div>
+            </div>
+            <div class="user-address" id="display-address">
+                Loading address details...
+            </div>
+        </div>
+
+        <div class="section-title">Order Summary</div>
+        <div class="card">
+            <div id="item-breakdown"></div>
+            <div class="summary-row total">
+                <span>Total to Pay</span>
+                <span id="final-total">₹0</span>
+            </div>
+        </div>
+
+        <div class="section-title">Payment Method</div>
+        <div class="card" style="padding: 15px;">
+            <label class="pay-option">
+                <input type="radio" name="payment" value="cod" checked>
+                <div class="pay-label">Cash on Delivery<span class="pay-desc">Pay at your doorstep</span></div>
+            </label>
+        </div>
+    </main>
+
+    <div class="checkout-bar">
+        <div><div class="total-text">Grand Total</div><div class="total-price" id="footer-total">₹0</div></div>
+        <button class="checkout-btn" onclick="confirmOrder()">Place Order</button>
+    </div>
+
+    <script>
+        // 1. CHECK LOGIN STATUS & POPULATE DATA
+        const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
+        if(!activeUser) {
+            document.getElementById('auth-warning').style.display = 'flex';
+        } else {
+            document.getElementById('display-name').innerText = activeUser.name;
+            document.getElementById('display-address').innerHTML = `
+                ${activeUser.phone}<br>
+                ${activeUser.address}<br>
+                ${activeUser.city || 'City'}, ${activeUser.state || 'State'} - ${activeUser.pin}
+            `;
+        }
+
+        // 2. LOAD CART & CALCULATE
+        const cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+        let grandTotal = 0;
+        const breakdown = document.getElementById('item-breakdown');
+
+        cart.forEach(item => {
+            let itemTotal = item.price * item.qty;
+            grandTotal += itemTotal;
+            breakdown.innerHTML += `<div class="summary-row"><span>${item.qty}x ${item.name}</span><span>₹${itemTotal}</span></div>`;
+        });
+
+        document.getElementById('final-total').innerText = "₹" + grandTotal;
+        document.getElementById('footer-total').innerText = "₹" + grandTotal;
+
+        
+        // 3. PLACE REAL ORDER VIA NODE.JS API
+        async function confirmOrder() {
+            if(!activeUser) return;
+
+            const btn = document.querySelector('.checkout-btn');
+            btn.innerText = "PROCESSING...";
+            btn.disabled = true;
+
+            const payRadio = document.querySelector('input[name="payment"]:checked');
+            const paymentMethod = payRadio ? payRadio.value.toUpperCase() : 'COD';
+
+            // Prepare the payload, pulling the email dynamically from the user's profile!
+            const orderPayload = {
+                customer: activeUser.name,
+                customerPhone: activeUser.phone,
+                customerAddress: activeUser.address,
+                customerPin: activeUser.pin,
+                items: JSON.stringify(cart), 
+                total: `₹${grandTotal} (${paymentMethod})`, 
+                customerEmail: activeUser.email // <--- PULLS FROM PROFILE INSTEAD OF PROMPT
+            };
+
+            try {
+                const response = await fetch('/api/orders/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderPayload)
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('confettinCart');
+                    localStorage.removeItem('confettinCheckoutTotal');
+                    window.location.href = 'orders.html';
+                } else {
+                    // Replaced native alert with custom toast
+                    showToast("Order failed. Please try again.");
+                    btn.innerText = "PLACE ORDER";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                // Replaced native alert with custom toast
+                showToast("Server connection lost. Is Node.js running?");
+                btn.innerText = "PLACE ORDER";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
