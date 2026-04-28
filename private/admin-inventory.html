@@ -4,40 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Inventory | CONFETTINCAKE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <script>
         if(localStorage.getItem('isAdminLoggedIn') !== 'true') { window.location.replace('../admin-login.html'); }
     </script>
 
     <style>
-        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; }
+        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; --text-dark: #2D3748; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); display: flex; height: 100vh; overflow: hidden; }
 
-        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; }
-        .brand { font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+        /* --- DESKTOP SIDEBAR --- */
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; flex-shrink: 0;}
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; color: white;}
+        .brand span { color: var(--accent); }
         .nav-links { list-style: none; flex-grow: 1; }
-        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; }
-        .nav-links a.active { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; font-size: 0.95rem;}
+        .nav-links a.active, .nav-links a:hover { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+        .logout-btn { background: transparent; color: #A0AEC0; border: 1px solid #A0AEC0; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 600; width: 100%;}
+        .logout-btn:hover { background: #D9534F; color: white; border-color: #D9534F; }
 
-        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
+        /* --- MAIN CONTENT --- */
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; width: calc(100% - 250px); }
+        .header h1 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 5px; }
         
-        .main-tabs-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
-        .main-tab-btn { background: none; border: none; font-size: 1rem; font-weight: 600; color: #A0AEC0; padding: 10px 20px; cursor: pointer; transition: 0.3s; border-radius: 8px; }
+        .main-tabs-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;}
+        .main-tabs-container::-webkit-scrollbar { display: none; }
+        .main-tab-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: #A0AEC0; padding: 10px 20px; cursor: pointer; transition: 0.3s; border-radius: 8px; white-space: nowrap;}
         .main-tab-btn.active { color: white; background: var(--sidebar-bg); }
 
         .tab-section { display: none; animation: fadeIn 0.3s ease; }
         .tab-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 
-        .category-tabs { display: flex; gap: 8px; background: #e2e8f0; padding: 5px; border-radius: 10px; overflow-x: auto;}
-        .sub-tab { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; background: transparent; font-weight: 600; font-size: 0.85rem; color: #4A5568; text-transform: capitalize; white-space: nowrap;}
-        .sub-tab.active { background: var(--white); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* 🔥 PREMIUM CATEGORY DROPDOWN */
+        .category-select {
+            padding: 10px 15px; border: 2px solid var(--accent); border-radius: 8px;
+            background: white; color: var(--text-dark); font-weight: 600; font-size: 0.95rem;
+            outline: none; cursor: pointer; min-width: 200px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-transform: uppercase;
+        }
 
-        .inventory-form { background: var(--white); padding: 25px; border-radius: 12px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 30px; border: 1px solid #E2E8F0; }
+        /* INVENTORY FORM */
+        .inventory-form { background: var(--white); padding: 25px; border-radius: 12px; display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 30px; border: 1px solid #E2E8F0; border-top: 3px solid var(--accent); }
 
         .upload-area { border: 2px dashed #CBD5E0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 260px; cursor: pointer; position: relative; overflow: hidden; background: #f8fafc; transition: 0.3s; }
         .upload-area.dragover { border-color: var(--accent); background: rgba(255, 107, 129, 0.05); }
@@ -55,8 +68,10 @@
         .save-btn:hover { background: var(--accent); }
         .add-btn { background: #48BB78; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;}
 
-        .inventory-list { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        /* INVENTORY LIST & TABLES */
+        .inventory-list { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; border-top: 3px solid var(--accent); }
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; min-width: 600px; border-collapse: collapse; margin-top: 15px; }
         th { text-align: left; padding: 12px; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #334155; }
         .list-img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0; }
@@ -66,23 +81,76 @@
         .edit-action { color: #3182CE; } .del-action { color: #ef4444; }
         .edit-action:hover, .del-action:hover { text-decoration: underline; }
 
-        /* 🔥 CATEGORY LIST UI UPDATES */
+        /* CATEGORY LIST UI */
         .cat-list-item { display: flex; align-items: center; justify-content: space-between; background: #F7FAFC; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #E2E8F0; gap: 15px;}
         .cat-img-preview { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #CBD5E0; background: #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #718096; flex-shrink: 0;}
         .cat-list-text { font-size: 0.95rem; color: #4A5568; font-weight: 600; text-transform: capitalize; flex-grow: 1; }
         .cat-update-btn { font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; border: none; background: var(--sidebar-bg); color: white; cursor: pointer; font-weight: 600; transition: 0.2s;}
         .cat-update-btn:hover { background: var(--accent); }
         
+        /* TOAST */
         #custom-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #2D3748; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; z-index: 10000; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         #custom-toast.show { bottom: 40px; opacity: 1; }
         #custom-toast.success { border-left: 5px solid #48BB78; }
         #custom-toast.error { border-left: 5px solid #F56565; }
+
+        /* --- MOBILE APP OVERRIDES --- */
+        .mobile-bottom-nav { display: none; }
+        .mobile-top-bar { display: none; }
+
+        @media (max-width: 768px) {
+            /* Hide Desktop Sidebar */
+            .sidebar { display: none !important; }
+            body { flex-direction: column; }
+            
+            /* Mobile Top Bar */
+            .mobile-top-bar {
+                display: flex; justify-content: space-between; align-items: center;
+                background: white; padding: 15px 20px; border-bottom: 1px solid #E2E8F0;
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            }
+            .mobile-top-bar .brand { margin-bottom: 0; color: #1A1A1A; font-size: 1.1rem; font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 1px;}
+            .mobile-top-bar .brand span { color: var(--accent); }
+            .mobile-top-bar .logout-btn-mobile { background: none; border: none; color: #E53E3E; font-size: 1.4rem; cursor: pointer;}
+
+            /* Adjust Main Content Area */
+            .main-content { width: 100% !important; padding: 85px 15px 90px 15px !important; }
+            h1 { font-size: 1.5rem; }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
+                background: #1A1A1A; padding: 12px 10px 25px 10px; 
+                justify-content: space-between; z-index: 9999;
+                border-top-left-radius: 20px; border-top-right-radius: 20px;
+                box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            }
+            .mobile-bottom-nav a {
+                color: #718096; text-decoration: none; display: flex; flex-direction: column;
+                align-items: center; font-size: 0.65rem; font-weight: 600; gap: 5px;
+                width: 20%; transition: 0.3s;
+            }
+            .mobile-bottom-nav a i { font-size: 1.4rem; }
+            .mobile-bottom-nav a.active { color: var(--accent); }
+
+            /* Stack Form Grids and Shrink Upload Boxes */
+            .inventory-form { grid-template-columns: 1fr; gap: 20px; padding: 15px; }
+            .upload-area { height: 180px !important; } /* Much smaller for mobile to fit */
+            
+            /* Stack Header and Dropdown */
+            .header-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .category-select { width: 100%; max-width: 100%; }
+
+            /* Stack Category Rows */
+            .row { flex-direction: column; gap: 12px; }
+        }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
-        <div class="brand">CONFETTIN<span style="color:var(--accent)">CAKE</span></div>
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
         <ul class="nav-links">
             <li><a href="admin-dashboard.html">Dashboard</a></li>
             <li><a href="admin-inventory.html" class="active">Inventory</a></li>
@@ -90,6 +158,30 @@
             <li><a href="admin-users.html">Users</a></li>
             <li><a href="admin-settings.html">Settings</a></li>
         </ul>
+        <button class="logout-btn" onclick="logoutAdmin()">Secure Logout</button>
+    </nav>
+
+    <div class="mobile-top-bar">
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
+        <button class="logout-btn-mobile" onclick="logoutAdmin()"><i class="ri-logout-circle-r-line"></i></button>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <a href="admin-dashboard.html">
+            <i class="ri-dashboard-line"></i><span>Dash</span>
+        </a>
+        <a href="admin-inventory.html" class="active">
+            <i class="ri-cake-3-line"></i><span>Menu</span>
+        </a>
+        <a href="admin-orders.html">
+            <i class="ri-shopping-bag-3-line"></i><span>Orders</span>
+        </a>
+        <a href="admin-users.html">
+            <i class="ri-group-line"></i><span>Users</span>
+        </a>
+        <a href="admin-settings.html">
+            <i class="ri-settings-3-line"></i><span>Settings</span>
+        </a>
     </nav>
 
     <div class="main-content">
@@ -104,9 +196,9 @@
         <div id="tab-products" class="tab-section active">
             <div class="header-row">
                 <h2>Product Menu</h2>
-                <div class="category-tabs" id="dynamic-cat-tabs">
-                    <button class="sub-tab active">Loading...</button>
-                </div>
+                <select id="dynamic-cat-select" class="category-select" onchange="setCat(this.value)">
+                    <option value="">Loading Categories...</option>
+                </select>
             </div>
 
             <div class="inventory-form">
@@ -132,20 +224,22 @@
             </div>
 
             <div class="inventory-list">
-                <h3 style="text-transform: capitalize;"><span id="catName">Category</span> List</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Weight</th>
-                            <th>Time</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listBody"></tbody>
-                </table>
+                <h3 style="text-transform: capitalize; margin-bottom: 15px;"><span id="catName">Category</span> List</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Weight</th>
+                                <th>Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -189,7 +283,13 @@
         let catB64Image = ""; 
         let editingId = null; 
         let globalInventory = []; 
-        let editingCatIndex = null; // Used for quick image updates
+        let editingCatIndex = null; 
+
+        // --- AUTH LOGIC ---
+        function logoutAdmin() {
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.replace('../admin-login.html');
+        }
 
         function switchMainTab(tabId, btn) {
             document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
@@ -198,11 +298,10 @@
             btn.classList.add('active');
         }
 
-        function setCat(c, btnElement) {
+        // 🔥 UPDATED: Select Dropdown logic
+        function setCat(c) {
             category = c;
             document.getElementById('catName').innerText = c;
-            document.querySelectorAll('.sub-tab').forEach(btn => btn.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
             renderTable();
             resetForm(); 
         }
@@ -248,7 +347,7 @@
                     
                     if(!globalSettings.categories) globalSettings.categories = ["cakes", "cupcakes", "cookies", "hampers", "chocolates"];
                     
-                    // Normalize: Safely convert old String categories into Object categories
+                    // Normalize
                     globalSettings.categories = globalSettings.categories.map(c => {
                         if (typeof c === 'string') return { name: c, image: '' };
                         return c;
@@ -279,20 +378,24 @@
             });
         }
 
+        // 🔥 UPDATED: Renders into the Select Dropdown
         function renderCategorySubTabs() {
-            const tabsContainer = document.getElementById('dynamic-cat-tabs');
-            tabsContainer.innerHTML = '';
+            const selectEl = document.getElementById('dynamic-cat-select');
+            selectEl.innerHTML = '';
             
             globalSettings.categories.forEach((catObj, index) => {
                 const cName = catObj.name;
-                const isActive = index === 0 ? 'active' : '';
-                tabsContainer.innerHTML += `<button class="sub-tab ${isActive}" onclick="setCat('${cName}', this)">${cName}</button>`;
+                selectEl.innerHTML += `<option value="${cName}">${cName.toUpperCase()}</option>`;
                 
                 if(index === 0 && !category) {
                     category = cName;
                     document.getElementById('catName').innerText = cName;
                 }
             });
+            
+            // Ensure the dropdown shows the currently selected category
+            if(category) selectEl.value = category; 
+            
             renderTable();
         }
 
@@ -353,7 +456,6 @@
             saveSettings("Category Added!");
         }
 
-        // --- QUICK UPDATE EXISTING CATEGORY IMAGE ---
         function editCategoryImage(index) {
             editingCatIndex = index;
             document.getElementById('quickCatPicInput').click();
@@ -391,7 +493,7 @@
         }
 
         // =====================================
-        // 📦 PRODUCT MANAGEMENT (YOUR OLD CODE)
+        // 📦 PRODUCT MANAGEMENT
         // =====================================
         const dropArea = document.getElementById('dropArea');
         const picInput = document.getElementById('picInput');

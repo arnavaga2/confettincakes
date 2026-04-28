@@ -4,27 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Users | CONFETTINCAKE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script>
         if(localStorage.getItem('isAdminLoggedIn') !== 'true') {
             window.location.replace('../admin-login.html'); 
         }
     </script>
     <style>
-        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; }
+        :root { --bg: #F4F7FE; --sidebar-bg: #1A1A1A; --accent: #FF6B81; --white: #ffffff; --text-dark: #2D3748;}
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         body { background-color: var(--bg); display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; }
-        .brand { font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+        /* --- DESKTOP SIDEBAR --- */
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; z-index: 100; flex-shrink: 0;}
+        .brand { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 40px; letter-spacing: 1px; color: white;}
+        .brand span { color: var(--accent); }
         .nav-links { list-style: none; flex-grow: 1; }
-        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; }
-        .nav-links a.active { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+        .nav-links a { text-decoration: none; color: #A0AEC0; display: block; padding: 12px 15px; border-radius: 8px; transition: 0.3s; margin-bottom: 10px; font-size: 0.95rem;}
+        .nav-links a.active, .nav-links a:hover { background: rgba(255, 107, 129, 0.1); color: var(--accent); font-weight: 600; }
+        .logout-btn { background: transparent; color: #A0AEC0; border: 1px solid #A0AEC0; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 600; width: 100%;}
+        .logout-btn:hover { background: #D9534F; color: white; border-color: #D9534F; }
 
         /* --- MAIN CONTENT & GRID --- */
-        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; position: relative;}
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; position: relative; width: calc(100% - 250px);}
         .header { margin-bottom: 30px; }
+        .header h1 { font-size: 1.8rem; color: var(--text-dark); margin-bottom: 5px; }
         
         .user-grid {
             display: grid;
@@ -38,13 +43,14 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0;
             display: flex; align-items: center; gap: 15px; cursor: pointer;
             transition: all 0.3s ease;
+            border-top: 3px solid var(--accent); /* Added brand styling */
         }
         .user-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.06); border-color: #CBD5E0; }
         
         .avatar {
             width: 50px; height: 50px; background: rgba(255, 107, 129, 0.1); color: var(--accent);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.5rem; font-weight: 600; text-transform: uppercase;
+            font-size: 1.5rem; font-weight: 600; text-transform: uppercase; flex-shrink: 0;
         }
         
         .card-info h4 { font-size: 1.05rem; color: var(--text-dark); margin-bottom: 3px; text-transform: capitalize; }
@@ -96,12 +102,59 @@
         .p-stat { font-size: 0.75rem; padding: 3px 8px; border-radius: 12px; font-weight: 600; background: #EBF8FF; color: #2B6CB0; text-transform: uppercase; }
         .p-tot { font-size: 0.9rem; font-weight: 600; color: #48BB78; }
 
+        /* --- MOBILE APP OVERRIDES --- */
+        .mobile-bottom-nav { display: none; }
+        .mobile-top-bar { display: none; }
+
+        @media (max-width: 768px) {
+            /* Hide Desktop Sidebar */
+            .sidebar { display: none !important; }
+            body { flex-direction: column; }
+            
+            /* Mobile Top Bar */
+            .mobile-top-bar {
+                display: flex; justify-content: space-between; align-items: center;
+                background: white; padding: 15px 20px; border-bottom: 1px solid #E2E8F0;
+                position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            }
+            .mobile-top-bar .brand { margin-bottom: 0; color: #1A1A1A; font-size: 1.1rem; font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 1px;}
+            .mobile-top-bar .brand span { color: var(--accent); }
+            .mobile-top-bar .logout-btn-mobile { background: none; border: none; color: #E53E3E; font-size: 1.4rem; cursor: pointer;}
+
+            /* Adjust Main Content Area */
+            .main-content { width: 100% !important; padding: 85px 15px 90px 15px !important; }
+            .header h1 { font-size: 1.5rem; }
+
+            /* Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
+                background: #1A1A1A; padding: 12px 10px 25px 10px; 
+                justify-content: space-between; z-index: 9999;
+                border-top-left-radius: 20px; border-top-right-radius: 20px;
+                box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            }
+            .mobile-bottom-nav a {
+                color: #718096; text-decoration: none; display: flex; flex-direction: column;
+                align-items: center; font-size: 0.65rem; font-weight: 600; gap: 5px;
+                width: 20%; transition: 0.3s;
+            }
+            .mobile-bottom-nav a i { font-size: 1.4rem; }
+            .mobile-bottom-nav a.active { color: var(--accent); }
+
+            /* Mobile User Grid */
+            .user-grid { grid-template-columns: 1fr; gap: 15px; }
+            
+            /* 🔥 Make the Slide Panel 100% wide on mobile! */
+            .slide-panel { width: 100vw; right: -100vw; }
+            .slide-panel.active { right: 0; }
+        }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
-        <div class="brand">CONFETTIN<span style="color:var(--accent)">CAKE</span></div>
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
         <ul class="nav-links">
             <li><a href="admin-dashboard.html">Dashboard</a></li>
             <li><a href="admin-inventory.html">Inventory</a></li>
@@ -109,6 +162,30 @@
             <li><a href="admin-users.html" class="active">Users</a></li>
             <li><a href="admin-settings.html">Settings</a></li>
         </ul>
+        <button class="logout-btn" onclick="logoutAdmin()">Secure Logout</button>
+    </nav>
+
+    <div class="mobile-top-bar">
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
+        <button class="logout-btn-mobile" onclick="logoutAdmin()"><i class="ri-logout-circle-r-line"></i></button>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <a href="admin-dashboard.html">
+            <i class="ri-dashboard-line"></i><span>Dash</span>
+        </a>
+        <a href="admin-inventory.html">
+            <i class="ri-cake-3-line"></i><span>Menu</span>
+        </a>
+        <a href="admin-orders.html">
+            <i class="ri-shopping-bag-3-line"></i><span>Orders</span>
+        </a>
+        <a href="admin-users.html" class="active">
+            <i class="ri-group-line"></i><span>Users</span>
+        </a>
+        <a href="admin-settings.html">
+            <i class="ri-settings-3-line"></i><span>Settings</span>
+        </a>
     </nav>
 
     <div class="main-content">
@@ -163,10 +240,15 @@
         let usersDb = []; 
         let ordersDb = []; 
 
+        // --- AUTH LOGIC ---
+        function logoutAdmin() {
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.replace('../admin-login.html');
+        }
+
         // 1. FETCH USERS & ORDERS FROM SQLITE DATABASE
         async function loadRealData() {
             try {
-                // Fetch both APIs at the same time
                 const [usersRes, ordersRes] = await Promise.all([
                     fetch('/api/admin/users'),
                     fetch('/api/admin/orders')
@@ -224,7 +306,6 @@
             const currentMonth = new Date().getMonth();
             const currentYear = new Date().getFullYear();
 
-            // Filter real orders from the SQLite database
             const userOrders = ordersDb.filter(o => o.customerPhone === user.phone);
 
             userOrders.forEach(order => {

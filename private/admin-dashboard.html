@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics Dashboard | Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -21,7 +22,7 @@
         body { background-color: var(--bg-color); display: flex; height: 100vh; overflow: hidden; }
 
         /* --- ADMIN SIDEBAR --- */
-        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; }
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 30px 20px; flex-shrink: 0;}
         .brand { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 40px; color: white; text-align: center; letter-spacing: 1px;}
         .brand span { color: var(--accent); }
 
@@ -34,32 +35,91 @@
         .logout-btn:hover { background: #D9534F; color: white; border-color: #D9534F; }
 
         /* --- MAIN DASHBOARD AREA --- */
-        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        header h1 { font-size: 2rem; color: #2D3748; }
+        .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; width: calc(100% - 250px); overflow-x: hidden; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        header h1 { font-size: 1.8rem; color: #2D3748; }
 
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; display: flex; flex-direction: column; justify-content: center;}
-        .stat-title { color: #A0AEC0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 600;}
-        .stat-value { font-size: 2.2rem; color: #2D3748; font-weight: 600; }
-        .stat-sub { font-size: 0.8rem; margin-top: 5px; font-weight: 600; color: #718096;}
+        /* Card Boundaries */
+        .stat-card, .chart-box, .board-box {
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            border: 1px solid #E2E8F0;
+            border-top: 3px solid var(--accent); 
+        }
 
-        /* Charts Area */
-        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .chart-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
+        /* Sleeker Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { padding: 15px 20px; display: flex; flex-direction: column; justify-content: center;}
+        .stat-title { color: #A0AEC0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; font-weight: 600;}
+        .stat-value { font-size: 1.6rem; color: #2D3748; font-weight: 700; }
+        .stat-sub { font-size: 0.7rem; margin-top: 2px; font-weight: 600; color: #718096;}
+
+        /* Stacked Charts Area */
+        .charts-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; width: 100%; box-sizing: border-box; overflow: hidden; }
+        .chart-box { padding: 25px; width: 100%; box-sizing: border-box;}
         .chart-box h2 { font-size: 1.1rem; color: #2D3748; margin-bottom: 20px; }
         
+        .doughnut-wrapper { max-width: 350px; margin: 0 auto; height: 250px; position: relative;}
+
         /* Leaderboards Area */
-        .leaderboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .board-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
-        .board-box h2 { font-size: 1.1rem; color: #2D3748; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px dashed #E2E8F0; }
+        .leaderboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; box-sizing: border-box;}
+        .board-box { padding: 20px; width: 100%; box-sizing: border-box;}
+        .board-box h2 { font-size: 1rem; color: #2D3748; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #E2E8F0; }
         
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F7FAFC; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #F7FAFC; }
         .list-item:last-child { border-bottom: none; }
-        .item-name { font-size: 0.95rem; font-weight: 600; color: #4A5568; text-transform: capitalize; }
-        .item-metric { font-size: 0.95rem; font-weight: 700; color: var(--accent); }
-        .rank-badge { background: #EDF2F7; color: #718096; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: 700; margin-right: 10px; }
+        .item-name { font-size: 0.9rem; font-weight: 600; color: #4A5568; text-transform: capitalize; }
+        .item-metric { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+        .rank-badge { background: #EDF2F7; color: #718096; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: 700; margin-right: 10px; }
+
+        /* --- MOBILE APP OVERRIDES --- */
+        .mobile-bottom-nav { display: none; }
+        .mobile-top-bar { display: none; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            body { flex-direction: column; }
+            
+            .mobile-top-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: white;
+                padding: 15px 20px;
+                border-bottom: 1px solid #E2E8F0;
+                position: fixed;
+                top: 0; left: 0; width: 100%;
+                z-index: 1000;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            }
+            .mobile-top-bar .brand { margin-bottom: 0; color: #1A1A1A; font-size: 1.1rem; }
+            .mobile-top-bar .logout-btn-mobile { background: none; border: none; color: #E53E3E; font-size: 1.4rem; cursor: pointer;}
+
+            .main-content { width: 100vw !important; padding: 85px 12px 90px 12px !important; box-sizing: border-box; overflow-x: hidden;}
+
+            .mobile-bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; width: 100%; background: #1A1A1A; padding: 12px 10px 25px 10px; justify-content: space-between; z-index: 9999; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            }
+            .mobile-bottom-nav a { color: #718096; text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: 600; gap: 5px; width: 20%; transition: 0.3s; }
+            .mobile-bottom-nav a i { font-size: 1.4rem; }
+            .mobile-bottom-nav a.active { color: var(--accent); }
+
+            header h1 { font-size: 1.5rem; }
+
+            .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+            .stat-card { padding: 12px; }
+            .stat-value { font-size: 1.3rem; }
+            .stat-title { font-size: 0.65rem; }
+            .stat-sub { font-size: 0.65rem; }
+
+            .charts-grid, .leaderboard-grid { grid-template-columns: 1fr !important; gap: 15px !important; max-width: 100%;}
+            .chart-box, .board-box { padding: 15px; width: 100%; max-width: 100%; overflow: hidden;}
+            
+            .doughnut-wrapper { max-width: 200px; height: 180px; margin: 0 auto;}
+
+            #revenueChart { height: 200px !important; }
+        }
     </style>
 </head>
 <body>
@@ -74,6 +134,29 @@
             <li><a href="admin-settings.html">Settings</a></li>
         </ul>
         <button class="logout-btn" onclick="logoutAdmin()">Secure Logout</button>
+    </nav>
+    
+    <div class="mobile-top-bar">
+        <div class="brand">CONFETTIN<span>CAKE</span></div>
+        <button class="logout-btn-mobile" onclick="logoutAdmin()"><i class="ri-logout-circle-r-line"></i></button>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <a href="admin-dashboard.html" class="active">
+            <i class="ri-dashboard-line"></i><span>Dash</span>
+        </a>
+        <a href="admin-inventory.html">
+            <i class="ri-cake-3-line"></i><span>Menu</span>
+        </a>
+        <a href="admin-orders.html">
+            <i class="ri-shopping-bag-3-line"></i><span>Orders</span>
+        </a>
+        <a href="admin-users.html">
+            <i class="ri-group-line"></i><span>Users</span>
+        </a>
+        <a href="admin-settings.html">
+            <i class="ri-settings-3-line"></i><span>Settings</span>
+        </a>
     </nav>
 
     <div class="main-content">
@@ -110,11 +193,16 @@
         <div class="charts-grid">
             <div class="chart-box">
                 <h2>Revenue Timeline (Last 7 Days)</h2>
-                <canvas id="revenueChart" height="100"></canvas>
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
             </div>
+            
             <div class="chart-box">
-                <h2>Top Selling Categories</h2>
-                <canvas id="categoryChart" height="200"></canvas>
+                <h2 style="text-align: center;">Top Selling Categories</h2>
+                <div class="doughnut-wrapper">
+                    <canvas id="categoryChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -145,7 +233,6 @@
                 
                 const todayStr = new Date().toLocaleDateString();
 
-                // 1. DATA CONTAINERS
                 let todaysRevenue = 0;
                 let allTimeRevenue = 0;
                 let pendingDeliveriesCount = 0;
@@ -155,54 +242,51 @@
                 let productSales = {};
                 let categorySales = { "Cakes": 0, "Cupcakes": 0, "Cookies": 0, "Other": 0 };
 
-                // 2. PROCESS ORDERS
                 orders.forEach(order => {
-                    // Count pending items
                     if (['pending', 'baking', 'out'].includes(order.status)) {
                         pendingDeliveriesCount++;
                     }
 
-                    // STRICT RULE: ONLY CALCULATE MONEY IF DELIVERED
                     if (order.status === 'delivered') {
                         let cleanTotal = Number(order.total.replace(/[^0-9.-]+/g, ""));
                         
-                        // All-time & Today's Revenue
                         allTimeRevenue += cleanTotal;
                         if (order.date === todayStr) { todaysRevenue += cleanTotal; }
 
-                        // Revenue by Date (For Chart)
                         revenueByDate[order.date] = (revenueByDate[order.date] || 0) + cleanTotal;
 
-                        // VIP Customers Tracker
                         let userKey = order.customer; 
                         userTotals[userKey] = (userTotals[userKey] || 0) + cleanTotal;
 
-                        // Top Products & Categories Tracker
                         try {
                             let items = JSON.parse(order.items);
                             items.forEach(item => {
-                                // Track individual product quantity
-                                productSales[item.name] = (productSales[item.name] || 0) + item.qty;
+                                let qty = Number(item.qty) || 1; 
+let itemRevenue = (Number(item.price) || 0) * qty; // Calculate the money made from this item!
 
-                                // Infer Category (Basic text matching for the Doughnut Chart)
-                                let n = item.name.toLowerCase();
-                                if (n.includes('cake') && !n.includes('cupcake')) categorySales["Cakes"] += item.qty;
-                                else if (n.includes('cupcake')) categorySales["Cupcakes"] += item.qty;
-                                else if (n.includes('cookie')) categorySales["Cookies"] += item.qty;
-                                else categorySales["Other"] += item.qty;
+productSales[item.name] = (productSales[item.name] || 0) + qty; // Keep Top Products by quantity
+
+// 🔥 SORTING BY REVENUE INSTEAD OF QUANTITY
+let n = String(item.name || "").toLowerCase();
+
+if (n.includes('cupcake') || n.includes('cup cake') || n.includes('muffin')) {
+    categorySales["Cupcakes"] += itemRevenue;
+} else if (n.includes('cookie') || n.includes('biscuit') || n.includes('macaron')) {
+    categorySales["Cookies"] += itemRevenue;
+} else if (n.includes('cake') || n.includes('pastry') || n.includes('brownie') || n.includes('truffle')) {
+    categorySales["Cakes"] += itemRevenue;
+} else {
+    categorySales["Other"] += itemRevenue;
+}
                             });
                         } catch(e) {}
                     }
                 });
 
-                // Update Top Stats UI
                 document.getElementById('dash-revenue').innerText = '₹' + todaysRevenue.toLocaleString('en-IN');
                 document.getElementById('dash-all-time').innerText = '₹' + allTimeRevenue.toLocaleString('en-IN');
                 document.getElementById('dash-pending').innerText = pendingDeliveriesCount;
 
-                // 3. RENDER LEADERBOARDS
-                
-                // VIP Customers (Sort by total spent, take top 5)
                 const topUsers = Object.entries(userTotals).sort((a,b) => b[1] - a[1]).slice(0,5);
                 const usersHtml = document.getElementById('top-users-list');
                 if(topUsers.length > 0) {
@@ -217,7 +301,6 @@
                     });
                 }
 
-                // Best Sellers (Sort by quantity sold, take top 5)
                 const topProducts = Object.entries(productSales).sort((a,b) => b[1] - a[1]).slice(0,5);
                 const productsHtml = document.getElementById('top-products-list');
                 if(topProducts.length > 0) {
@@ -232,14 +315,10 @@
                     });
                 }
 
-                // 4. RENDER CHART.JS GRAPHS
-
-                // Prep Revenue Data (Get last 7 unique dates that had sales)
                 const sortedDates = Object.keys(revenueByDate).sort();
                 const recentDates = sortedDates.slice(-7); 
                 const recentRevenues = recentDates.map(date => revenueByDate[date]);
 
-                // Line Chart: Revenue
                 const revCtx = document.getElementById('revenueChart').getContext('2d');
                 new Chart(revCtx, {
                     type: 'line',
@@ -257,12 +336,12 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { y: { beginAtZero: true } }
                     }
                 });
 
-                // Doughnut Chart: Categories
                 const catCtx = document.getElementById('categoryChart').getContext('2d');
                 new Chart(catCtx, {
                     type: 'doughnut',
@@ -276,6 +355,7 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         cutout: '70%',
                         plugins: { legend: { position: 'bottom' } }
                     }

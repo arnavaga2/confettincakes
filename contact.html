@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="tab-title">About Us | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root { --bg-color: #0A0A0A; --text-muted: #A1A1AA; --text-bright: #F4F4F5; --border-color: #27272A; --accent: #E23744; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg-color); color: var(--text-muted); font-family: 'Inter', 'Poppins', sans-serif; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+        header { position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px; background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(12px); z-index: 9000; display: flex; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-bright); width: 40px; transition: 0.2s; }
+        .back-btn:hover { color: var(--accent); }
+        .header-logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text-bright); margin: 0 auto; padding-right: 40px; letter-spacing: 2px; text-transform: uppercase;}
+        main { flex-grow: 1; max-width: 680px; margin: 120px auto 80px; padding: 0 25px; width: 100%; }
+        .page-heading { font-family: 'Inter', sans-serif; font-size: 1.8rem; font-weight: 500; color: var(--text-bright); margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .content-block h2 { font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 500; margin: 40px 0 15px; color: var(--text-bright); }
+        .content-block h2:first-child { margin-top: 0; }
+        .content-block p { font-size: 0.85rem; line-height: 1.8; margin-bottom: 20px; }
+        .content-block ul { margin-left: 20px; margin-bottom: 20px; }
+        .content-block li { font-size: 0.85rem; margin-bottom: 10px; line-height: 1.6; }
+        .content-block a { color: var(--text-bright); text-decoration: underline; text-decoration-color: #52525B; text-underline-offset: 4px; }
+        footer { background: #050505; border-top: 1px solid var(--border-color); padding: 50px 20px 40px; text-align: center; margin-top: auto; }
+        .footer-brand { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text-bright); margin-bottom: 5px; letter-spacing: 1px;}
+        .footer-social { display: inline-flex; align-items: center; gap: 8px; background: #18181B; padding: 10px 20px; border-radius: 30px; color: var(--text-bright); text-decoration: none; margin-bottom: 30px; transition: 0.3s; font-size: 0.8rem; border: 1px solid var(--border-color);}
+        .footer-social:hover { background: var(--text-bright); color: var(--bg-color); }
+        .seo-links { margin-bottom: 30px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.75rem; font-weight: 500;}
+        .seo-links a { color: #71717A; text-decoration: none; transition: 0.2s;}
+        .seo-links a:hover { color: var(--text-bright); }
+        .footer-credits { border-top: 1px solid #18181B; padding-top: 20px; font-size: 0.7rem; color: #52525B; display: flex; flex-direction: column; gap: 5px;}
+        .footer-credits span { color: #A1A1AA; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="back-btn"><i class="ri-arrow-left-line"></i></a>
+        <div class="header-logo">CONFETTINCAKE</div>
+    </header>
+
+    <main>
+        <h1 class="page-heading" id="page-title">Loading...</h1>
+        <div class="content-block" id="dynamic-page-content">
+            <p>Loading page data...</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-brand">CONFETTINCAKE</div>
+        <p id="dynamic-footer" style="font-size: 0.8rem; color: #71717A; margin-bottom: 25px;">Baking joy across the city.</p>
+        <a href="#" target="_blank" class="footer-social" id="dy-soc-link">
+            <span>Follow us on</span> <i class="ri-instagram-line"></i> <strong id="dy-soc-handle">@confettincakes</strong>
+        </a>
+        <div class="seo-links">
+            <a href="about.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="faq.html">FAQ</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="refunds.html">Refunds</a>
+            <a href="terms.html">Terms</a>
+        </div>
+        <div class="footer-credits">
+            <p>Engineered by <span id="dy-dev-name">Arnav Agarwal</span></p>
+            <p>Support: <span id="dy-dev-phone">+91 9365717848</span></p>
+        </div>
+    </footer>
+
+    <script>
+        async function loadPageData() {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const settings = await res.json();
+                    
+                    // 1. Setup Footer
+                    if(settings.footerText) document.getElementById('dynamic-footer').innerHTML = settings.footerText;
+                    if(settings.home) {
+                        if(settings.home.socialHandle) document.getElementById('dy-soc-handle').innerText = settings.home.socialHandle;
+                        if(settings.home.socialLink) document.getElementById('dy-soc-link').href = settings.home.socialLink;
+                        if(settings.home.devName) document.getElementById('dy-dev-name').innerText = settings.home.devName;
+                        if(settings.home.devPhone) document.getElementById('dy-dev-phone').innerText = "+91 " + settings.home.devPhone;
+                    }
+
+                    // 2. Setup Page Content (THIS IS THE 'CONTACT' PAGE)
+                    if(settings.legal && settings.legal.contact) {
+                        if(settings.legal.contact.title) {
+                            document.getElementById('page-title').innerText = settings.legal.contact.title;
+                            document.getElementById('tab-title').innerText = settings.legal.contact.title + " | CONFETTINCAKE";
+                        }
+                        if(settings.legal.contact.body) {
+                            document.getElementById('dynamic-page-content').innerHTML = settings.legal.contact.body;
+                        }
+                    } else {
+                        document.getElementById('page-title').innerText = "Contact Us";
+                        document.getElementById('dynamic-page-content').innerHTML = "<p>Nothing posted here yet. Update this in your Admin Panel.</p>";
+                    }
+                }
+            } catch (e) {
+                console.log("Could not fetch settings data.");
+                document.getElementById('page-title').innerText = "About Us";
+                document.getElementById('dynamic-page-content').innerHTML = "<p>Could not connect to database.</p>";
+            }
+        }
+        window.onload = loadPageData;
+    </script>
+</body>
+</html>

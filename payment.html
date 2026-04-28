@@ -3,147 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | CONFETTINCAKE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Secure Checkout | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     
     <style>
-        :root { --bg-cream: #FFF7EA; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; }
+        :root { --bg-cream: #F4F7FE; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; --success: #48BB78; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; padding-bottom: 100px;}
 
-        header { position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px; background: rgba(255, 247, 234, 0.85); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 9000; display: flex; align-items: center; justify-content: space-between; }
-        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: center; }
-        .page-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 600;}
+        /* HEADER */
+        header { position: sticky; top: 0; left: 0; width: 100%; padding: 15px 20px; background: var(--card-bg); z-index: 9000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; }
+        .page-title { font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dark); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 700;}
 
-        main { padding: 90px 20px 120px; max-width: 600px; margin: 0 auto; min-height: 100vh;}
-        .section-title { font-size: 1rem; color: #718096; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
-        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+        main { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        .section-header { font-size: 0.9rem; font-weight: 700; color: #4A5568; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;}
+
+        /* 🔥 DYNAMIC GOOGLE MAP CARD */
+        .map-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; border: 1px solid #E2E8F0; }
+        .map-graphic { width: 100%; height: 140px; background-color: #E2E8F0; position: relative; pointer-events: none; }
         
-        .user-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .user-icon { width: 40px; height: 40px; background: rgba(255, 107, 129, 0.1); color: var(--accent-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
-        .user-name { font-size: 1.1rem; font-weight: 600; text-transform: capitalize;}
-        .user-address { color: #718096; font-size: 0.9rem; line-height: 1.5; }
+        .address-details { padding: 15px 20px; display: flex; align-items: flex-start; gap: 15px; }
+        .address-icon { background: #F7FAFC; padding: 10px; border-radius: 10px; color: #4A5568; font-size: 1.2rem; }
+        .address-text h3 { font-size: 1.05rem; color: var(--text-dark); margin-bottom: 3px; font-family: 'Poppins', sans-serif;}
+        .address-text p { font-size: 0.85rem; color: #718096; line-height: 1.4; }
 
-        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; color: #4A5568;}
-        .summary-row.total { border-top: 1px dashed #CBD5E0; padding-top: 15px; margin-top: 5px; font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
+        /* PAYMENT SELECTORS */
+        .payment-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        .pay-label { display: block; cursor: pointer; }
+        .pay-label input[type="radio"] { display: none; } 
+        
+        .pay-card { background: var(--card-bg); border: 1.5px solid #E2E8F0; border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; transition: 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.01); }
+        .pay-info-group { display: flex; align-items: center; gap: 15px; }
+        .pay-icon { width: 45px; height: 45px; background: #F7FAFC; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; color: #4A5568; }
+        
+        .pay-text h4 { font-size: 0.95rem; color: var(--text-dark); font-weight: 600; margin-bottom: 2px; display: flex; align-items: center;}
+        .pay-text p { font-size: 0.75rem; color: #A0AEC0; font-weight: 500;}
+        
+        .radio-circle { width: 22px; height: 22px; border: 2px solid #CBD5E0; border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
+        .radio-circle i { display: none; color: white; font-size: 0.8rem; }
 
-        .pay-option { display: flex; align-items: center; padding: 15px; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 10px; cursor: pointer;}
-        .pay-option.disabled { opacity: 0.6; cursor: not-allowed; background: #F7FAFC; }
-        .pay-option input { margin-right: 15px; accent-color: var(--accent-color); transform: scale(1.2); }
-        .pay-label { font-weight: 600; display: flex; flex-direction: column; }
-        .pay-desc { font-size: 0.8rem; color: #A0AEC0; font-weight: 400; margin-top: 2px;}
+        /* Checked State Styling */
+        .pay-label input[type="radio"]:checked + .pay-card { border-color: var(--success); background: #F0FFF4; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.15); }
+        .pay-label input[type="radio"]:checked + .pay-card .radio-circle { background: var(--success); border-color: var(--success); }
+        .pay-label input[type="radio"]:checked + .pay-card .radio-circle i { display: block; }
+        .pay-label input[type="radio"]:checked + .pay-card .pay-icon { background: white; color: var(--success); }
 
-        .checkout-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 9000;}
-        .total-text { font-size: 0.9rem; color: #718096; }
-        .total-price { font-size: 1.5rem; font-weight: 600; }
-        .checkout-btn { background: var(--accent-color); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; text-transform: uppercase; }
+        /* 🔥 COMING SOON STATE */
+        .pay-label.disabled { cursor: not-allowed; opacity: 0.6; }
+        .pay-label.disabled .pay-card { background: #F7FAFC; }
+        .coming-soon-badge { font-size: 0.6rem; background: #E2E8F0; color: #4A5568; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
 
-        /* LOGIN WARNING OVERLAY */
-        #auth-warning { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 10000; display: none; justify-content: center; align-items: center; }
-        .warning-box { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
+        /* Trust Badges */
+        .trust-banner { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 20px 0; color: #A0AEC0; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .trust-banner div { display: flex; align-items: center; gap: 5px; }
+        .trust-banner i { font-size: 1.1rem; }
+
+        /* STICKY BOTTOM PAY BAR */
+        .checkout-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 15px 20px 25px; box-shadow: 0 -5px 20px rgba(0,0,0,0.06); display: flex; justify-content: space-between; align-items: center; z-index: 9000; border-top-left-radius: 20px; border-top-right-radius: 20px;}
+        .total-col { display: flex; flex-direction: column; }
+        .total-text { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase;}
+        .total-price { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); }
+        .view-bill { font-size: 0.75rem; color: var(--accent-color); font-weight: 600; text-decoration: underline; cursor: pointer;}
+        
+        .checkout-btn { background: #1A1A1A; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);}
+        .checkout-btn:hover { background: var(--accent-color); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 107, 129, 0.3);}
+
+        /* SECURE PROCESSING OVERLAY */
+        #processing-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 60px; height: 60px; border: 5px solid #F0F0F0; border-top-color: var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing-text { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); font-family: 'Playfair Display', serif;}
+        .processing-sub { font-size: 0.85rem; color: #718096; margin-top: 5px; }
+
+        /* AUTH WARNING */
+        #auth-warning { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 20000; display: none; justify-content: center; align-items: center; }
+        .warning-box { background: white; padding: 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 350px; }
         .warning-box h2 { font-family: 'Playfair Display', serif; color: var(--accent-color); margin-bottom: 10px; }
         .warning-btn { background: var(--text-dark); color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; margin-top: 20px; cursor: pointer; width: 100%;}
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #E53E3E; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; font-size: 0.85rem; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10000; opacity: 0; top: -50px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);}
+        #toast.show { top: 20px; opacity: 1; }
     </style>
 </head>
 <body>
 
     <div id="auth-warning">
         <div class="warning-box">
+            <div style="font-size: 3rem; color: #E53E3E; margin-bottom: 10px;"><i class="ri-lock-2-line"></i></div>
             <h2>Access Denied</h2>
             <p style="color: #666; font-size: 0.9rem;">You must be logged in to securely place an order.</p>
             <button class="warning-btn" onclick="window.location.href='index.html'">Go to Login</button>
         </div>
     </div>
 
+    <div id="processing-overlay">
+        <div class="spinner" id="loading-spinner"></div>
+        <div id="success-icon" style="display: none; font-size: 4rem; color: #48BB78; margin-bottom: 10px;"><i class="ri-checkbox-circle-fill"></i></div>
+        <div class="processing-text" id="loading-title">Securing your order...</div>
+        <div class="processing-sub" id="loading-sub">Please do not close this window</div>
+    </div>
+
     <header>
-        <a href="cart.html" class="back-btn">←</a>
+        <a href="cart.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
         <h2 class="page-title">Payment</h2>
+        <div style="width: 40px;"></div>
     </header>
 
     <main>
-        <div class="section-title">Delivery Details</div>
-        <div class="card">
-            <div class="user-header">
-                <div class="user-icon">📍</div>
-                <div class="user-name" id="display-name">Loading...</div>
+        <div class="section-header">Delivery Details</div>
+        <div class="map-card">
+            <div class="map-graphic">
+                <iframe id="live-google-map" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0" src=""></iframe>
             </div>
-            <div class="user-address" id="display-address">
-                Loading address details...
-            </div>
-        </div>
-
-        <div class="section-title">Order Summary</div>
-        <div class="card">
-            <div id="item-breakdown"></div>
-            <div class="summary-row total">
-                <span>Total to Pay</span>
-                <span id="final-total">₹0</span>
+            <div class="address-details">
+                <div class="address-icon"><i class="ri-home-4-fill"></i></div>
+                <div class="address-text">
+                    <h3>Delivering to <span id="display-name">...</span></h3>
+                    <p id="display-address">Loading address details...</p>
+                </div>
             </div>
         </div>
 
-        <div class="section-title">Payment Method</div>
-        <div class="card" style="padding: 15px;">
-            <label class="pay-option">
-                <input type="radio" name="payment" value="cod" checked>
-                <div class="pay-label">Cash on Delivery<span class="pay-desc">Pay at your doorstep</span></div>
+        <div class="section-header">Select Payment Method</div>
+        <div class="payment-options">
+            
+            <label class="pay-label disabled">
+                <input type="radio" name="payment" value="UPI" disabled>
+                <div class="pay-card">
+                    <div class="pay-info-group">
+                        <div class="pay-icon" style="color: #3182CE; background: #EBF8FF;"><i class="ri-smartphone-line"></i></div>
+                        <div class="pay-text">
+                            <h4>Pay via UPI <span class="coming-soon-badge">Coming Soon</span></h4>
+                            <p>Google Pay, PhonePe, Paytm</p>
+                        </div>
+                    </div>
+                    <div class="radio-circle"><i class="ri-check-line"></i></div>
+                </div>
             </label>
+
+            <label class="pay-label disabled">
+                <input type="radio" name="payment" value="CARD" disabled>
+                <div class="pay-card">
+                    <div class="pay-info-group">
+                        <div class="pay-icon" style="color: #805AD5; background: #FAF5FF;"><i class="ri-bank-card-line"></i></div>
+                        <div class="pay-text">
+                            <h4>Credit / Debit Card <span class="coming-soon-badge">Coming Soon</span></h4>
+                            <p>Visa, Mastercard, RuPay</p>
+                        </div>
+                    </div>
+                    <div class="radio-circle"><i class="ri-check-line"></i></div>
+                </div>
+            </label>
+
+            <label class="pay-label">
+                <input type="radio" name="payment" value="COD" checked>
+                <div class="pay-card">
+                    <div class="pay-info-group">
+                        <div class="pay-icon" style="color: #38A169; background: #F0FFF4;"><i class="ri-money-rupee-circle-line"></i></div>
+                        <div class="pay-text">
+                            <h4>Cash on Delivery</h4>
+                            <p>Pay with Cash or UPI at door</p>
+                        </div>
+                    </div>
+                    <div class="radio-circle"><i class="ri-check-line"></i></div>
+                </div>
+            </label>
+
+        </div>
+
+        <div class="trust-banner">
+            <div><i class="ri-shield-check-fill" style="color: #48BB78;"></i> 100% Secure</div>
+            <div><i class="ri-lock-fill" style="color: #A0AEC0;"></i> 256-bit SSL</div>
         </div>
     </main>
 
     <div class="checkout-bar">
-        <div><div class="total-text">Grand Total</div><div class="total-price" id="footer-total">₹0</div></div>
-        <button class="checkout-btn" onclick="confirmOrder()">Place Order</button>
+        <div class="total-col">
+            <span class="total-text">To Pay</span>
+            <span class="total-price" id="footer-total">₹0</span>
+            <span class="view-bill" onclick="window.history.back()">View Bill Details</span>
+        </div>
+        <button class="checkout-btn" onclick="confirmOrder()">Pay Securely <i class="ri-lock-fill"></i></button>
     </div>
 
+    <div id="toast">Message goes here</div>
+
     <script>
-        // 1. CHECK LOGIN STATUS & POPULATE DATA
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message; 
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // 1. POPULATE USER DATA AND DYNAMIC GOOGLE MAP
         const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
         if(!activeUser) {
             document.getElementById('auth-warning').style.display = 'flex';
         } else {
-            document.getElementById('display-name').innerText = activeUser.name;
+            const firstName = activeUser.name.split(' ')[0];
+            document.getElementById('display-name').innerText = firstName;
             document.getElementById('display-address').innerHTML = `
-                ${activeUser.phone}<br>
-                ${activeUser.address}<br>
-                ${activeUser.city || 'City'}, ${activeUser.state || 'State'} - ${activeUser.pin}
+                ${activeUser.address}, ${activeUser.city || 'City'}<br>
+                Contact: +91 ${activeUser.phone}
             `;
+
+            // 🔥 DYNAMICALLY GENERATE THE GOOGLE MAP IFRAME URL
+            const fullAddressForMap = `${activeUser.address}, ${activeUser.city}, ${activeUser.state} ${activeUser.pin}`;
+            const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddressForMap)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            document.getElementById('live-google-map').src = mapUrl;
         }
 
-        // 2. LOAD CART & CALCULATE
+        // 2. GET FINAL TOTAL FROM CART
         const cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
-        let grandTotal = 0;
-        const breakdown = document.getElementById('item-breakdown');
+        let finalGrandTotal = localStorage.getItem('confettinCheckoutTotal') || 0;
 
-        cart.forEach(item => {
-            let itemTotal = item.price * item.qty;
-            grandTotal += itemTotal;
-            breakdown.innerHTML += `<div class="summary-row"><span>${item.qty}x ${item.name}</span><span>₹${itemTotal}</span></div>`;
-        });
+        if(finalGrandTotal == 0 && cart.length > 0) {
+            let sum = 0;
+            cart.forEach(item => sum += (item.price * item.qty));
+            finalGrandTotal = sum + 40 + 15; 
+        }
 
-        document.getElementById('final-total').innerText = "₹" + grandTotal;
-        document.getElementById('footer-total').innerText = "₹" + grandTotal;
+        document.getElementById('footer-total').innerText = "₹" + finalGrandTotal;
 
-        
-        // 3. PLACE REAL ORDER VIA NODE.JS API
+        // 3. SECURE PROCESSING LOGIC
         async function confirmOrder() {
             if(!activeUser) return;
-
-            const btn = document.querySelector('.checkout-btn');
-            btn.innerText = "PROCESSING...";
-            btn.disabled = true;
 
             const payRadio = document.querySelector('input[name="payment"]:checked');
             const paymentMethod = payRadio ? payRadio.value.toUpperCase() : 'COD';
 
-            // Prepare the payload, pulling the email dynamically from the user's profile!
+            const overlay = document.getElementById('processing-overlay');
+            overlay.style.display = 'flex';
+
+            const customerNote = localStorage.getItem('confettinCartNote') || "";
+            const smuggledAddress = customerNote ? activeUser.address + "|||NOTE:" + customerNote : activeUser.address;
+
             const orderPayload = {
                 customer: activeUser.name,
                 customerPhone: activeUser.phone,
-                customerAddress: activeUser.address,
+                customerAddress: smuggledAddress,
                 customerPin: activeUser.pin,
                 items: JSON.stringify(cart), 
-                total: `₹${grandTotal} (${paymentMethod})`, 
-                customerEmail: activeUser.email // <--- PULLS FROM PROFILE INSTEAD OF PROMPT
+                total: `₹${finalGrandTotal} (${paymentMethod})`, 
+                customerEmail: activeUser.email 
             };
 
             try {
@@ -154,20 +260,27 @@
                 });
 
                 if (response.ok) {
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('success-icon').style.display = 'block';
+                    document.getElementById('loading-title').innerText = "Payment Successful!";
+                    document.getElementById('loading-title').style.color = "#48BB78";
+                    document.getElementById('loading-sub').innerText = "Redirecting to your orders...";
+
                     localStorage.removeItem('confettinCart');
                     localStorage.removeItem('confettinCheckoutTotal');
-                    window.location.href = 'orders.html';
+                    localStorage.removeItem('confettinCartNote'); 
+                    
+                    setTimeout(() => {
+                        window.location.href = 'orders.html';
+                    }, 1500);
+
                 } else {
-                    // Replaced native alert with custom toast
-                    showToast("Order failed. Please try again.");
-                    btn.innerText = "PLACE ORDER";
-                    btn.disabled = false;
+                    overlay.style.display = 'none';
+                    showToast("Payment failed. Please try again.");
                 }
             } catch (err) {
-                // Replaced native alert with custom toast
-                showToast("Server connection lost. Is Node.js running?");
-                btn.innerText = "PLACE ORDER";
-                btn.disabled = false;
+                overlay.style.display = 'none';
+                showToast("Network error. Is your connection stable?");
             }
         }
     </script>

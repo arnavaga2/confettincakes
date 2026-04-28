@@ -13,9 +13,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
 
-        header { position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px; background: rgba(255, 247, 234, 0.95); backdrop-filter: blur(15px); z-index: 9000; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05);}
-        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: center; }
-        .page-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 600;}
+        header { position: fixed; top: 0; left: 0; width: 100%; height: 60px; padding: 0 20px; background: rgba(255, 247, 234, 0.95); backdrop-filter: blur(15px); z-index: 9000; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05);}
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: left; flex-shrink: 0; }
+        .page-title { font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent-color); margin: 0; flex-grow: 1; text-align: center; font-weight: 600;}
+
+        /* 🔥 TOP RIGHT CART WITH WHITE ICON & BLACK CIRCLE */
+        .top-cart { position: relative; font-size: 1.2rem; text-decoration: none; color: #FFFFFF; background: var(--text-dark); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .top-cart i { color: #FFFFFF; font-size: 1.3rem; }
+        .top-cart:hover { background: var(--accent-color); transform: scale(1.05); color: #FFFFFF; }
+        .top-cart-badge { position: absolute; top: -2px; right: -2px; background: var(--accent-color); color: white; font-size: 0.65rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg-cream); }
 
         /* ANNOUNCEMENT BAR */
         .announcement-bar { position: fixed; top: 60px; left: 0; width: 100%; background: var(--text-dark); color: white; padding: 10px 0; z-index: 8900; overflow: hidden; display: flex; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -84,6 +90,11 @@
     <header>
         <a href="index.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
         <h2 class="page-title">OUR MENU</h2>
+        
+        <a href="cart.html" class="top-cart">
+            <i class="ri-shopping-cart-2-line"></i>
+            <div class="top-cart-badge" id="cartCount">0</div>
+        </a>
     </header>
 
     <div class="announcement-bar">
@@ -131,7 +142,6 @@
                 if (response.ok) {
                     const settings = await response.json();
                     
-                    // 1. RENDER ANNOUNCEMENTS
                     if (settings.announcements && settings.announcements.length > 0) {
                         const track = document.getElementById('ticker-track');
                         let tickerHTML = '';
@@ -139,7 +149,6 @@
                         track.innerHTML = tickerHTML + tickerHTML;
                     }
 
-                    // 2. RENDER GRADIENT PROMO CARDS
                     const promoContainer = document.getElementById('css-promo-container');
                     if (settings.promoCards && settings.promoCards.length > 0) {
                         settings.promoCards.forEach(card => {
@@ -163,7 +172,6 @@
                         promoContainer.style.display = 'none';
                     }
 
-                    // 🚀 3. RENDER DYNAMIC QUICK BITES
                     const quickIconsContainer = document.getElementById('quick-bites-container');
                     if (settings.quickBites && settings.quickBites.length > 0) {
                         quickIconsContainer.innerHTML = ''; 
@@ -189,7 +197,6 @@
                         quickIconsContainer.innerHTML = `<p style="padding: 10px 20px; color: #A0AEC0; font-size: 0.85rem;">No Quick Bites added yet.</p>`;
                     }
 
-                    // 4. RENDER IMAGE BANNERS
                     const imageContainer = document.getElementById('image-banner-container');
                     if (settings.banners && settings.banners.length > 0) {
                         imageContainer.style.display = 'flex';
@@ -206,7 +213,6 @@
                         }, 4000); 
                     }
 
-                    // 5. RENDER DYNAMIC BENTO CATEGORIES
                     const bentoContainer = document.getElementById('bento-categories-container');
                     if (settings.categories && settings.categories.length > 0) {
                         bentoContainer.innerHTML = ''; 
@@ -236,7 +242,17 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', loadMenuData);
+        // 🔥 9+ CART DOT LOGIC
+        function updateCartCount() {
+            let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+            let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartCount').innerText = totalItems > 9 ? '9+' : totalItems;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMenuData();
+            updateCartCount();
+        });
     </script>
 </body>
 </html>

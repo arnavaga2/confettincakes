@@ -101,6 +101,22 @@
 
         #custom-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #1C1C1C; color: white; padding: 14px 28px; border-radius: 30px; font-weight: 600; font-size: 0.95rem; z-index: 99999; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 
+        /* 📱 ZOMATO STYLE WELCOME BOTTOM SHEET */
+        .bottom-sheet-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 15000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .bottom-sheet-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 25px 20px 40px; z-index: 15001; transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto;}
+        .bottom-sheet.active { bottom: 0; }
+        
+        .bs-drag-handle { width: 40px; height: 5px; background: #E2E8F0; border-radius: 10px; margin: 0 auto 20px; }
+        .bs-content { text-align: center; max-width: 500px; margin: 0 auto; }
+        .bs-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text-dark); margin-bottom: 10px; }
+        .bs-desc { font-size: 0.9rem; color: #718096; margin-bottom: 25px; line-height: 1.5;}
+        
+        .bs-btn { width: 100%; padding: 15px; border-radius: 12px; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: 0.3s; margin-bottom: 12px;}
+        .bs-btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 15px rgba(226, 55, 68, 0.3); }
+        .bs-btn-secondary { background: #F7FAFC; color: var(--text-dark); border: 1px solid #E2E8F0; }
+
         /* MOBILE COMPRESSION */
         @media (max-width: 768px) { 
             header { padding: 15px 5%; }
@@ -126,6 +142,68 @@
             .usp-icon { width: 50px; height: 50px; font-size: 1.5rem; }
             .mobile-nav { display: flex; } 
         }
+
+        /* ✨ ZOMATO-STYLE SHINING STICKER */
+        .shining-sticker {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(110deg, #FF6B81 0%, #ff94a2 40%, #ffffff 50%, #ff94a2 60%, #FF6B81 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2.5s infinite linear;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(255, 107, 129, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Update meta details layout to fit the new weight text */
+        .trending-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #4A5568;
+            font-weight: 600;
+        }
+        .trending-prep {
+            font-size: 0.75rem;
+            color: #A0AEC0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ✨ SLEEK METALLIC SHINE FOR WEIGHT PILL */
+        .shining-weight {
+            background: linear-gradient(110deg, #F7FAFC 0%, #E2E8F0 40%, #ffffff 50%, #E2E8F0 60%, #F7FAFC 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2.5s infinite linear;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid #CBD5E0;
+            color: #2D3748;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
     </style>
 </head>
 <body>
@@ -221,6 +299,15 @@
             <strong id="dy-soc-handle">@confettincakes</strong>
         </a>
 
+        <div style="margin-bottom: 30px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; font-size: 0.85rem;">
+            <a href="about.html" style="color: #A0AEC0; text-decoration: none;">About Us</a>
+            <a href="contact.html" style="color: #A0AEC0; text-decoration: none;">Contact</a>
+            <a href="faq.html" style="color: #A0AEC0; text-decoration: none;">FAQ</a>
+            <a href="privacy.html" style="color: #A0AEC0; text-decoration: none;">Privacy Policy</a>
+            <a href="refunds.html" style="color: #A0AEC0; text-decoration: none;">Refund Policy</a>
+            <a href="terms.html" style="color: #A0AEC0; text-decoration: none;">Terms & Conditions</a>
+        </div>
+
         <div class="footer-credits">
             <p>Engineered & Designed by <span id="dy-dev-name">Arnav Agarwal</span></p>
             <p>Support & Inquiries: <span id="dy-dev-phone">+91 9365717848</span></p>
@@ -286,6 +373,18 @@
         </div>
     </div>
 
+    <div class="bottom-sheet-overlay" id="bs-overlay" onclick="closeBottomSheet()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="bs-drag-handle"></div>
+        <div class="bs-content">
+            <div style="font-size: 3rem; margin-bottom: 10px;">👋</div>
+            <h2 class="bs-title">Welcome to ConfettinCake!</h2>
+            <p class="bs-desc">Sign up to save your delivery addresses, track your live orders, and unlock exclusive sweet deals.</p>
+            <button class="bs-btn bs-btn-primary" onclick="triggerAuthFromSheet('signup')">Create an Account</button>
+            <button class="bs-btn bs-btn-secondary" onclick="triggerAuthFromSheet('signin')">Log In</button>
+        </div>
+    </div>
+
     <script>
         // --- PAGE INITIALIZATION ---
         window.onload = () => {
@@ -298,7 +397,29 @@
             }
             loadHomeSettings();
             loadTrendingProducts();
+
+            // POP UP BOTTOM SHEET FOR NEW USERS AFTER 1.5s
+            setTimeout(() => {
+                const hasSeenSheet = sessionStorage.getItem('seenBottomSheet');
+                if(!activeUser && !hasSeenSheet) {
+                    document.getElementById('bs-overlay').classList.add('active');
+                    document.getElementById('bottom-sheet').classList.add('active');
+                }
+            }, 1500); 
         };
+
+        // --- BOTTOM SHEET CONTROLS ---
+        function closeBottomSheet() {
+            document.getElementById('bs-overlay').classList.remove('active');
+            document.getElementById('bottom-sheet').classList.remove('active');
+            sessionStorage.setItem('seenBottomSheet', 'true'); // Prevents it from popping up on every page refresh
+        }
+
+        function triggerAuthFromSheet(viewType) {
+            closeBottomSheet();
+            openAuth();
+            toggleAuthView(viewType);
+        }
 
         // --- AUTH MODAL CONTROLS ---
         function openAuth() { document.getElementById('auth-overlay').style.display = 'flex'; }
@@ -406,6 +527,7 @@
             } catch (err) { console.log("Could not load dynamic settings."); }
         }
 
+        
         // --- LOAD DYNAMIC TRENDING BAR ---
         async function loadTrendingProducts() {
             try {
@@ -416,16 +538,35 @@
                     container.innerHTML = '';
                     
                     trendingItems.forEach(prod => {
+                        const categoryLink = prod.cat ? encodeURIComponent(prod.cat.toLowerCase()) : 'cakes';
+                        // Format the item name so it can be passed safely in the URL (e.g., "red-velvet-cake")
+                        const itemLink = prod.name ? encodeURIComponent(prod.name.toLowerCase().replace(/\s+/g, '-')) : '';
+                        
+                        const weightText = prod.weight ? prod.weight : "1 kg";
+                        const timeText = prod.time ? prod.time : "24 Hours";
+                        const stickerText = "✨ BEST SELLER"; 
+
                         container.innerHTML += `
-                            <a href="menu.html" class="prod-card">
+                            <div class="prod-card" style="position: relative; overflow: hidden; display: flex; flex-direction: column;">
+                                <div class="shining-sticker">${stickerText}</div>
                                 <img src="${prod.img}" class="prod-img">
-                                <div class="prod-info">
-                                    <h3 class="prod-name">${prod.name}</h3>
-                                    <div class="prod-meta"><span>⭐ 4.8</span><span>${prod.time || 'Fresh'}</span></div>
-                                    <div class="prod-price">₹${prod.price}</div>
-                                    <button class="add-btn" style="margin-top: 10px;">Order Now</button>
+                                <div class="prod-info" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <h3 class="prod-name" style="font-size: 1.1rem; color: #2D3748; margin-bottom: 8px; text-transform: capitalize;">${prod.name}</h3>
+                                        <div class="trending-meta-row">
+                                            <span style="color: #FF6B81; font-size: 1.1rem; font-weight: 700;">₹${prod.price}</span>
+                                            
+                                            <span class="shining-weight">⚖️ ${weightText}</span>
+                                        </div>
+                                        <div class="trending-prep">
+                                            <i class="ri-timer-line" style="font-size: 1rem; color: #FF6B81;"></i> 
+                                            Prep & Delivery: ${timeText}
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="add-btn" style="margin-top: 10px;" onclick="window.location.href='products.html?category=${categoryLink}&item=${itemLink}'">Order Now</button>
                                 </div>
-                            </a>
+                            </div>
                         `;
                     });
                 }
