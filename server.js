@@ -22,9 +22,14 @@ const dbURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/confettincak
 // ==========================================
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log("✅ MongoDB Connected Successfully"))
-    .catch(err => console.error("❌ MongoDB Connection Error:", err));
+if (!MONGODB_URI) {
+    console.error("❌ CRITICAL ERROR: MONGODB_URI is completely missing! Check Render Environment Variables.");
+    // We don't exit here so the server stays alive long enough to show you the log!
+} else {
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log("✅ MongoDB Connected Successfully"))
+        .catch(err => console.error("❌ MongoDB Connection Error:", err));
+}
 
 
 
@@ -606,6 +611,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+// Render requires binding to 0.0.0.0
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running live on port ${PORT}`);
 });
