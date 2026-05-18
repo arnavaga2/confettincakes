@@ -32,6 +32,13 @@ if (!cached) {
     cached = global.mongoose = { conn: null, promise: null };
 }
 
+const path = require('path'); // Make sure this is at the top of your file if you don't have it yet!
+
+// 👑 SECRET ADMIN VIP ROUTE
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'private', 'admin-dashboard.html'));
+});
+
 async function connectDB() {
     if (cached.conn) return cached.conn;
 
