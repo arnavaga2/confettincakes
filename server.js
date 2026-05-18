@@ -88,15 +88,7 @@ async function connectDB() {
     return cached.conn;
 }
 
-// 🔥 THE MAGIC TRICK: Global Middleware
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (error) {
-        res.status(500).json({ error: "Database connection failed. Please try again." });
-    }
-});
+
 // ==========================================
 
 // ==========================================
