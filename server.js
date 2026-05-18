@@ -17,12 +17,52 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Make sure to add MONGODB_URI=your_atlas_connection_string to your .env file
 const dbURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/confettincake';
 
-mongoose.connect(dbURI).then(() => {
-    console.log('✅ Connected to MongoDB');
-    initializeDefaultSettings(); // Run the rescue script on boot
-}).catch((err) => {
-    console.error('❌ MongoDB Connection Error:', err);
+// ==========================================
+// 🚀 VERCEL SERVERLESS MONGODB CONNECTION
+// ==========================================
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+if (!MONGODB_URI) {
+    console.error("❌ MONGODB_URI is missing from Vercel Environment Variables!");
+}
+
+// Global cache so Vercel doesn't open 100 connections per second
+let cached = global.mongoose;
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+    if (cached.conn) return cached.conn;
+
+    if (!cached.promise) {
+        // Important: Short timeout so it doesn't hang Vercel
+        const opts = { serverSelectionTimeoutMS: 5000 }; 
+        
+        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+            console.log("✅ MongoDB Connected (Serverless Pool)");
+            return mongooseInstance;
+        }).catch(err => {
+            console.error("❌ MongoDB Connection Error:", err);
+            cached.promise = null;
+            throw err;
+        });
+    }
+    cached.conn = await cached.promise;
+    return cached.conn;
+}
+
+// 🔥 THE MAGIC TRICK: Global Middleware
+// This forces Vercel to ensure the DB is connected BEFORE running any route (like signup, login, etc)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        res.status(500).json({ error: "Database connection failed. Please try again." });
+    }
 });
+// ==========================================
 
 // ==========================================
 // 🗄️ MONGODB SCHEMAS & MODELS
