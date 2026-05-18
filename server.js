@@ -89,7 +89,6 @@ async function connectDB() {
 }
 
 // 🔥 THE MAGIC TRICK: Global Middleware
-// This forces Vercel to ensure the DB is connected BEFORE running any route (like signup, login, etc)
 app.use(async (req, res, next) => {
     try {
         await connectDB();
