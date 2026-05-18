@@ -53,6 +53,22 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'private', 'admin-dashboard.html'));
 });
 
+// --- USERS PAGE ---
+app.get('/admin-users', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-users.html')));
+app.get('/admin-users.html', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-users.html')));
+
+// --- INVENTORY PAGE ---
+app.get('/admin-inventory', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-inventory.html')));
+app.get('/admin-inventory.html', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-inventory.html')));
+
+// --- SETTINGS PAGE ---
+app.get('/admin-settings', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-settings.html')));
+app.get('/admin-settings.html', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-settings.html')));
+
+// --- ORDERS PAGE (Just in case you have a separate one!) ---
+app.get('/admin-orders', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-orders.html')));
+app.get('/admin-orders.html', (req, res) => res.sendFile(path.join(__dirname, 'private', 'admin-orders.html')));
+
 async function connectDB() {
     if (cached.conn) return cached.conn;
 
