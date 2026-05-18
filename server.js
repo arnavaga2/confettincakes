@@ -34,7 +34,21 @@ if (!cached) {
 
 
 
-// 👑 SECRET ADMIN VIP ROUTE
+// ==========================================
+// 👑 VIP ADMIN ROUTES 
+// ==========================================
+
+// 1. The Admin Login Page (Handles the frontend redirect)
+app.get('/admin-login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
+});
+
+// 2. Backup Login Route (Just in case you ever type it without the .html)
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-login.html'));
+});
+
+// 3. The Secret Admin Dashboard
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'private', 'admin-dashboard.html'));
 });
