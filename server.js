@@ -18,19 +18,13 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const dbURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/confettincake';
 
 // ==========================================
-// 🚀 VERCEL SERVERLESS MONGODB CONNECTION
+// 🚀 RENDER 24/7 MONGODB CONNECTION
 // ==========================================
-const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
-if (!MONGODB_URI) {
-    console.error("❌ MONGODB_URI is missing from Vercel Environment Variables!");
-}
-
-// Global cache so Vercel doesn't open 100 connections per second
-let cached = global.mongoose;
-if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
-}
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log("✅ MongoDB Connected Successfully"))
+    .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
 
 
@@ -612,13 +606,6 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-// Only listen locally. Vercel will ignore this and use the export below.
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`🚀 Server running live on http://localhost:${PORT}`);
-    });
-}
-
-// 🔥 VERCEL SERVERLESS EXPORT (Crucial to prevent crashes)
-module.exports = app;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running live on port ${PORT}`);
+});
