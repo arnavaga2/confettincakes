@@ -285,7 +285,7 @@
                                 </div>
                                 
                                 <div style="margin-top: 5px;">
-                                    <button class="add-btn" onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', '${cleanPrice}', '${product.img}')">+ ADD TO CART</button>
+                                    <button class="add-btn" onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', '${cleanPrice}', '${product.img}', '${timeText}', '${weightText}')">+ ADD TO CART</button>
                                 </div>
                             </div>
                         </div>
@@ -296,13 +296,14 @@
             }
         }
 
-        function addToCart(id, name, price, img) {
+        // 🔥 FIXED: addToCart now specifically accepts time and weight!
+        function addToCart(id, name, price, img, time, weight) {
             let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
             let existingItem = cart.find(item => item.id == id);
             if(existingItem) {
                 existingItem.qty += 1;
             } else {
-                cart.push({ id, name, price: Number(price), img, qty: 1 });
+                cart.push({ id, name, price: Number(price), img, qty: 1, time: time, weight: weight });
             }
             localStorage.setItem('confettinCart', JSON.stringify(cart));
             updateCartCount();
@@ -313,7 +314,6 @@
             setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
-        // 🔥 9+ CART DOT LOGIC
         function updateCartCount() {
             let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
             let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);

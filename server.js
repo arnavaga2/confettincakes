@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const bcrypt = require('bcrypt'); // NEW: For secure passwords
-
+const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer'); // Make sure you have this installed if you use emails!
 
 const app = express();
 
@@ -13,502 +13,440 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// --- DATABASE CONNECTION (SQLite) ---
-const db = new sqlite3.Database('./bakery.db', (err) => {
-    if (err) {
-        console.error('❌ Error opening SQLite database:', err.message);
-    } else {
-        console.log('✅ Connected to SQLite Database (bakery.db)');
-        
-        // 1. Users Table
-        // 3. Users Table (UPDATED SCHEMA)
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            phone TEXT UNIQUE,
-            email TEXT, -- NEW COLUMN
-            address TEXT,
-            city TEXT,
-            state TEXT,
-            pin TEXT,
-            password TEXT
-        )`);
-        
-        // 2. Orders Table (UPDATED SCHEMA)
-        db.run(`CREATE TABLE IF NOT EXISTS orders (
-            id TEXT PRIMARY KEY,
-            customer TEXT,
-            customerPhone TEXT,
-            customerAddress TEXT,
-            customerPin TEXT,
-            items TEXT,
-            total TEXT,
-            status TEXT,
-            date TEXT,
-            timestamp TEXT
-        )`);
-        
-        // 3. Inventory Table
-        db.run(`CREATE TABLE IF NOT EXISTS inventory (id INTEGER PRIMARY KEY AUTOINCREMENT, cat TEXT, name TEXT, desc TEXT, price TEXT, weight TEXT, time TEXT, img TEXT)`);
-        
-        // 4. Settings Table (With Auto-Rescue Data Restorer)
-        db.run(`CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK (id = 1), config TEXT)`, () => {
-            db.get(`SELECT * FROM settings WHERE id = 1`, (err, row) => {
-                if (row) {
-                    let existingSettings = JSON.parse(row.config);
-                    let needsUpdate = false;
+// --- MONGODB CONNECTION ---
+// Make sure to add MONGODB_URI=your_atlas_connection_string to your .env file
+const dbURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/confettincake';
 
-                    // RESCUE: If Home Page settings are missing, inject defaults!
-                    if (!existingSettings.home) {
-                        existingSettings.home = {
-                            heroVideo: "https://www.w3schools.com/html/mov_bbb.mp4",
-                            heroTitle: "Delicious cakes, delivered to your door.",
-                            heroSub: "100% Eggless • Freshly Baked • Fast Delivery",
-                            sec1Title: "What's on your mind?",
-                            sec2Title: "Trending Today",
-                            usp1Title: "100% Eggless", usp1Desc: "Pure vegetarian bakes.",
-                            usp2Title: "Freshly Baked", usp2Desc: "Made to order daily.",
-                            usp3Title: "Fast Delivery", usp3Desc: "Safe & secure handling."
-                        };
-                        needsUpdate = true;
-                    }
+mongoose.connect(dbURI).then(() => {
+    console.log('✅ Connected to MongoDB');
+    initializeDefaultSettings(); // Run the rescue script on boot
+}).catch((err) => {
+    console.error('❌ MongoDB Connection Error:', err);
+});
 
-                    // Check if categories are there
-                    if (!existingSettings.categories) {
-                        existingSettings.categories = ["cakes", "cupcakes", "cookies", "brownies", "pastries", "hampers", "chocolates"];
-                        needsUpdate = true;
-                    }
+// ==========================================
+// 🗄️ MONGODB SCHEMAS & MODELS
+// ==========================================
 
-                    // RESCUE: If announcements got wiped, bring them back!
-                    if (!existingSettings.announcements || existingSettings.announcements.length === 0) {
-                        existingSettings.announcements = [
-                            "✨ We have freshly baked Cakes!",
-                            "🔥 Chocolate Cookie is our Best Selling cookie!"
-                        ];
-                        needsUpdate = true;
-                    }
+const UserSchema = new mongoose.Schema({
+    name: String,
+    phone: { type: String, unique: true },
+    email: String,
+    address: String,
+    city: String,
+    state: String,
+    pin: String,
+    password: String
+});
+const User = mongoose.model('User', UserSchema);
 
-                    // RESCUE: If promo cards got wiped, bring them back!
-                    if (!existingSettings.promoCards || existingSettings.promoCards.length === 0) {
-                        existingSettings.promoCards = [
-                            { color: "pink", icon: "🎉", title: "Party Combos", desc: "Save 15% on Cake + Cupcake bundles!" },
-                            { color: "dark", icon: "🍫", title: "Midnight Cravings", desc: "Late night delivery now active in Delhi." },
-                            { color: "gold", icon: "🎂", title: "Custom Creations", desc: "Personalize your dream cake today." }
-                        ];
-                        needsUpdate = true;
-                    }
+const OrderSchema = new mongoose.Schema({
+    id: { type: String, unique: true }, 
+    customer: String,
+    customerPhone: String,
+    customerAddress: String,
+    customerPin: String,
+    items: String, 
+    total: String,
+    status: String,
+    date: String,
+    timestamp: String,
+    // 🔥 NEW FIELDS
+    deliveryDate: String,
+    deliveryTime: String,
+    isTimeAnomaly: { type: Boolean, default: false } 
+});
+const Order = mongoose.model('Order', OrderSchema);
 
-                    // RESCUE: If banners got wiped, bring them back!
-                    if (!existingSettings.banners || existingSettings.banners.length === 0) {
-                        existingSettings.banners = [
-                            "https://images.unsplash.com/photo-1557925923-33b251dc32d6?w=1200&q=80",
-                            "https://images.unsplash.com/photo-1495147466023-af5c19cb6211?w=1200&q=80"
-                        ];
-                        needsUpdate = true;
-                    }
+const InventorySchema = new mongoose.Schema({
+    cat: String,
+    name: String,
+    desc: String,
+    price: String,
+    weight: String,
+    time: String,
+    img: String
+});
+const Inventory = mongoose.model('Inventory', InventorySchema);
 
-                    // Keep Admin Pass and Pins safe
-                    if (!existingSettings.adminPass) existingSettings.adminPass = "cake";
-                    if (!existingSettings.pincodes) existingSettings.pincodes = "110";
-                    if (!existingSettings.footerText) existingSettings.footerText = "&copy; 2026 CONFETTINCAKE. All rights reserved.";
+const SettingsSchema = new mongoose.Schema({
+    config: String // Keeping as stringified JSON for compatibility
+});
+const Settings = mongoose.model('Settings', SettingsSchema);
 
-                    if (needsUpdate) {
-                        db.run(`UPDATE settings SET config = ? WHERE id = 1`, [JSON.stringify(existingSettings)], (updateErr) => {
-                            if (!updateErr) console.log("✅ Database missing data successfully restored!");
-                        });
-                    }
-                }
-            });
-        });
+const PromoSchema = new mongoose.Schema({
+    code: { type: String, unique: true },
+    discount: Number,
+    isActive: { type: Boolean, default: true }
+});
+const Promo = mongoose.model('Promo', PromoSchema);
 
-        // 5. Promo Codes Table (NEW)
-        db.run(`CREATE TABLE IF NOT EXISTS promos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            code TEXT UNIQUE,
-            discount INTEGER,
-            isActive BOOLEAN DEFAULT 1
-        )`);
-        
-        console.log('✅ All Database Tables Ready');
+// --- SETTINGS BOOTSTRAPPER (The Auto-Rescue) ---
+async function initializeDefaultSettings() {
+    let settings = await Settings.findOne();
+    if (!settings) {
+        settings = new Settings({ config: "{}" });
+    }
+
+    let existingSettings = JSON.parse(settings.config);
+    let needsUpdate = false;
+
+    if (!existingSettings.home) {
+        existingSettings.home = {
+            heroVideo: "https://www.w3schools.com/html/mov_bbb.mp4",
+            heroTitle: "Delicious cakes, delivered to your door.",
+            heroSub: "100% Eggless • Freshly Baked • Fast Delivery",
+            sec1Title: "What's on your mind?",
+            sec2Title: "Trending Today",
+            usp1Title: "100% Eggless", usp1Desc: "Pure vegetarian bakes.",
+            usp2Title: "Freshly Baked", usp2Desc: "Made to order daily.",
+            usp3Title: "Fast Delivery", usp3Desc: "Safe & secure handling."
+        };
+        needsUpdate = true;
+    }
+    if (!existingSettings.categories) {
+        existingSettings.categories = ["cakes", "cupcakes", "cookies", "brownies", "pastries", "hampers", "chocolates"];
+        needsUpdate = true;
+    }
+    if (!existingSettings.announcements || existingSettings.announcements.length === 0) {
+        existingSettings.announcements = [
+            "✨ We have freshly baked Cakes!",
+            "🔥 Chocolate Cookie is our Best Selling cookie!"
+        ];
+        needsUpdate = true;
+    }
+    if (!existingSettings.promoCards || existingSettings.promoCards.length === 0) {
+        existingSettings.promoCards = [
+            { color: "pink", icon: "🎉", title: "Party Combos", desc: "Save 15% on Cake + Cupcake bundles!" },
+            { color: "dark", icon: "🍫", title: "Midnight Cravings", desc: "Late night delivery now active in Delhi." },
+            { color: "gold", icon: "🎂", title: "Custom Creations", desc: "Personalize your dream cake today." }
+        ];
+        needsUpdate = true;
+    }
+    if (!existingSettings.banners || existingSettings.banners.length === 0) {
+        existingSettings.banners = [
+            "https://images.unsplash.com/photo-1557925923-33b251dc32d6?w=1200&q=80",
+            "https://images.unsplash.com/photo-1495147466023-af5c19cb6211?w=1200&q=80"
+        ];
+        needsUpdate = true;
+    }
+    if (!existingSettings.adminPass) existingSettings.adminPass = "cake";
+    if (!existingSettings.pincodes) existingSettings.pincodes = "110";
+    if (!existingSettings.footerText) existingSettings.footerText = "&copy; 2026 CONFETTINCAKE. All rights reserved.";
+
+    if (needsUpdate) {
+        settings.config = JSON.stringify(existingSettings);
+        await settings.save();
+        console.log("✅ Database missing data successfully restored via MongoDB!");
+    }
+}
+
+
+// ==========================================
+// 📧 EMAIL TRANSPORTER SETUP (Placeholder)
+// ==========================================
+// Note: Configure this with your actual credentials when ready
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'your_email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your_app_password'
     }
 });
 
 
+// ==========================================
+// 🚀 BACKEND APIs (Mongoose Rewrites)
+// ==========================================
 
-// ==========================================
-// 🚀 BACKEND APIs
-// ==========================================
+// --- UTILITY FORMATTER ---
+// Maps MongoDB _id to id so your frontend doesn't break
+const formatDoc = (doc) => {
+    const obj = doc.toObject();
+    obj.id = obj._id.toString();
+    return obj;
+};
 
 // 1. SIGN UP API
-// POST: Customer Signup
 app.post('/api/auth/signup', async (req, res) => {
-    // Only pulling the exact fields we need (no email)
     const { name, phone, address, pin, city, state, password } = req.body;
     
-    // Check if phone number already exists
-    db.get(`SELECT * FROM users WHERE phone = ?`, [phone], async (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (row) return res.status(400).json({ error: "Phone number already registered!" });
+    try {
+        const existingUser = await User.findOne({ phone });
+        if (existingUser) return res.status(400).json({ error: "Phone number already registered!" });
 
-        try {
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-            // Insert without email
-            const stmt = db.prepare(`INSERT INTO users (name, phone, address, pin, city, state, password) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-            stmt.run([name, phone, address, pin, city, state, hashedPassword], function(err) {
-                if (err) return res.status(500).json({ error: "Database error during signup." });
-                
-                const newUser = { id: this.lastID, name, phone, address, pin, city, state };
-                res.json({ message: "Registration successful", user: newUser });
-            });
-            stmt.finalize();
-        } catch (error) {
-            res.status(500).json({ error: "Server error during hashing." });
-        }
-    });
-});
-// 2. LOGIN API
-app.post('/api/auth/login', (req, res) => {
-    const { phone, password } = req.body;
-    
-    console.log(`\n➡️ Login attempt for phone: ${phone}`); // DEBUG LOG
-
-    db.get(`SELECT * FROM users WHERE phone = ?`, [phone], async (err, user) => {
-        if (err) {
-            console.log(`❌ Database Error:`, err.message);
-            return res.status(500).json({ error: err.message });
-        }
+        const newUser = new User({ name, phone, address, pin, city, state, password: hashedPassword });
+        await newUser.save();
         
-        if (!user) {
-            console.log(`❌ FAILED: No account found with phone number ${phone}`); // DEBUG LOG
-            return res.status(400).json({ error: "Incorrect phone or password." });
-        }
-
-        // Compare the typed password with the hashed password in the DB
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            console.log(`❌ FAILED: Wrong password entered for ${phone}`); // DEBUG LOG
-            return res.status(400).json({ error: "Incorrect phone or password." });
-        }
-
-        // Success!
-        console.log(`✅ SUCCESS: ${user.name} logged in perfectly!`); // DEBUG LOG
-        delete user.password;
-        res.json({ message: "Login successful", user });
-    });
-});
-
-// ==========================================
-// 👤 UPDATE USER PROFILE (WITH ORDER HISTORY SYNC)
-// ==========================================
-app.put('/api/auth/update', (req, res) => {
-    const { originalPhone, name, phone, address, pin, city, state, password } = req.body;
-    
-    if (!originalPhone || !name || !phone) return res.status(400).json({ error: "Missing required fields" });
-
-    // 🔄 THE FIX: Helper function to sync old orders to the new phone number
-    const syncOrdersAndRespond = () => {
-        if (originalPhone !== phone) {
-            // If they changed their number, migrate all their old orders!
-            db.run(`UPDATE orders SET customerPhone = ? WHERE customerPhone = ?`, [phone, originalPhone], (err) => {
-                sendSuccess();
-            });
-        } else {
-            sendSuccess();
-        }
-    };
-
-    const sendSuccess = () => {
-        db.get(`SELECT id, name, phone, address, pin, city, state FROM users WHERE phone = ?`, [phone], (err, user) => {
-            res.json({ success: true, user });
-        });
-    };
-
-    // Scenario 1: They typed a new password
-    if (password && password.trim() !== '') {
-        db.run(`UPDATE users SET name = ?, phone = ?, address = ?, pin = ?, city = ?, state = ?, password = ? WHERE phone = ?`, 
-        [name, phone, address, pin, city, state, password, originalPhone], function(err) {
-            if (err) return res.status(500).json({ error: "Phone number might already be in use." });
-            syncOrdersAndRespond();
-        });
-    } 
-    // Scenario 2: They left the password blank
-    else {
-        db.run(`UPDATE users SET name = ?, phone = ?, address = ?, pin = ?, city = ?, state = ? WHERE phone = ?`, 
-        [name, phone, address, pin, city, state, originalPhone], function(err) {
-            if (err) return res.status(500).json({ error: "Phone number might already be in use." });
-            syncOrdersAndRespond();
-        });
+        res.json({ message: "Registration successful", user: formatDoc(newUser) });
+    } catch (error) {
+        res.status(500).json({ error: "Server error during signup." });
     }
 });
 
-// 3. GET ALL USERS (For Admin Panel)
-app.get('/api/admin/users', (req, res) => {
-    // We select everything EXCEPT the password for security
-    db.all(`SELECT id, name, phone, address, pin, city, state FROM users`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows); // Send the list of users back to the admin panel
-    });
+// 2. LOGIN API
+app.post('/api/auth/login', async (req, res) => {
+    const { phone, password } = req.body;
+    try {
+        const user = await User.findOne({ phone });
+        if (!user) return res.status(400).json({ error: "Incorrect phone or password." });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Incorrect phone or password." });
+
+        const userObj = formatDoc(user);
+        delete userObj.password;
+        res.json({ message: "Login successful", user: userObj });
+    } catch (err) {
+        res.status(500).json({ error: "Database Error" });
+    }
 });
 
-// 4. ADMIN DASHBOARD API
-app.get('/api/admin/dashboard', (req, res) => {
-    // Fetch all orders
-    db.all(`SELECT * FROM orders`, [], (err, orders) => {
-        if (err) return res.status(500).json({ error: err.message });
+// 👤 UPDATE USER PROFILE
+app.put('/api/auth/update', async (req, res) => {
+    const { originalPhone, name, phone, address, pin, city, state, password } = req.body;
+    if (!originalPhone || !name || !phone) return res.status(400).json({ error: "Missing required fields" });
+
+    try {
+        let updateData = { name, phone, address, pin, city, state };
         
-        // Fetch just the IDs of all users to get a total count
-        db.all(`SELECT id FROM users`, [], (err, users) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            // Send back both arrays
-            res.json({ orders: orders, totalUsers: users.length });
-        });
-    });
+        if (password && password.trim() !== '') {
+            updateData.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
+        }
+
+        const updatedUser = await User.findOneAndUpdate({ phone: originalPhone }, updateData, { new: true });
+        if (!updatedUser) return res.status(500).json({ error: "Failed to update user." });
+
+        if (originalPhone !== phone) {
+            await Order.updateMany({ customerPhone: originalPhone }, { customerPhone: phone });
+        }
+
+        res.json({ success: true, user: formatDoc(updatedUser) });
+    } catch (err) {
+        res.status(500).json({ error: "Phone number might already be in use." });
+    }
+});
+
+// ADMIN DASHBOARD API
+app.get('/api/admin/dashboard', async (req, res) => {
+    try {
+        const orders = await Order.find();
+        const totalUsers = await User.countDocuments();
+        // Return exactly as frontend expects
+        res.json({ orders: orders.map(formatDoc), totalUsers });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // ==========================================
 // 🍰 INVENTORY APIs
 // ==========================================
-
-// GET: Fetch all inventory items (Used by Admin and the Products page)
-app.get('/api/inventory', (req, res) => {
-    db.all(`SELECT * FROM inventory`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+app.get('/api/inventory', async (req, res) => {
+    try {
+        const items = await Inventory.find();
+        res.json(items.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// POST: Add a new item
-app.post('/api/admin/inventory', (req, res) => {
-    const { cat, name, desc, price, weight, time, img } = req.body;
-    const stmt = db.prepare(`INSERT INTO inventory (cat, name, desc, price, weight, time, img) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run([cat, name, desc, price, weight, time, img], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Product added to database", id: this.lastID });
-    });
-    stmt.finalize();
+app.post('/api/admin/inventory', async (req, res) => {
+    try {
+        const newItem = new Inventory(req.body);
+        await newItem.save();
+        res.json({ message: "Product added to database", id: newItem._id });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// PUT: Update an existing item
-app.put('/api/admin/inventory/:id', (req, res) => {
-    const { cat, name, desc, price, weight, time, img } = req.body;
-    const stmt = db.prepare(`UPDATE inventory SET cat=?, name=?, desc=?, price=?, weight=?, time=?, img=? WHERE id=?`);
-    stmt.run([cat, name, desc, price, weight, time, img, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.put('/api/admin/inventory/:id', async (req, res) => {
+    try {
+        await Inventory.findByIdAndUpdate(req.params.id, req.body);
         res.json({ message: "Product updated successfully" });
-    });
-    stmt.finalize();
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// DELETE: Remove an item
-app.delete('/api/admin/inventory/:id', (req, res) => {
-    db.run(`DELETE FROM inventory WHERE id=?`, [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.delete('/api/admin/inventory/:id', async (req, res) => {
+    try {
+        await Inventory.findByIdAndDelete(req.params.id);
         res.json({ message: "Product deleted" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // ==========================================
-// 📦 ORDERS APIs (Admin)
+// 📦 ORDERS APIs
 // ==========================================
-
-// GET: Fetch all orders for the admin panel
-app.get('/api/admin/orders', (req, res) => {
-    db.all(`SELECT * FROM orders ORDER BY timestamp DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+app.get('/api/admin/orders', async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ timestamp: -1 });
+        res.json(orders.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// PUT: Update an order's status (e.g., 'pending' to 'baking')
-app.put('/api/admin/orders/:id', (req, res) => {
-    const { status } = req.body;
-    db.run(`UPDATE orders SET status = ? WHERE id = ?`, [status, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.put('/api/admin/orders/:id', async (req, res) => {
+    try {
+        // We use finding by the custom 'id' field (ORD-123), not _id
+        await Order.findOneAndUpdate({ id: req.params.id }, { status: req.body.status });
         res.json({ message: "Order status updated successfully" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
-// DELETE: Remove an order completely
-app.delete('/api/admin/orders/:id', (req, res) => {
-    db.run(`DELETE FROM orders WHERE id = ?`, [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+
+app.delete('/api/admin/orders/:id', async (req, res) => {
+    try {
+        await Order.findOneAndDelete({ id: req.params.id });
         res.json({ message: "Order deleted" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// GET: Fetch orders for a specific customer
-app.get('/api/orders/:phone', (req, res) => {
-    const userPhone = req.params.phone;
-    
-    db.all(`SELECT * FROM orders WHERE customerPhone = ? ORDER BY timestamp DESC`, [userPhone], (err, rows) => {
-        if (err) return res.status(500).json({ error: "Database error." });
-        res.json(rows); // Send only this specific user's orders back
-    });
+app.get('/api/orders/:phone', async (req, res) => {
+    try {
+        const orders = await Order.find({ customerPhone: req.params.phone }).sort({ timestamp: -1 });
+        res.json(orders.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-app.get('/api/my-orders', (req, res) => {
-    const userPhone = req.query.phone;
-    
-    if (!userPhone) return res.status(400).json({ error: "Phone number required" });
-
-    // Fetch orders matching this phone number
-    db.all(`SELECT * FROM orders WHERE customerPhone = ?`, [userPhone], (err, rows) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        res.json(rows);
-    });
+app.get('/api/my-orders', async (req, res) => {
+    if (!req.query.phone) return res.status(400).json({ error: "Phone number required" });
+    try {
+        const orders = await Order.find({ customerPhone: req.query.phone });
+        res.json(orders.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // ==========================================
 // 👥 USERS APIs (Admin)
 // ==========================================
-
-// GET: Fetch all registered users
-app.get('/api/admin/users', (req, res) => {
-    // Select everything EXCEPT the password
-    db.all(`SELECT id, name, phone, address, pin, city, state FROM users ORDER BY id DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows); 
-    });
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        const users = await User.find().select('-password').sort({ _id: -1 });
+        res.json(users.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// PUT: Update customer profile
-app.put('/api/users/:phone', (req, res) => {
+app.put('/api/users/:phone', async (req, res) => {
     const { name, address, pin, password } = req.body;
-    const phone = req.params.phone;
-
-    // If they typed a new password, update everything
-    if (password && password.trim() !== "") {
-        db.run(`UPDATE users SET name = ?, address = ?, pin = ?, password = ? WHERE phone = ?`, 
-            [name, address, pin, password, phone], function(err) {
-            if (err) return res.status(500).json({ error: "Failed to update profile." });
-            res.json({ message: "Profile updated!" });
-        });
-    } else {
-        // If password field was empty, update everything EXCEPT the password
-        db.run(`UPDATE users SET name = ?, address = ?, pin = ? WHERE phone = ?`, 
-            [name, address, pin, phone], function(err) {
-            if (err) return res.status(500).json({ error: "Failed to update profile." });
-            res.json({ message: "Profile updated!" });
-        });
+    try {
+        let updateData = { name, address, pin };
+        if (password && password.trim() !== "") {
+            updateData.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
+        }
+        await User.findOneAndUpdate({ phone: req.params.phone }, updateData);
+        res.json({ message: "Profile updated!" });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to update profile." });
     }
 });
 
 // ==========================================
 // ⚙️ SETTINGS APIs
 // ==========================================
-
-// GET: Fetch current store settings
-app.get('/api/settings', (req, res) => {
-    db.get(`SELECT config FROM settings WHERE id = 1`, [], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(row ? JSON.parse(row.config) : {});
-    });
+app.get('/api/settings', async (req, res) => {
+    try {
+        const settings = await Settings.findOne();
+        res.json(settings ? JSON.parse(settings.config) : {});
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// POST: Overwrite the settings with new updates
-app.post('/api/admin/settings', (req, res) => {
-    const newConfig = JSON.stringify(req.body);
-    db.run(`UPDATE settings SET config = ? WHERE id = 1`, [newConfig], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.post('/api/admin/settings', async (req, res) => {
+    try {
+        const newConfig = JSON.stringify(req.body);
+        await Settings.findOneAndUpdate({}, { config: newConfig }, { upsert: true });
         res.json({ message: "Settings saved to database" });
-    });
-});
-
-// ==========================================
-// 🛒 CHECKOUT API (Customer)
-// ==========================================
-app.post('/api/orders/new', (req, res) => {
-    const { customer, customerPhone, customerAddress, customerPin, items, total } = req.body;
-
-    // Generate a clean Order ID (e.g., ORD-739281)
-    const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
-    const date = new Date().toLocaleDateString();
-    const timestamp = new Date().toISOString();
-    const status = 'pending';
-
-    const stmt = db.prepare(`INSERT INTO orders (id, customer, customerPhone, customerAddress, customerPin, items, total, status, date, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    
-    stmt.run([orderId, customer, customerPhone, customerAddress, customerPin, items, total, status, date, timestamp], function(err) {
-        if (err) return res.status(500).json({ error: "Failed to save order to database." });
-        res.json({ message: "Order placed successfully!", orderId: orderId });
-    });
-    stmt.finalize();
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // ==========================================
 // 🎟️ PROMO CODE APIs
 // ==========================================
-
-// 1. ADMIN: Fetch all promo codes
-app.get('/api/admin/promos', (req, res) => {
-    db.all(`SELECT * FROM promos ORDER BY id DESC`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+app.get('/api/admin/promos', async (req, res) => {
+    try {
+        const promos = await Promo.find().sort({ _id: -1 });
+        res.json(promos.map(formatDoc));
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// 2. ADMIN: Create a new promo code
-app.post('/api/admin/promos', (req, res) => {
-    // discount is a percentage, e.g., 10 for 10% off
-    const { code, discount } = req.body; 
-    const cleanCode = code.toUpperCase().trim();
-
-    db.run(`INSERT INTO promos (code, discount, isActive) VALUES (?, ?, 1)`, [cleanCode, discount], function(err) {
-        if (err) return res.status(400).json({ error: "Code might already exist!" });
-        res.json({ message: "Promo code created!", id: this.lastID });
-    });
+app.post('/api/admin/promos', async (req, res) => {
+    try {
+        const newPromo = new Promo({
+            code: req.body.code.toUpperCase().trim(),
+            discount: req.body.discount
+        });
+        await newPromo.save();
+        res.json({ message: "Promo code created!", id: newPromo._id });
+    } catch (err) {
+        res.status(400).json({ error: "Code might already exist!" });
+    }
 });
 
-// 3. ADMIN: Delete a promo code
-app.delete('/api/admin/promos/:id', (req, res) => {
-    db.run(`DELETE FROM promos WHERE id = ?`, [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.delete('/api/admin/promos/:id', async (req, res) => {
+    try {
+        await Promo.findByIdAndDelete(req.params.id);
         res.json({ message: "Promo deleted" });
-    });
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-// 4. CUSTOMER: Validate a promo code at checkout
-app.post('/api/promos/validate', (req, res) => {
-    const { code } = req.body;
-    const cleanCode = code.toUpperCase().trim();
-
-    db.get(`SELECT * FROM promos WHERE code = ? AND isActive = 1`, [cleanCode], (err, row) => {
-        if (err) return res.status(500).json({ error: "Database error." });
-        
-        if (!row) return res.status(400).json({ error: "Invalid or expired promo code." });
-        
-        // If code is good, send back the discount percentage
-        res.json({ message: "Promo applied!", discount: row.discount });
-    });
+app.post('/api/promos/validate', async (req, res) => {
+    try {
+        const cleanCode = req.body.code.toUpperCase().trim();
+        const promo = await Promo.findOne({ code: cleanCode, isActive: true });
+        if (!promo) return res.status(400).json({ error: "Invalid or expired promo code." });
+        res.json({ message: "Promo applied!", discount: promo.discount });
+    } catch (err) {
+        res.status(500).json({ error: "Database error." });
+    }
 });
 
 // ==========================================
 // 🛒 CHECKOUT API & EMAIL AUTOMATION
 // ==========================================
-app.post('/api/orders/new', (req, res) => {
-    // We expect the frontend to send all these details, including customerEmail
+app.post('/api/orders/new', async (req, res) => {
     const { customer, customerPhone, customerAddress, customerPin, items, total, customerEmail } = req.body;
 
-    // Generate a clean Order ID (e.g., ORD-739281)
     const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
     const date = new Date().toLocaleDateString();
     const timestamp = new Date().toISOString();
-    const status = 'pending';
 
-    // 1. SAVE TO SQLITE DATABASE
-    const stmt = db.prepare(`INSERT INTO orders (id, customer, customerPhone, customerAddress, customerPin, items, total, status, date, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    
-    stmt.run([orderId, customer, customerPhone, customerAddress, customerPin, items, total, status, date, timestamp], function(err) {
-        if (err) return res.status(500).json({ error: "Failed to save order to database." });
+    try {
+        const newOrder = new Order({
+            id: orderId,
+            customer, customerPhone, customerAddress, customerPin,
+            items, total, status: 'pending', date, timestamp
+        });
+        await newOrder.save();
 
-        // 2. 📧 --- NODEMAILER AUTOMATION --- 📧
-        
-        // A) ALERT THE ADMIN (Sent to your sister's email)
+        // 📧 --- NODEMAILER AUTOMATION --- 📧
         const adminMail = {
             from: '"ConfettinCake Bot" <confettincake.admin@gmail.com>',
-            to: 'confettincake.admin@gmail.com', // Sends the alert to the admin inbox
+            to: 'confettincake.admin@gmail.com', 
             subject: `🚨 NEW ORDER: ${total} from ${customer}`,
             html: `
                 <div style="font-family: sans-serif; padding: 20px; background: #FFF7EA; border-radius: 10px;">
@@ -517,18 +455,14 @@ app.post('/api/orders/new', (req, res) => {
                     <p><strong>Customer:</strong> ${customer} (${customerPhone})</p>
                     <p><strong>Address:</strong> ${customerAddress}, Delhi-${customerPin}</p>
                     <p><strong>Total Value:</strong> <span style="color: #48BB78; font-size: 1.2em;">${total}</span></p>
-                    <br>
-                    <a href="http://localhost:5000/admin-login.html" style="background: #1A1A1A; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Open Admin Dashboard</a>
                 </div>
             `
         };
 
         transporter.sendMail(adminMail, (err) => {
-            if(err) console.log("Admin email failed to send:", err);
-            else console.log("Admin notification sent successfully!");
+            if(err) console.log("Admin email failed (check credentials):", err.message);
         });
 
-        // B) RECEIPT FOR CUSTOMER (Only fires if an email was provided)
         if (customerEmail) {
             const customerMail = {
                 from: '"ConfettinCake" <confettincake.admin@gmail.com>',
@@ -540,63 +474,55 @@ app.post('/api/orders/new', (req, res) => {
                         <p>We have received your order and our bakers are getting the oven ready.</p>
                         <p><strong>Order ID:</strong> ${orderId}</p>
                         <p><strong>Total Paid:</strong> ${total}</p>
-                        <p>You can track your live order status by logging into your account on our website.</p>
-                        <br>
-                        <p>Sweet regards,<br>The ConfettinCake Team</p>
                     </div>
                 `
             };
             transporter.sendMail(customerMail, (err) => {
-                if(err) console.log("Customer receipt failed:", err);
-                else console.log("Customer receipt sent successfully!");
+                if(err) console.log("Customer receipt failed:", err.message);
             });
         }
 
-        // 3. Send success response back to the payment page
         res.json({ message: "Order placed successfully!", orderId: orderId });
-    });
-    stmt.finalize();
+    } catch (err) {
+        res.status(500).json({ error: "Failed to save order to database." });
+    }
 });
 
 // ==========================================
 // 🔥 FETCH TRENDING PRODUCTS (Smart Algorithm)
 // ==========================================
-app.get('/api/trending', (req, res) => {
-    // 1. Get all delivered orders to see what's actually selling
-    db.all(`SELECT items FROM orders WHERE status = 'delivered'`, (err, orders) => {
+app.get('/api/trending', async (req, res) => {
+    try {
+        const orders = await Order.find({ status: 'delivered' });
         let counts = {};
-        if (!err && orders) {
-            orders.forEach(o => {
-                try {
-                    let items = JSON.parse(o.items);
-                    items.forEach(i => { counts[i.name] = (counts[i.name] || 0) + i.qty; });
-                } catch(e){}
-            });
-        }
         
-        // Sort and get the top 3 best-selling product names
-        let topNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
-        
-        // 2. Fetch the live inventory to get the images and prices for those items
-        db.all(`SELECT * FROM inventory`, (err2, inv) => {
-            if (err2) return res.status(500).json({error: "Database error"});
-            
-            let trending = [];
-            topNames.forEach(name => {
-                let prod = inv.find(p => p.name === name);
-                if (prod) trending.push(prod);
-            });
-            
-            // 3. THE LAUNCH FALLBACK: If there are less than 3 sales, fill the rest with random items!
-            if (trending.length < 3) {
-                let remaining = 3 - trending.length;
-                let available = inv.filter(p => !trending.includes(p));
-                available.sort(() => 0.5 - Math.random()); // Shuffle array
-                trending.push(...available.slice(0, remaining));
-            }
-            res.json(trending);
+        orders.forEach(o => {
+            try {
+                let items = JSON.parse(o.items);
+                items.forEach(i => { counts[i.name] = (counts[i.name] || 0) + i.qty; });
+            } catch(e){}
         });
-    });
+        
+        let topNames = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
+        const inv = await Inventory.find();
+        
+        let trending = [];
+        topNames.forEach(name => {
+            let prod = inv.find(p => p.name === name);
+            if (prod) trending.push(formatDoc(prod));
+        });
+        
+        if (trending.length < 3) {
+            let remaining = 3 - trending.length;
+            let available = inv.filter(p => !trending.find(t => t.name === p.name));
+            available.sort(() => 0.5 - Math.random()); 
+            let randomAdditions = available.slice(0, remaining).map(formatDoc);
+            trending.push(...randomAdditions);
+        }
+        res.json(trending);
+    } catch (err) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // ==========================================

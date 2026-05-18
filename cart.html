@@ -13,17 +13,13 @@
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; padding-bottom: 100px; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
-        /* HEADER */
         header { position: sticky; top: 0; left: 0; width: 100%; padding: 15px 20px; background: var(--card-bg); z-index: 9000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
         .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; }
         .page-title { font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dark); margin: 0; flex-grow: 1; text-align: center; padding-right: 40px; font-weight: 700;}
 
         main { padding: 20px; max-width: 600px; margin: 0 auto; }
-
-        /* CARD SECTIONS */
         .section-card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #E2E8F0; }
 
-        /* CART ITEMS */
         .cart-item { display: flex; align-items: flex-start; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px dashed #E2E8F0; }
         .cart-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .item-img { width: 75px; height: 75px; border-radius: 12px; object-fit: cover; margin-right: 15px; border: 1px solid #EAEAEA;}
@@ -40,38 +36,35 @@
         .qty-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--accent-color); font-weight: 600; padding: 0 5px;}
         .qty-num { font-size: 0.9rem; font-weight: 700; width: 15px; text-align: center; color: var(--accent-color);}
 
-        /* DELIVERY INSTRUCTIONS */
+        .schedule-label { color: #718096; font-size: 0.85rem; font-weight: 500; display:block; margin-bottom: 5px; }
+        .schedule-select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; background: #F7FAFC; color: var(--text-dark); border: 1px solid #E2E8F0; outline: none; font-family: 'Poppins'; }
+        
         .instruction-box { display: flex; gap: 10px; align-items: center; background: #F7FAFC; padding: 12px 15px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 15px; cursor: pointer;}
         .instruction-box i { font-size: 1.2rem; color: #718096; }
         .instruction-box input { flex-grow: 1; border: none; background: transparent; outline: none; font-family: 'Poppins'; font-size: 0.85rem; color: var(--text-dark); }
         .instruction-box input::placeholder { color: #A0AEC0; }
 
-        /* CUTLERY TOGGLE */
         .cutlery-toggle { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px dashed #E2E8F0;}
         .cutlery-text h4 { font-size: 0.9rem; color: var(--text-dark); display: flex; align-items: center; gap: 8px; margin-bottom: 2px;}
         .cutlery-text p { font-size: 0.75rem; color: #718096; }
         
-        /* CHECKBOX STYLING */
         .checkbox-wrapper-2 .ikxBAC { appearance: none; background-color: #dfe1e4; border-radius: 72px; border-style: none; flex-shrink: 0; height: 20px; margin: 0; position: relative; width: 30px; cursor: pointer;}
         .checkbox-wrapper-2 .ikxBAC::before { bottom: -6px; content: ""; left: -6px; position: absolute; right: -6px; top: -6px; }
         .checkbox-wrapper-2 .ikxBAC::after { background-color: #fff; border-radius: 50%; box-shadow: rgba(0, 0, 0, .3) 0 2px 5px; content: ""; height: 16px; left: 2px; position: absolute; top: 2px; transition: 0.2s ease-in-out; width: 16px; }
         .checkbox-wrapper-2 .ikxBAC:checked { background-color: #48BB78; }
         .checkbox-wrapper-2 .ikxBAC:checked::after { transform: translateX(10px); }
 
-        /* PROMO STYLING */
-        .promo-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .promo-row input { flex-grow: 1; padding: 12px 15px; border: 1px dashed #A0AEC0; border-radius: 12px; font-family: 'Poppins'; text-transform: uppercase; outline: none; font-weight: 600;}
+        .promo-row { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
+        .promo-row input { flex-grow: 1; min-width: 0; padding: 12px 15px; border: 1px dashed #A0AEC0; border-radius: 12px; font-family: 'Poppins'; text-transform: uppercase; outline: none; font-weight: 600;}
         .promo-row input:focus { border-color: var(--accent-color); }
-        .promo-row button { padding: 0 20px; background: var(--text-dark); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s;}
+        .promo-row button { flex-shrink: 0; padding: 0 20px; background: var(--text-dark); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; white-space: nowrap;}
         .promo-msg { font-size: 0.8rem; color: #48BB78; margin-top: -15px; margin-bottom: 15px; font-weight: 600; display: none; }
 
-        /* BILL DETAILS */
         .bill-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 15px; color: var(--text-dark); }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; color: #4A5568;}
         .summary-row.discount-row { color: #48BB78; font-weight: 600; }
         .summary-total { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #E2E8F0; font-size: 1.1rem; font-weight: 700; color: var(--text-dark);}
 
-        /* STICKY BOTTOM CHECKOUT BAR */
         .sticky-checkout { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 9000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .checkout-total-col { display: flex; flex-direction: column; }
         .checkout-total-col span { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; }
@@ -81,13 +74,11 @@
         .checkout-btn i { font-size: 1.2rem; }
         .checkout-btn:hover { background: #d32f3a; transform: translateY(-2px);}
 
-        /* EMPTY STATE */
         .empty-state { text-align: center; padding: 60px 20px; height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         .empty-state h3 { font-size: 1.5rem; margin-bottom: 10px; color: var(--text-dark); }
         .empty-state p { color: #718096; margin-bottom: 25px; font-size: 0.9rem;}
         .shop-btn { background: var(--accent-color); color: white; text-decoration: none; padding: 12px 30px; border-radius: 12px; font-weight: 600; box-shadow: 0 4px 15px rgba(226, 55, 68, 0.3);}
 
-        /* CONFIRMATION MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 10000; }
         .modal-box { background: white; padding: 30px 25px; border-radius: 20px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: popIn 0.3s ease; }
         @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -107,10 +98,10 @@
     <header>
         <a href="menu.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
         <h2 class="page-title">Checkout</h2>
-        <div style="width: 40px;"></div> </header>
+        <div style="width: 40px;"></div> 
+    </header>
 
-    <main id="cart-container">
-        </main>
+    <main id="cart-container"></main>
 
     <div class="sticky-checkout" id="sticky-checkout" style="display: none;">
         <div class="checkout-total-col">
@@ -138,14 +129,52 @@
 
     <script>
         let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+        let shopSchedule = {}; 
+        let waPhone = "9365717848"; 
+        const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         
-        // Configurable Fees
         const DELIVERY_FEE = 40;
         const PACKAGING_FEE = 15; 
         
         let appliedPromo = { code: "", discountPct: 0 }; 
         let itemToRemoveIndex = null;
         let finalGrandTotal = 0;
+        let maxBakeHours = 0;
+        let pushedToTomorrow = false; 
+
+        function timeToDec(timeStr) {
+            if (!timeStr) return 0;
+            let parts = timeStr.split(':');
+            return parseInt(parts[0]) + (parseInt(parts[1]) / 60);
+        }
+
+        function decToTime(dec) {
+            let h = Math.floor(dec);
+            let m = Math.round((dec - h) * 60);
+            if (m === 60) { h++; m = 0; }
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            let dispH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            let dispM = m.toString().padStart(2, '0');
+            return `${dispH}:${dispM} ${ampm}`;
+        }
+
+        async function fetchSettingsAndRender() {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    shopSchedule = data.timings || {};
+                    waPhone = (data.home && data.home.whatsappPhone) ? data.home.whatsappPhone : "9365717848";
+                }
+            } catch (err) {}
+            
+            if (Object.keys(shopSchedule).length === 0) {
+                daysOfWeek.forEach(day => {
+                    shopSchedule[day] = { isOpen: true, open: "10:00", close: "20:00", flex: "22:30" };
+                });
+            }
+            renderCart();
+        }
 
         function renderCart() {
             const container = document.getElementById('cart-container');
@@ -165,12 +194,20 @@
             }
 
             stickyBar.style.display = 'flex';
-
             let itemsHTML = '<div class="section-card">';
             let subtotal = 0;
+            maxBakeHours = 0; 
 
             cart.forEach((item, index) => {
                 subtotal += (item.price * item.qty);
+                
+                // 🔥 FIXED SYNTAX SCANNER (Removed extra backslashes introduced by markdown format leak)
+                let timeStr = String(item.time || "0");
+                let match = timeStr.match(/\d+(\.\d+)?/); 
+                let timeNum = match ? parseFloat(match[0]) : 0;
+                
+                if (timeNum > maxBakeHours) maxBakeHours = timeNum;
+
                 itemsHTML += `
                     <div class="cart-item">
                         <img src="${item.img}" class="item-img">
@@ -191,9 +228,27 @@
                     </div>
                 `;
             });
-            itemsHTML += '</div>'; // End Items Card
+            itemsHTML += '</div>';
 
-            // Delivery Instructions & Cutlery Card
+            let scheduleHTML = `
+                <div class="section-card" style="padding: 15px 20px;">
+                    <h3 class="bill-title" style="margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ri-calendar-schedule-line" style="color: var(--accent-color);"></i> Schedule Delivery
+                    </h3>
+                    <p style="font-size: 0.8rem; color: #48BB78; font-weight: 600; margin-bottom: 15px;" id="prep-time-display">
+                        Your order's total prep time is approximately ${maxBakeHours} hours.
+                    </p>
+                    
+                    <label class="schedule-label">Select Date</label>
+                    <select id="delivery-date" class="schedule-select" onchange="generateTimeSlots()"></select>
+
+                    <label class="schedule-label">Select Time</label>
+                    <select id="delivery-time" class="schedule-select" onchange="checkTimeAnomaly()"></select>
+
+                    <div id="timing-notice" style="display: none; margin-top: 10px; padding: 12px; background: #FFF0F2; border-left: 3px solid #FF6B81; color: #C53030; font-size: 0.8rem; line-height: 1.5; border-radius: 4px;"></div>
+                </div>
+            `;
+
             let savedNote = localStorage.getItem('confettinCartNote') || "";
             let preferencesHTML = `
                 <div class="section-card" style="padding: 15px 20px;">
@@ -214,51 +269,28 @@
                 </div>
             `;
 
-            // MATH FOR BILL DETAILS
             let discountAmount = 0;
-            if (appliedPromo.discountPct > 0) {
-                discountAmount = Math.round(subtotal * (appliedPromo.discountPct / 100));
-            }
+            if (appliedPromo.discountPct > 0) { discountAmount = Math.round(subtotal * (appliedPromo.discountPct / 100)); }
             finalGrandTotal = (subtotal - discountAmount) + DELIVERY_FEE + PACKAGING_FEE;
 
-            // Bill Details Card
             let billHTML = `
                 <div class="section-card">
                     <h3 class="bill-title">Bill Details</h3>
-                    
                     <div class="promo-row">
                         <input type="text" id="promo-input" placeholder="Enter Promo Code" value="${appliedPromo.code}">
                         <button onclick="checkPromo()">Apply</button>
                     </div>
                     <div id="promo-msg" class="promo-msg"></div>
 
-                    <div class="summary-row">
-                        <span>Item Total</span>
-                        <span>₹${subtotal}</span>
-                    </div>
-                    
-                    ${appliedPromo.discountPct > 0 ? `
-                    <div class="summary-row discount-row">
-                        <span>Item Discount (${appliedPromo.code})</span>
-                        <span>- ₹${discountAmount}</span>
-                    </div>` : ''}
-
-                    <div class="summary-row">
-                        <span>Packaging Charges</span>
-                        <span>₹${PACKAGING_FEE}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Delivery Fee</span>
-                        <span>₹${DELIVERY_FEE}</span>
-                    </div>
-                    <div class="summary-total">
-                        <span>Grand Total</span>
-                        <span>₹${finalGrandTotal}</span>
-                    </div>
+                    <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
+                    ${appliedPromo.discountPct > 0 ? `<div class="summary-row discount-row"><span>Item Discount (${appliedPromo.code})</span><span>- ₹${discountAmount}</span></div>` : ''}
+                    <div class="summary-row"><span>Packaging Charges</span><span>₹${PACKAGING_FEE}</span></div>
+                    <div class="summary-row"><span>Delivery Fee</span><span>₹${DELIVERY_FEE}</span></div>
+                    <div class="summary-total"><span>Grand Total</span><span>₹${finalGrandTotal}</span></div>
                 </div>
             `;
 
-            container.innerHTML = itemsHTML + preferencesHTML + billHTML;
+            container.innerHTML = itemsHTML + scheduleHTML + preferencesHTML + billHTML;
             document.getElementById('bottom-total').innerText = '₹' + finalGrandTotal;
             
             if(appliedPromo.discountPct > 0) {
@@ -266,98 +298,204 @@
                 msgBox.innerText = `✅ ${appliedPromo.discountPct}% Discount Applied!`;
                 msgBox.style.display = 'block';
             }
+
+            initDatePicker();
         }
 
-        // --- QUANTITY & REMOVE LOGIC ---
+        function initDatePicker() {
+            const dateSelect = document.getElementById('delivery-date');
+            if(!dateSelect) return;
+            dateSelect.innerHTML = ''; 
+            
+            let now = new Date();
+            let currentDecimal = now.getHours() + (now.getMinutes() / 60);
+            
+            let addedDays = 0;
+            let dayOffset = 0;
+            pushedToTomorrow = false;
+
+            let todayStr = daysOfWeek[now.getDay()];
+            let tToday = shopSchedule[todayStr];
+
+            if (tToday && tToday.isOpen) {
+                let flexCutoff = timeToDec(tToday.flex);
+                let earliestFinish = currentDecimal + maxBakeHours;
+                
+                if (earliestFinish > flexCutoff) {
+                    pushedToTomorrow = true;
+                    dayOffset = 1; 
+                }
+            } else {
+                pushedToTomorrow = true;
+                dayOffset = 1; 
+            }
+
+            while(addedDays < 5 && dayOffset < 14) { 
+                let targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + dayOffset);
+                let dayStr = daysOfWeek[targetDate.getDay()];
+                let t = shopSchedule[dayStr];
+
+                if (!t || !t.isOpen) {
+                    dayOffset++; 
+                    continue; 
+                }
+
+                let dateLabel = targetDate.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+                let option = document.createElement('option');
+                option.value = dayOffset; 
+                option.text = dayOffset === 0 ? `Today (${dateLabel})` : (dayOffset === 1 ? `Tomorrow (${dateLabel})` : dateLabel);
+                dateSelect.add(option);
+                
+                addedDays++;
+                dayOffset++;
+            }
+            
+            const noticeBox = document.getElementById('timing-notice');
+            if (pushedToTomorrow) {
+                noticeBox.innerHTML = `🌙 <strong>Notice:</strong> Your order time passes our closing time. Please select a delivery time for tomorrow's day.`;
+                noticeBox.style.display = 'block';
+            } else {
+                noticeBox.style.display = 'none';
+            }
+
+            let savedDateVal = localStorage.getItem('confettinCartDateVal');
+            if (savedDateVal && Array.from(dateSelect.options).some(opt => opt.value === savedDateVal)) { 
+                dateSelect.value = savedDateVal; 
+            }
+
+            generateTimeSlots();
+        }
+
+        function generateTimeSlots() {
+            const timeSelect = document.getElementById('delivery-time');
+            const noticeBox = document.getElementById('timing-notice');
+            if(!timeSelect) return;
+            timeSelect.innerHTML = '';
+            
+            if (!pushedToTomorrow) noticeBox.style.display = 'none';
+
+            localStorage.setItem('confettinTimeAnomaly', 'false');
+
+            let now = new Date();
+            let currentDecimal = now.getHours() + (now.getMinutes() / 60);
+            let offset = parseInt(document.getElementById('delivery-date').value);
+            
+            let targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + offset);
+            let dayStr = daysOfWeek[targetDate.getDay()];
+            let t = shopSchedule[dayStr];
+
+            if (!t) return;
+
+            let openTime = timeToDec(t.open);
+            let closeTime = timeToDec(t.close);
+            let flexTime = timeToDec(t.flex);
+
+            let earliestFinish = currentDecimal + maxBakeHours;
+            let startSlot = openTime;
+
+            // SCENARIO 1: IT IS TODAY
+            if (offset === 0) {
+                if (earliestFinish > closeTime && earliestFinish <= flexTime) {
+                    noticeBox.innerHTML = `⚠️ <strong>Late Evening Notice:</strong> Your order passes our closing time but we may deliver it. <a href="https://wa.me/91${waPhone}" target="_blank" style="color: #48BB78; text-decoration: underline; font-weight: bold;"><i class="ri-whatsapp-line"></i> Message us on WhatsApp</a> for clarification before placing the order.`;
+                    noticeBox.style.display = 'block';
+
+                    let option = document.createElement('option');
+                    option.value = `Late Evening (${decToTime(earliestFinish)} - ${decToTime(earliestFinish + 0.5)})`;
+                    option.text = option.value;
+                    timeSelect.add(option);
+                    
+                    localStorage.setItem('confettinTimeAnomaly', 'true');
+                } 
+                else if (earliestFinish <= closeTime) {
+                    startSlot = Math.max(openTime, Math.ceil(earliestFinish * 2) / 2);
+                    
+                    for (let h = startSlot; h <= closeTime - 0.5; h += 0.5) {
+                        let option = document.createElement('option');
+                        option.value = `${decToTime(h)} - ${decToTime(h + 0.5)}`;
+                        option.text = option.value;
+                        timeSelect.add(option);
+                    }
+                }
+            } 
+            // SCENARIO 2: IT IS TOMORROW OR LATER
+            else {
+                if (offset === 1 && pushedToTomorrow) {
+                    startSlot = openTime + maxBakeHours;
+                }
+                
+                startSlot = Math.max(openTime, Math.ceil(startSlot * 2) / 2);
+
+                for (let h = startSlot; h <= closeTime - 0.5; h += 0.5) {
+                    let option = document.createElement('option');
+                    option.value = `${decToTime(h)} - ${decToTime(h + 0.5)}`;
+                    option.text = option.value;
+                    timeSelect.add(option);
+                }
+            }
+
+            let savedTime = localStorage.getItem('confettinCartTime');
+            if (savedTime && Array.from(timeSelect.options).some(opt => opt.value === savedTime)) {
+                timeSelect.value = savedTime;
+            }
+            checkTimeAnomaly(); 
+        }
+
+        function checkTimeAnomaly() {
+            const noticeBox = document.getElementById('timing-notice');
+            if (localStorage.getItem('confettinTimeAnomaly') === 'true') {
+                noticeBox.style.display = 'block';
+            }
+        }
+
         function updateQty(index, change) {
-            // If they click minus and the qty is 1, show the confirm modal
-            if(cart[index].qty === 1 && change === -1) {
-                triggerRemove(index);
-                return;
-            }
-            cart[index].qty += change;
-            saveAndRender();
+            if(cart[index].qty === 1 && change === -1) { triggerRemove(index); return; }
+            cart[index].qty += change; saveAndRender();
         }
-
         function triggerRemove(index) {
-            itemToRemoveIndex = index;
-            document.getElementById('remove-item-name').innerText = cart[index].name;
-            document.getElementById('remove-modal').style.display = 'flex';
+            itemToRemoveIndex = index; document.getElementById('remove-item-name').innerText = cart[index].name; document.getElementById('remove-modal').style.display = 'flex';
         }
-
         function confirmRemove() {
-            if(itemToRemoveIndex !== null) {
-                cart.splice(itemToRemoveIndex, 1);
-                itemToRemoveIndex = null;
-                saveAndRender();
-                closeRemoveModal();
-                showToast("Item removed from cart");
-            }
+            if(itemToRemoveIndex !== null) { cart.splice(itemToRemoveIndex, 1); itemToRemoveIndex = null; saveAndRender(); closeRemoveModal(); showToast("Item removed from cart"); }
         }
+        function closeRemoveModal() { itemToRemoveIndex = null; document.getElementById('remove-modal').style.display = 'none'; }
+        function saveAndRender() { localStorage.setItem('confettinCart', JSON.stringify(cart)); renderCart(); }
+        function saveNote() { const note = document.getElementById('delivery-note').value; localStorage.setItem('confettinCartNote', note); }
 
-        function closeRemoveModal() {
-            itemToRemoveIndex = null;
-            document.getElementById('remove-modal').style.display = 'none';
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('confettinCart', JSON.stringify(cart));
-            renderCart();
-        }
-
-        function saveNote() {
-            const note = document.getElementById('delivery-note').value;
-            localStorage.setItem('confettinCartNote', note);
-        }
-
-        // --- VALIDATE PROMO VIA SQLITE API ---
         async function checkPromo() {
             const inputCode = document.getElementById('promo-input').value;
             if(!inputCode) return;
-
             try {
-                const res = await fetch('/api/promos/validate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: inputCode })
-                });
-                
+                const res = await fetch('/api/promos/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: inputCode }) });
                 const data = await res.json();
-
-                if (res.ok) {
-                    appliedPromo = { code: inputCode.toUpperCase(), discountPct: data.discount };
-                    renderCart(); 
-                } else {
-                    appliedPromo = { code: "", discountPct: 0 };
-                    renderCart(); 
-                    showToast(data.error); 
-                }
-            } catch (err) {
-                showToast("Server connection error");
-            }
+                if (res.ok) { appliedPromo = { code: inputCode.toUpperCase(), discountPct: data.discount }; renderCart(); } 
+                else { appliedPromo = { code: "", discountPct: 0 }; renderCart(); showToast(data.error); }
+            } catch (err) { showToast("Server connection error"); }
         }
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
+        function showToast(message) { const toast = document.getElementById('toast'); toast.innerText = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
 
         function processCheckout() {
             const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
-            if (!activeUser) {
-                showToast("Please log in to place an order!");
-                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
-                return;
-            }
+            if (!activeUser) { showToast("Please log in to place an order!"); setTimeout(() => { window.location.href = 'index.html'; }, 2000); return; }
+
+            const dateSelect = document.getElementById('delivery-date');
+            const timeSelect = document.getElementById('delivery-time');
             
-            saveNote(); // Save any last-minute typing
+            if (timeSelect.disabled || timeSelect.value === "") { showToast("Please select a valid Delivery Date & Time."); return; }
+
+            const selectedDateText = dateSelect.options[dateSelect.selectedIndex].text;
+            localStorage.setItem('confettinCartDateVal', dateSelect.value); 
+            localStorage.setItem('confettinCartDateText', selectedDateText); 
+            localStorage.setItem('confettinCartTime', timeSelect.value);
             
+            saveNote(); 
             localStorage.setItem('confettinCheckoutTotal', finalGrandTotal);
             window.location.href = 'payment.html';
         }
 
-        window.onload = renderCart;
+        window.onload = fetchSettingsAndRender;
     </script>
 </body>
 </html>

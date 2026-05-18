@@ -30,6 +30,24 @@
         .address-text h3 { font-size: 1.05rem; color: var(--text-dark); margin-bottom: 3px; font-family: 'Poppins', sans-serif;}
         .address-text p { font-size: 0.85rem; color: #718096; line-height: 1.4; }
 
+        /* 🔥 ORDER DETAILS CARD (NEW) */
+        .order-summary-card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #E2E8F0; }
+        .order-item-row { display: flex; gap: 15px; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px dashed #E2E8F0; }
+        .order-item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .order-item-img { width: 75px; height: 75px; border-radius: 12px; object-fit: cover; border: 1px solid #EAEAEA; }
+        .order-item-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .order-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .order-item-name { font-size: 0.95rem; font-weight: 600; color: var(--text-dark); line-height: 1.2; max-width: 75%; }
+        .order-item-price { font-size: 0.95rem; font-weight: 700; color: var(--text-dark); }
+        .order-item-meta { font-size: 0.75rem; color: #718096; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;}
+        .meta-badge { background: #F7FAFC; padding: 4px 8px; border-radius: 6px; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 4px; font-weight: 500;}
+        
+        .order-summary-footer { margin-top: 15px; padding-top: 15px; border-top: 1px solid #E2E8F0; background: #F7FAFC; margin: 15px -20px -20px; padding: 15px 20px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+        .summary-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .summary-label { font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 6px;}
+        .summary-val { font-size: 0.9rem; color: var(--text-dark); font-weight: 700; text-align: right;}
+        .summary-total-val { font-size: 1.1rem; color: var(--accent-color); font-weight: 700; }
+
         /* PAYMENT SELECTORS */
         .payment-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
         .pay-label { display: block; cursor: pointer; }
@@ -51,7 +69,7 @@
         .pay-label input[type="radio"]:checked + .pay-card .radio-circle i { display: block; }
         .pay-label input[type="radio"]:checked + .pay-card .pay-icon { background: white; color: var(--success); }
 
-        /* 🔥 COMING SOON STATE */
+        /* COMING SOON STATE */
         .pay-label.disabled { cursor: not-allowed; opacity: 0.6; }
         .pay-label.disabled .pay-card { background: #F7FAFC; }
         .coming-soon-badge { font-size: 0.6rem; background: #E2E8F0; color: #4A5568; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
@@ -126,6 +144,10 @@
                 </div>
             </div>
         </div>
+
+        <div class="section-header">Order Details</div>
+        <div id="order-details-container">
+            </div>
 
         <div class="section-header">Select Payment Method</div>
         <div class="payment-options">
@@ -217,7 +239,7 @@
             document.getElementById('live-google-map').src = mapUrl;
         }
 
-        // 2. GET FINAL TOTAL FROM CART
+        // 2. GET CART AND TOTALS
         const cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
         let finalGrandTotal = localStorage.getItem('confettinCheckoutTotal') || 0;
 
@@ -229,7 +251,57 @@
 
         document.getElementById('footer-total').innerText = "₹" + finalGrandTotal;
 
-        // 3. SECURE PROCESSING LOGIC
+        // 3. 🔥 POPULATE ORDER DETAILS SECTION
+        function renderOrderDetails() {
+            const container = document.getElementById('order-details-container');
+            if(cart.length === 0) return;
+
+            let html = `<div class="order-summary-card">`;
+            
+            cart.forEach(item => {
+                let weightLabel = item.weight ? item.weight : "Standard";
+                let timeLabel = item.time ? item.time + " hrs" : "Ready";
+                
+                html += `
+                    <div class="order-item-row">
+                        <img src="${item.img}" class="order-item-img">
+                        <div class="order-item-info">
+                            <div class="order-item-header">
+                                <span class="order-item-name">${item.qty}x ${item.name}</span>
+                                <span class="order-item-price">₹${item.price * item.qty}</span>
+                            </div>
+                            <div class="order-item-meta">
+                                <span class="meta-badge"><i class="ri-scales-3-line"></i> ${weightLabel}</span>
+                                <span class="meta-badge"><i class="ri-time-line"></i> Prep: ${timeLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Grab Schedule Data saved from Cart
+            const savedDate = localStorage.getItem('confettinCartDateText') || "Not Scheduled";
+            const savedTime = localStorage.getItem('confettinCartTime') || "ASAP";
+
+            html += `
+                <div class="order-summary-footer">
+                    <div class="summary-flex">
+                        <span class="summary-label"><i class="ri-calendar-check-line" style="font-size:1.1rem; color:var(--accent-color);"></i> Delivery Schedule</span>
+                        <span class="summary-val">${savedDate} | ${savedTime}</span>
+                    </div>
+                    <div class="summary-flex" style="margin-bottom: 0; margin-top: 10px;">
+                        <span class="summary-label" style="color:var(--text-dark);">Total Amount</span>
+                        <span class="summary-total-val">₹${finalGrandTotal}</span>
+                    </div>
+                </div>
+            </div>`;
+
+            container.innerHTML = html;
+        }
+        
+        renderOrderDetails();
+
+        // 4. SECURE PROCESSING LOGIC
         async function confirmOrder() {
             if(!activeUser) return;
 
@@ -239,8 +311,12 @@
             const overlay = document.getElementById('processing-overlay');
             overlay.style.display = 'flex';
 
-            const customerNote = localStorage.getItem('confettinCartNote') || "";
-            const smuggledAddress = customerNote ? activeUser.address + "|||NOTE:" + customerNote : activeUser.address;
+            const customerNote = localStorage.getItem('confettinCartNote') || "None";
+            const savedDate = localStorage.getItem('confettinCartDateText') || "Today";
+            const savedTime = localStorage.getItem('confettinCartTime') || "ASAP";
+            
+            // Smuggling the Schedule & Note into the Address string for the Admin to see
+            const smuggledAddress = `${activeUser.address} ||| SCHEDULE: ${savedDate} at ${savedTime} ||| NOTE: ${customerNote}`;
 
             const orderPayload = {
                 customer: activeUser.name,
@@ -266,9 +342,13 @@
                     document.getElementById('loading-title').style.color = "#48BB78";
                     document.getElementById('loading-sub').innerText = "Redirecting to your orders...";
 
+                    // Clear Cart & Session Data
                     localStorage.removeItem('confettinCart');
                     localStorage.removeItem('confettinCheckoutTotal');
                     localStorage.removeItem('confettinCartNote'); 
+                    localStorage.removeItem('confettinCartDateVal'); 
+                    localStorage.removeItem('confettinCartDateText'); 
+                    localStorage.removeItem('confettinCartTime'); 
                     
                     setTimeout(() => {
                         window.location.href = 'orders.html';
