@@ -29,7 +29,7 @@
         /* CORE SETUP */
         :root { --bg-color: #FAFAFA; --text-dark: #1C1C1C; --accent: #E23744; --white: #FFFFFF; --gray-light: #F8F9FA; --text-muted: #696969; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; padding-bottom: 70px; }
+        body { background-color: #d1e2ea; color: var(--text-dark); overflow-x: hidden; padding-bottom: 70px; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
         /* HEADER */
@@ -225,6 +225,26 @@
     </style>
 </head>
 <body>
+    <div id="splash-screen" style="position: fixed; top:0; left:0; width:100%; height:100%; background:#d1e2ea; z-index:99999; display:flex; justify-content:center; align-items:center; transition: opacity 0.5s ease;">
+    <img src="logo.png" style="width: 150px; height: 150px; border-radius: 50%; animation: pulse 2s infinite;">
+</div>
+
+<style>
+    #splash-screen { 
+        position: fixed; top:0; left:0; width:100%; height:100%; 
+        background:#d1e2ea; /* Your brand background */
+        z-index:99999; display:flex; justify-content:center; align-items:center; 
+        transition: opacity 0.5s ease; 
+    }
+    #splash-screen img { 
+        width: 150px; height: 150px; 
+        border-radius: 50%; /* FORCES a circular shape */
+        object-fit: cover; /* Ensures the image doesn't stretch */
+        animation: pulse 2s infinite;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1); /* Adds a premium soft shadow */
+    }
+    @keyframes pulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(0.95); } }
+</style>
 
     <header>
         <div class="logo-text">CONFETTINCAKE</div>
@@ -658,6 +678,14 @@
             .then(() => console.log('PWA Service Worker Registered'));
     });
 }
+
+window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    splash.style.opacity = '0';
+    setTimeout(() => {
+        splash.style.display = 'none';
+    }, 500); // Fades out over 0.5 seconds
+});
     </script>
 </body>
 </html>
