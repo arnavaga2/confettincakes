@@ -351,10 +351,10 @@
             <p style="font-size: 0.9rem; color: #718096; margin-bottom: 20px;">Join the sweetest club in town.</p>
             
             <input type="text" id="su-name" placeholder="Full Name" required>
-            <input type="tel" id="su-phone" placeholder="Phone Number" required>
+            <input type="tel" id="su-phone" placeholder="10-Digit Phone Number" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
             <input type="text" id="su-address" placeholder="Street Address" required>
             
-            <input type="number" id="su-pin" placeholder="6-Digit Pincode" onkeyup="checkDynamicPincode()" required>
+            <input type="number" id="su-pin" placeholder="6-Digit Pincode" oninput="this.value = this.value.slice(0, 6); checkDynamicPincode()" required>
             <p id="pin-error" class="error-msg">We don't deliver here yet, coming soon...</p>
             
             <div class="row">
@@ -377,7 +377,7 @@
             <h2>Welcome Back</h2>
             <p style="font-size: 0.9rem; color: #718096; margin-bottom: 20px;">Log in to track your cravings.</p>
             
-            <input type="tel" id="si-phone" placeholder="Registered Phone Number" required>
+            <input type="tel" id="si-phone" placeholder="Registered 10-Digit Phone" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
             <input type="password" id="si-pass" placeholder="Password" required>
             <p id="login-error" class="error-msg">Incorrect phone or password.</p>
 
@@ -451,8 +451,8 @@
             const city = document.getElementById('su-city');
             const state = document.getElementById('su-state');
 
-            const allowedPins = localStorage.getItem('confettinPincodes') || "110";
-            const pinPrefixes = allowedPins.split(',').map(p => p.trim());
+            // Use the live global variable instead of localStorage!
+            const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
 
             if(pin.length >= 3) {
                 const isValid = pinPrefixes.some(prefix => pin.startsWith(prefix));
@@ -463,7 +463,7 @@
                         city.value = "New Delhi"; state.value = "Delhi";
                         city.setAttribute("readonly", true); state.setAttribute("readonly", true);
                     } else {
-                        city.value = ""; state.value = "";
+                        // Allow typing for custom zones, just remove readonly
                         city.removeAttribute("readonly"); state.removeAttribute("readonly");
                     }
                 } else if (pin.length === 6) {
@@ -487,8 +487,10 @@
             if(!name || !phone || !address || !city || !state || !pin || !pass1 || !pass2) return showToast("Please fill out all fields!");
             if(!/^\d{10}$/.test(phone)) return showToast("Please enter a valid 10-digit phone number.");
             
-            const allowedPins = localStorage.getItem('confettinPincodes') || "110";
-            if(!allowedPins.split(',').map(p => p.trim()).some(prefix => pin.startsWith(prefix))) return showToast("We don't deliver to this pincode yet.");
+            const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
+            if(!pinPrefixes.some(prefix => pin.startsWith(prefix)) || pin.length !== 6) {
+                return showToast("We don't deliver to this pincode yet.");
+            }
             if(pass1 !== pass2) { document.getElementById('pass-error').style.display = 'block'; return; }
 
             try {
@@ -508,11 +510,18 @@
         }
 
         // --- LOAD DYNAMIC TEXTS FROM ADMIN SETTINGS ---
+        let globalAllowedPins = "110"; // Fallback safety
+
         async function loadHomeSettings() {
             try {
                 const response = await fetch('/api/settings');
                 if (response.ok) {
                     const settings = await response.json();
+                    
+                    // 🔥 Capture the live database pincodes!
+                    if (settings.pincodes) {
+                        globalAllowedPins = settings.pincodes;
+                    }
                     
                     if (settings.home) {
                         if(settings.home.heroVideo) {
@@ -545,49 +554,99 @@
         
         // --- LOAD DYNAMIC TRENDING BAR ---
         async function loadTrendingProducts() {
+            const container = document.getElementById('trending-container');
+            
             try {
-                const res = await fetch('/api/trending');
-                if(res.ok) {
-                    const trendingItems = await res.json();
-                    const container = document.getElementById('trending-container');
-                    container.innerHTML = '';
-                    
-                    trendingItems.forEach(prod => {
-                        const categoryLink = prod.cat ? encodeURIComponent(prod.cat.toLowerCase()) : 'cakes';
-                        // Format the item name so it can be passed safely in the URL (e.g., "red-velvet-cake")
-                        const itemLink = prod.name ? encodeURIComponent(prod.name.toLowerCase().replace(/\s+/g, '-')) : '';
-                        
-                        const weightText = prod.weight ? prod.weight : "1 kg";
-                        const timeText = prod.time ? prod.time : "24 Hours";
-                        const stickerText = "✨ BEST SELLER"; 
+                let trendingItems;
+                const sessionCache = sessionStorage.getItem('confettinTrendingItems');
+                
+                // 1. THE FAKE-RANDOM FIX: Check if we already picked items for this browser session
+                if (sessionCache) {
+                    trendingItems = JSON.parse(sessionCache);
+                } else {
+                    // Fetch fresh from backend and lock it into the browser's memory
+                    const res = await fetch('/api/trending');
+                    if(!res.ok) throw new Error("Fetch failed");
+                    trendingItems = await res.json();
+                    sessionStorage.setItem('confettinTrendingItems', JSON.stringify(trendingItems));
+                }
 
-                        container.innerHTML += `
-                            <div class="prod-card" style="position: relative; overflow: hidden; display: flex; flex-direction: column;">
-                                <div class="shining-sticker">${stickerText}</div>
-                                <img src="${prod.img}" class="prod-img">
-                                <div class="prod-info" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                                    <div>
-                                        <h3 class="prod-name" style="font-size: 1.1rem; color: #2D3748; margin-bottom: 8px; text-transform: capitalize;">${prod.name}</h3>
-                                        <div class="trending-meta-row">
-                                            <span style="color: #FF6B81; font-size: 1.1rem; font-weight: 700;">₹${prod.price}</span>
-                                            
-                                            <span class="shining-weight">⚖️ ${weightText}</span>
-                                        </div>
-                                        <div class="trending-prep">
-                                            <i class="ri-timer-line" style="font-size: 1rem; color: #FF6B81;"></i> 
-                                            Prep & Delivery: ${timeText}
-                                        </div>
-                                    </div>
-                                    
-                                    <button class="add-btn" style="margin-top: 10px;" onclick="window.location.href='products.html?category=${categoryLink}&item=${itemLink}'">Order Now</button>
-                                </div>
-                            </div>
-                        `;
+                container.innerHTML = '';
+                
+                // 2. RENDER THE CARDS
+                trendingItems.forEach(prod => {
+                    container.innerHTML += createTrendingCard(prod);
+                });
+
+                // 3. THE LOOP TRICK: If there are only 3 items, duplicate them in the HTML 
+                // so the slow-scroll has enough items to create an infinite visual loop.
+                if(trendingItems.length <= 3) {
+                    trendingItems.forEach(prod => {
+                        container.innerHTML += createTrendingCard(prod);
                     });
                 }
+
+                // 4. Start the engine!
+                startTrendingAutoScroll(container);
+
             } catch(err) {
-                document.getElementById('trending-container').innerHTML = '<p style="color: #A0AEC0; padding: 20px;">Check out our full menu for tasty treats!</p>';
+                container.innerHTML = '<p style="color: #A0AEC0; padding: 20px;">Check out our full menu for tasty treats!</p>';
             }
+        }
+
+        // Helper function to keep our code clean
+        function createTrendingCard(prod) {
+            const categoryLink = prod.cat ? encodeURIComponent(prod.cat.toLowerCase()) : 'cakes';
+            const itemLink = prod.name ? encodeURIComponent(prod.name.toLowerCase().replace(/\s+/g, '-')) : '';
+            const weightText = prod.weight ? prod.weight : "1 kg";
+            const timeText = prod.time ? prod.time : "24 Hours";
+
+            return `
+                <div class="prod-card" style="position: relative; overflow: hidden; display: flex; flex-direction: column;">
+                    <div class="shining-sticker">✨ BEST SELLER</div>
+                    <img src="${prod.img}" class="prod-img">
+                    <div class="prod-info" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h3 class="prod-name" style="font-size: 1.1rem; color: #2D3748; margin-bottom: 8px; text-transform: capitalize;">${prod.name}</h3>
+                            <div class="trending-meta-row">
+                                <span style="color: #FF6B81; font-size: 1.1rem; font-weight: 700;">₹${prod.price}</span>
+                                <span class="shining-weight">⚖️ ${weightText}</span>
+                            </div>
+                            <div class="trending-prep">
+                                <i class="ri-timer-line" style="font-size: 1rem; color: #FF6B81;"></i> 
+                                Prep & Delivery: ${timeText}
+                            </div>
+                        </div>
+                        <button class="add-btn" style="margin-top: 10px;" onclick="window.location.href='products.html?category=${categoryLink}&item=${itemLink}'">Order Now</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- THE SLOW AUTO-SCROLL ENGINE ---
+        function startTrendingAutoScroll(container) {
+            // Disable the CSS 'snap' feature via JS so it glides smoothly instead of jerking
+            container.style.scrollSnapType = 'none'; 
+            
+            let isHovered = false;
+
+            // Pause the scrolling if they hover with a mouse or hold it with their thumb
+            container.addEventListener('mouseenter', () => isHovered = true);
+            container.addEventListener('mouseleave', () => isHovered = false);
+            container.addEventListener('touchstart', () => isHovered = true);
+            container.addEventListener('touchend', () => { setTimeout(() => isHovered = false, 1500) });
+
+            // Push it left by 1 pixel every 35 milliseconds
+            setInterval(() => {
+                if(!isHovered) {
+                    container.scrollLeft += 1;
+                    
+                    // Seamless loop reset: If it hits the end, instantly teleport back to the beginning
+                    if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1)) {
+                        container.scrollLeft = 0;
+                    }
+                }
+            }, 35); 
         }
     </script>
 </body>

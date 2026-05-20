@@ -94,6 +94,20 @@
         #custom-toast.success { border-left: 5px solid #48BB78; }
         #custom-toast.error { border-left: 5px solid #F56565; }
 
+        /* 🔥 RATING INJECTOR MODAL */
+        .glass-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 20000; opacity: 0; transition: opacity 0.3s ease;}
+        .glass-overlay.show { display: flex; opacity: 1; }
+        .modal-box { background: var(--white); width: 90%; max-width: 400px; padding: 30px; border-radius: 16px; text-align: center; position: relative; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 10px 40px rgba(0,0,0,0.2);}
+        .glass-overlay.show .modal-box { transform: translateY(0); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: #A0AEC0; line-height: 1; }
+        .modal-box h3 { color: var(--text-dark); margin-bottom: 5px; font-family: 'Playfair Display', serif; font-size: 1.5rem;}
+        .modal-box p { font-size: 0.85rem; color: #718096; margin-bottom: 20px; font-weight: 500;}
+        .modal-box input, .modal-box select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 0.95rem; outline: none; background: #F7FAFC; color: var(--text-dark); font-weight: 600;}
+        .btn-submit-rating { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-submit-rating:hover { background: #E53E3E; }
+        .rate-action { color: #F59E0B; cursor: pointer; font-weight: 600; background: none; border: none; font-size: 1.2rem; transition: 0.2s;}
+        .rate-action:hover { transform: scale(1.15); color: #D69E2E;}
+
         /* --- MOBILE APP OVERRIDES --- */
         .mobile-bottom-nav { display: none; }
         .mobile-top-bar { display: none; }
@@ -270,6 +284,27 @@
     </div>
 
     <input type="file" id="quickCatPicInput" hidden accept="image/*">
+
+    <div id="rate-modal" class="glass-overlay">
+        <div class="modal-box">
+            <span class="close-modal" onclick="closeRateModal()">&times;</span>
+            <h3>Inject Ratings</h3>
+            <p id="rate-product-name">Product Name</p>
+            
+            <select id="fake-stars">
+                <option value="5">⭐⭐⭐⭐⭐ (5 Stars)</option>
+                <option value="4">⭐⭐⭐⭐ (4 Stars)</option>
+                <option value="3">⭐⭐⭐ (3 Stars)</option>
+                <option value="2">⭐⭐ (2 Stars)</option>
+                <option value="1">⭐ (1 Star)</option>
+            </select>
+            
+            <input type="number" id="fake-count" placeholder="Number of users (e.g., 12)" min="1">
+            
+            <button class="btn-submit-rating" id="submitFakeRateBtn" onclick="submitFakeRating()">Inject Ratings</button>
+        </div>
+    </div>
+    
     <div id="custom-toast">Message goes here</div>
 
     <script>
@@ -534,9 +569,11 @@
                         <td>${i.weight || '-'}</td>
                         <td>${i.time || '-'}</td>
                         <td class="action-btns">
-                            <button class="edit-action" onclick="editItem(${i.id})">Edit</button>
+                            <button class="rate-action" title="Inject Ratings" onclick="openRateModal('${i.id}', '${i.name.replace(/'/g, "\\'")}')"><i class="ri-star-fill"></i></button>
                             <span style="color:#E2E8F0;">|</span>
-                            <button class="del-action" onclick="delItem(${i.id})">Delete</button>
+                            <button class="edit-action" onclick="editItem('${i.id}')">Edit</button>
+                            <span style="color:#E2E8F0;">|</span>
+                            <button class="del-action" onclick="delItem('${i.id}')">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -617,6 +654,57 @@
             b64Image = "";
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.innerText = "SAVE TO INVENTORY"; saveBtn.style.background = "var(--sidebar-bg)"; saveBtn.disabled = false;
+        }
+
+        // =====================================
+        // ⭐ FAKE RATING INJECTOR
+        // =====================================
+        let rateTargetId = null;
+
+        function openRateModal(id, name) {
+            rateTargetId = id;
+            document.getElementById('rate-product-name').innerText = name;
+            document.getElementById('fake-count').value = '';
+            document.getElementById('fake-stars').value = '5'; // Default to 5 stars
+            
+            const modal = document.getElementById('rate-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeRateModal() {
+            const modal = document.getElementById('rate-modal');
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        async function submitFakeRating() {
+            const count = parseInt(document.getElementById('fake-count').value);
+            const stars = parseInt(document.getElementById('fake-stars').value);
+            
+            if (!count || count < 1) return showToast("Please enter a valid number of users.", "error");
+            
+            const btn = document.getElementById('submitFakeRateBtn');
+            btn.innerText = "Injecting..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/admin/inventory/${rateTargetId}/rate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stars, count })
+                });
+
+                if(response.ok) {
+                    showToast(`Successfully added ${count} x ${stars}-star ratings!`, 'success');
+                    closeRateModal();
+                } else {
+                    showToast("Failed to inject ratings.", "error");
+                }
+            } catch(err) {
+                showToast("Server error.", "error");
+            } finally {
+                btn.innerText = "Inject Ratings"; btn.disabled = false;
+            }
         }
 
         window.onload = () => { loadSettings(); fetchInventory(); };

@@ -132,7 +132,15 @@ const InventorySchema = new mongoose.Schema({
     price: String,
     weight: String,
     time: String,
-    img: String
+    img: String,
+    // 🔥 NEW: Added ratings object so the Amazon-style UI works
+    ratings: {
+        1: { type: Number, default: 0 },
+        2: { type: Number, default: 0 },
+        3: { type: Number, default: 0 },
+        4: { type: Number, default: 0 },
+        5: { type: Number, default: 0 }
+    }
 });
 const Inventory = mongoose.model('Inventory', InventorySchema);
 
@@ -230,7 +238,15 @@ const transporter = nodemailer.createTransport({
 // Maps MongoDB _id to id so your frontend doesn't break
 const formatDoc = (doc) => {
     const obj = doc.toObject();
-    obj.id = obj._id.toString();
+    
+    // 🔥 FIX: If it is an Order with our custom 'ORD-' ID, preserve it!
+    // Otherwise, safely map the MongoDB _id to id.
+    if (obj.id && obj.id.startsWith('ORD-')) {
+        // Do nothing, keep the clean original ID
+    } else {
+        obj.id = obj._id.toString();
+    }
+    
     return obj;
 };
 
@@ -323,7 +339,12 @@ app.get('/api/inventory', async (req, res) => {
 
 app.post('/api/admin/inventory', async (req, res) => {
     try {
-        const newItem = new Inventory(req.body);
+        // 🔥 NEW: Force every new cake to start with 0 reviews
+        const productData = {
+            ...req.body,
+            ratings: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        };
+        const newItem = new Inventory(productData);
         await newItem.save();
         res.json({ message: "Product added to database", id: newItem._id });
     } catch (err) {
@@ -589,6 +610,40 @@ app.get('/api/trending', async (req, res) => {
         res.json(trending);
     } catch (err) {
         res.status(500).json({ error: "Database error" });
+    }
+});
+
+// 🔥 ADMIN ROUTE: Inject Custom Ratings for the Pitch
+app.post('/api/admin/inventory/:id/rate', async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const { stars, count } = req.body; 
+
+        // Validate the input
+        if (!stars || stars < 1 || stars > 5) {
+            return res.status(400).json({ error: "Stars must be between 1 and 5." });
+        }
+
+        // Define exactly which star level we are incrementing
+        const updateField = `ratings.${stars}`;
+
+        // Tell MongoDB to increment that specific star count by the amount you provide
+        // (Assuming you are using Mongoose, change 'Inventory' to your actual model name)
+        const updatedProduct = await Inventory.findByIdAndUpdate(
+            productId,
+            { $inc: { [updateField]: Number(count) } },
+            { new: true } // Returns the updated document
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({ error: "Product not found." });
+        }
+
+        res.json({ success: true, message: `Added ${count} x ${stars}-Star ratings!`, product: updatedProduct });
+
+    } catch (error) {
+        console.error("Rating Injection Error:", error);
+        res.status(500).json({ error: "Database connection failed." });
     }
 });
 

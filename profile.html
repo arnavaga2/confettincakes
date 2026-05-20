@@ -165,10 +165,10 @@
             <h2 style="margin-bottom: 20px;">Edit Profile</h2>
             
             <input type="text" id="ed-name" placeholder="Full Name" required>
-            <input type="tel" id="ed-phone" placeholder="Phone Number" required>
+            <input type="tel" id="ed-phone" placeholder="10-Digit Phone Number" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
             <input type="text" id="ed-address" placeholder="Street Address" required>
             
-            <input type="number" id="ed-pin" placeholder="6-Digit Pincode" onkeyup="checkEditPincode()" required>
+            <input type="number" id="ed-pin" placeholder="6-Digit Pincode" oninput="this.value = this.value.slice(0, 6); checkEditPincode()" required>
             <p id="ed-pin-error" class="error-msg">We don't deliver here yet.</p>
             
             <div class="row">
@@ -213,7 +213,15 @@
             const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
             
             if(!activeUser) {
-                window.location.replace('index.html');
+                // Instantly replace the main content with a clean login prompt
+                document.querySelector('main').innerHTML = `
+                    <div style="text-align: center; margin-top: 60px; padding: 20px;">
+                        <i class="ri-user-unfollow-line" style="font-size: 4rem; color: #CBD5E0; margin-bottom: 15px; display: block;"></i>
+                        <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.4rem; color: var(--text-dark); margin-bottom: 10px;">You are not logged in</h2>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px;">Please log in to view your account details, track your orders, and manage your settings.</p>
+                        <a href="login.html" class="btn btn-save" style="display: inline-block; text-decoration: none; width: 100%; max-width: 300px; padding: 14px;">Go to Login</a>
+                    </div>
+                `;
                 return;
             }
 
@@ -285,8 +293,8 @@
             const city = document.getElementById('ed-city');
             const state = document.getElementById('ed-state');
 
-            const allowedPins = localStorage.getItem('confettinPincodes') || "110";
-            const pinPrefixes = allowedPins.split(',').map(p => p.trim());
+            // Check against live database pins instead of hardcoded 110!
+            const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
 
             if(pin.length >= 3) {
                 const isValid = pinPrefixes.some(prefix => pin.startsWith(prefix));
@@ -296,6 +304,7 @@
                     if(pin.startsWith('110')) {
                         city.value = "New Delhi"; state.value = "Delhi";
                     } else {
+                        // Allow typing for custom zones, just remove readonly
                         city.removeAttribute("readonly"); state.removeAttribute("readonly");
                     }
                 } else if (pin.length === 6) {
@@ -316,6 +325,12 @@
 
             if(!name || !phone || !address || !pin || !city) return showToast("Please fill all required fields.");
             if(!/^\d{10}$/.test(phone)) return showToast("Valid 10-digit phone required.");
+            
+            const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
+            if(!pinPrefixes.some(prefix => pin.startsWith(prefix)) || pin.length !== 6) {
+                return showToast("We don't deliver to this pincode yet.");
+            }
+            
 
             try {
                 const response = await fetch('/api/auth/update', {
@@ -352,7 +367,9 @@
             if (event.target === editModal) closeEditModal();
         }
 
-        // --- LOAD DYNAMIC FOOTER ---
+        /// --- LOAD DYNAMIC SETTINGS & PINCODES ---
+        let globalAllowedPins = "110"; // Fallback safety
+
         async function loadHomeSettings() {
             try {
                 const response = await fetch('/api/settings');
@@ -360,6 +377,9 @@
                     const settings = await response.json();
                     if (settings.footerText) { 
                         document.getElementById('dynamic-footer').innerHTML = settings.footerText; 
+                    }
+                    if (settings.pincodes) {
+                        globalAllowedPins = settings.pincodes; // Save live pincodes to variable!
                     }
                 }
             } catch (err) { console.log("Could not load dynamic settings."); }

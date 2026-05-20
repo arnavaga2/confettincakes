@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Product Details | CONFETTINCAKE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --bg-cream: #FAFAFA; 
+            --text-dark: #1A1A1A; 
+            --accent-color: #FF6B81; 
+            --card-bg: #FFFFFF; 
+            --text-muted: #718096;
+            --border: #E2E8F0;
+            --star-color: #F59E0B;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-cream); color: var(--text-dark); overflow-x: hidden; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        /* HEADER */
+        header { position: fixed; top: 0; left: 0; width: 100%; height: 65px; padding: 0 20px; background: rgba(250, 250, 250, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 9000; display: flex; align-items: center; justify-content: space-between; }
+        .back-btn { font-size: 1.5rem; text-decoration: none; color: var(--text-dark); width: 40px; text-align: left; transition: 0.2s;}
+        .back-btn:hover { color: var(--accent-color); }
+        .page-title { font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dark); margin: 0; flex-grow: 1; text-align: center; font-weight: 700; font-family: 'Poppins', sans-serif;}
+        
+        .top-cart { position: relative; font-size: 1.2rem; text-decoration: none; color: var(--text-dark); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: flex-end; align-items: center; transition: 0.3s; }
+        .top-cart i { font-size: 1.5rem; }
+        .top-cart-badge { position: absolute; top: -2px; right: -5px; background: var(--accent-color); color: white; font-size: 0.65rem; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid var(--bg-cream); }
+
+        /* MAIN CONFIG CONTAINER */
+        main { padding-top: 85px; padding-bottom: 100px; max-width: 1200px; margin: 0 auto; min-height: 100vh; }
+        
+        .product-container { display: flex; flex-direction: column; padding: 20px; gap: 30px; }
+        @media (min-width: 768px) { .product-container { flex-direction: row; gap: 60px; padding: 40px 20px; } }
+
+        /* LEFT: IMAGE COLUMN */
+        .product-image-section { flex: 1; text-align: center; }
+        .main-image { width: 100%; max-width: 500px; height: 450px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px solid #EAEAEA; }
+        
+        /* RIGHT: PROFILE DETAILS */
+        .product-details-section { flex: 1.2; display: flex; flex-direction: column; }
+        
+        .cat-tag { font-size: 0.75rem; font-weight: 700; color: var(--accent-color); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+        .product-title { font-size: 2.2rem; color: var(--text-dark); margin-bottom: 15px; line-height: 1.2; text-transform: capitalize; }
+        
+        .price-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .final-price { font-size: 2rem; font-weight: 700; color: var(--text-dark); font-family: 'Poppins', sans-serif; }
+        
+        /* ELABORATED LOGISTICS BOX */
+        .logistics-box { background: #FFF5F5; border: 1px solid #FED7D7; border-radius: 16px; padding: 20px; margin-bottom: 25px; }
+        .logistics-header { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #C53030; font-size: 0.95rem; margin-bottom: 8px; }
+        .logistics-header i { font-size: 1.2rem; }
+        .logistics-text { font-size: 0.85rem; color: #742A2A; line-height: 1.6; }
+
+        /* AMAZON-STYLE PREMIUM RATING BOX */
+        .rating-summary-box { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; border-radius: 16px; margin-bottom: 30px; display: flex; align-items: center; gap: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .rating-big-number { text-align: center; min-width: 100px; }
+        .rating-big-number h2 { font-size: 3.2rem; color: var(--text-dark); font-weight: 800; line-height: 1; font-family: 'Poppins', sans-serif;}
+        .rating-big-number .stars { color: var(--star-color); font-size: 0.9rem; margin: 8px 0; display: flex; justify-content: center; gap: 2px; }
+        .rating-big-number p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .rating-divider { width: 1px; height: 80px; background: var(--border); }
+
+        .rating-bars { flex-grow: 1; }
+        .rating-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 0.8rem; color: #4A5568; font-weight: 600; }
+        .bar-bg { flex-grow: 1; height: 10px; background: #EDF2F7; border-radius: 10px; overflow: hidden; position: relative;}
+        .bar-fill { height: 100%; background: var(--star-color); border-radius: 10px; }
+        .bar-pct { width: 35px; text-align: right; color: var(--text-muted); font-size: 0.75rem;}
+
+        /* DESCRIPTION */
+        .desc-box { margin-bottom: 30px; }
+        .desc-heading { font-size: 1.1rem; color: var(--text-dark); margin-bottom: 8px; font-weight: 700; }
+        .desc-text { color: #4A5568; font-size: 0.95rem; line-height: 1.7; }
+
+        /* ELITE INTERACTION CONTROLS */
+        .action-row { display: flex; gap: 15px; align-items: center; background: var(--card-bg); padding: 15px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #EAEAEA; position: sticky; bottom: 20px; z-index: 100;}
+        
+        .qty-selectors { display: flex; align-items: center; background: #F7FAFC; border: 1px solid var(--border); border-radius: 14px; padding: 4px; }
+        .qty-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 1.4rem; color: var(--text-dark); transition: 0.2s; display: flex; justify-content: center; align-items: center;}
+        .qty-btn:hover { background: #E2E8F0; }
+        .qty-input { width: 45px; text-align: center; border: none; background: transparent; font-weight: 700; font-size: 1.1rem; color: var(--text-dark); pointer-events: none;}
+
+        /* UPGRADED METALLIC WEIGHT PILL */
+        .shining-weight { display: inline-flex; align-items: center; gap: 4px; background: #F7FAFC; padding: 6px 14px; border-radius: 20px; border: 1px solid #CBD5E0; color: #1A1A1A; font-size: 0.95rem; font-weight: 700; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+
+        /* MATCHED TO PRODUCTS.HTML BUTTON STYLE */
+        .btn-cart { flex-grow: 1; padding: 12px; border-radius: 8px; background: rgba(255, 107, 129, 0.1); color: var(--accent-color); border: 1px solid var(--accent-color); font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s; text-transform: uppercase; }
+        .btn-cart i { font-size: 1.1rem; }
+        .btn-cart:hover { background: var(--accent-color); color: white; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(226, 55, 68, 0.3); }
+
+        /* TOAST SYSTEM */
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-color); color: white; padding: 14px 28px; border-radius: 30px; font-weight: 600; font-size: 0.95rem; transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10000; opacity: 0; box-shadow: 0 10px 25px rgba(226, 55, 68, 0.3); display: flex; align-items: center; gap: 8px;}
+        #toast.show { bottom: 100px; opacity: 1; }
+        
+        @media (max-width: 768px) {
+            .action-row { position: fixed; bottom: 0; left: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; border-bottom: none; }
+            .rating-summary-box { flex-direction: column; gap: 15px; align-items: stretch;}
+            .rating-divider { display: none; }
+        }
+        @media (max-width: 768px) {
+            main { padding-top: 70px; padding-bottom: 120px; }
+            .product-container { flex-direction: column; padding: 15px; gap: 20px; }
+            .main-image { max-width: 100%; height: 320px; border-radius: 16px; }
+            
+            .product-title { font-size: 1.8rem; margin-bottom: 10px; }
+            .price-row { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 20px; }
+            
+            .rating-summary-box { flex-direction: column; gap: 15px; align-items: stretch; padding: 15px; }
+            .rating-divider { display: none; }
+            .rating-big-number h2 { font-size: 2.5rem; }
+
+            /* SHRINK THE ACTION ROW FOR MOBILE */
+            .action-row { position: fixed; bottom: 0; left: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 12px 15px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); box-shadow: 0 -10px 30px rgba(0,0,0,0.1); margin: 0;}
+            .btn-cart { padding: 10px; font-size: 0.85rem; }
+            .qty-btn { width: 35px; height: 35px; font-size: 1.2rem; }
+            .qty-input { width: 40px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="javascript:history.back()" class="back-btn"><i class="ri-arrow-left-line"></i></a>
+        <h2 class="page-title">Treat Details</h2>
+        <a href="cart.html" class="top-cart">
+            <i class="ri-shopping-bag-3-line"></i>
+            <div class="top-cart-badge" id="cartCount">0</div>
+        </a>
+    </header>
+
+    <main>
+        <div class="product-container">
+            <div class="product-image-section">
+                <img src="" id="prodImage" class="main-image" alt="Bakery Delight">
+            </div>
+
+            <div class="product-details-section">
+                <div class="cat-tag" id="prodCatTag">PREMIUM BAKE</div>
+                <h1 class="product-title" id="prodName">Loading Sweet Treat...</h1>
+                
+                <div class="price-row">
+                    <div class="final-price" id="finalPrice">₹0</div>
+                    <div class="shining-weight" id="prodWeight">⚖️ Loading...</div>
+                </div>
+
+                <div class="rating-summary-box" id="ratingSummaryBox" style="display: none;">
+                    <div class="rating-big-number">
+                        <h2 id="avgRatingNumber">0.0</h2>
+                        <div class="stars" id="avgStarsUI"></div>
+                        <p><span id="totalRatingsCount">0</span> Verified Reviews</p>
+                    </div>
+                    <div class="rating-divider"></div>
+                    <div class="rating-bars" id="ratingBarsUI"></div>
+                </div>
+
+                <div class="logistics-box">
+                    <div class="logistics-header"><i class="ri-truck-line"></i> Preparation & Delivery</div>
+                    <p class="logistics-text" id="logisticsText">Calculating logistics...</p>
+                </div>
+
+                <div class="desc-box">
+                    <h4 class="desc-heading">About this treat</h4>
+                    <p class="desc-text" id="descText">Crafting fresh profiles for your selection...</p>
+                </div>
+
+                <div class="action-row">
+                    <div class="qty-selectors">
+                        <button class="qty-btn" onclick="changeQty(-1)">-</button>
+                        <input type="number" value="1" id="qtyInput" class="qty-input" readonly>
+                        <button class="qty-btn" onclick="changeQty(1)">+</button>
+                    </div>
+                    <button class="btn-cart" onclick="addCurrentToCart()">
+                        <i class="ri-shopping-cart-2-fill"></i> Add To Bag
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="toast"><i class="ri-check-line"></i> Added to Bag!</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        let targetedProduct = null;
+        let currentQty = 1;
+
+        // --- 1. QUANTITY COUNTER ---
+        function changeQty(amt) {
+            let nextQty = currentQty + amt;
+            if (nextQty < 1) return;
+            currentQty = nextQty;
+            document.getElementById('qtyInput').value = currentQty;
+        }
+
+        // --- 2. DATA LOAD ENGINE ---
+        window.onload = async () => {
+            updateCartBadge();
+            if (!productId) return;
+
+            try {
+                const res = await fetch('/api/inventory');
+                if (res.ok) {
+                    const items = await res.json();
+                    targetedProduct = items.find(i => String(i.id) === String(productId) || String(i._id) === String(productId));
+                    
+                    if (targetedProduct) {
+                        populateProductFields(targetedProduct);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load item:", err);
+            }
+        };
+
+        function populateProductFields(item) {
+            document.getElementById('prodName').innerText = item.name;
+            document.getElementById('prodImage').src = item.img;
+            document.getElementById('finalPrice').innerText = `₹${item.price}`;
+            document.getElementById('prodWeight').innerHTML = `⚖️ <span style="color:#718096; font-weight:500; margin-right:4px;">Weight:</span> ${item.weight || '1 Kg'}`;
+            document.getElementById('descText').innerText = item.desc || "A 100% eggless premium bake, meticulously handcrafted using the finest natural ingredients to deliver absolute textural perfection and flavor.";
+
+            // 🧠 SMART CATEGORY & LOGISTICS GENERATOR
+            let rawCat = item.cat ? item.cat.toLowerCase() : 'treats';
+            let singularCat = 'Treat';
+            
+            if (rawCat === 'pastries') singularCat = 'Pastry';
+            else if (rawCat === 'brownies') singularCat = 'Brownie';
+            else if (rawCat === 'cookies') singularCat = 'Cookie';
+            else if (rawCat.endsWith('s')) singularCat = rawCat.slice(0, -1);
+            else singularCat = rawCat;
+            
+            // Capitalize first letter
+            singularCat = singularCat.charAt(0).toUpperCase() + singularCat.slice(1);
+
+            document.getElementById('prodCatTag').innerText = `PREMIUM ${singularCat.toUpperCase()}`;
+
+            let prepTime = item.time || '4 Hours';
+            document.getElementById('logisticsText').innerText = `This beautifully crafted ${singularCat} requires approx. ${prepTime} of preparation time to ensure absolute freshness. Please note that the actual delivery time may vary slightly based on your specific location in the city.`;
+
+            // Boot up the rating engine
+            renderRatingsEngine(item.ratings);
+        }
+
+        // --- 3. DYNAMIC REVIEW CALCULATION ENGINE ---
+        function renderRatingsEngine(ratingsObj) {
+            const r = {
+                1: ratingsObj?.[1] || 0,
+                2: ratingsObj?.[2] || 0,
+                3: ratingsObj?.[3] || 0,
+                4: ratingsObj?.[4] || 0,
+                5: ratingsObj?.[5] || 0
+            };
+            
+            const totalRatings = r[1] + r[2] + r[3] + r[4] + r[5];
+            
+            if (totalRatings > 0) {
+                document.getElementById('ratingSummaryBox').style.display = 'flex';
+                
+                const weightedTotal = (1*r[1]) + (2*r[2]) + (3*r[3]) + (4*r[4]) + (5*r[5]);
+                const rawAvg = weightedTotal / totalRatings;
+                const avgRating = rawAvg.toFixed(1);
+
+                document.getElementById('avgRatingNumber').innerText = avgRating;
+                document.getElementById('totalRatingsCount').innerText = totalRatings;
+
+                let starsHtml = '';
+                for(let i=1; i<=5; i++) {
+                    if (i <= Math.floor(avgRating)) {
+                        starsHtml += '<i class="ri-star-fill"></i>';
+                    } else if (i === Math.ceil(avgRating) && !Number.isInteger(rawAvg)) {
+                        starsHtml += '<i class="ri-star-half-line"></i>';
+                    } else {
+                        starsHtml += '<i class="ri-star-line"></i>';
+                    }
+                }
+                document.getElementById('avgStarsUI').innerHTML = starsHtml;
+
+                let barsHtml = '';
+                for(let star=5; star>=1; star--) {
+                    const pct = Math.round((r[star] / totalRatings) * 100) || 0;
+                    barsHtml += `
+                        <div class="rating-bar-row">
+                            <span style="width:25px;">${star} <i class="ri-star-fill" style="color:var(--star-color); font-size:0.7rem;"></i></span>
+                            <div class="bar-bg"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+                            <span class="bar-pct">${pct}%</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('ratingBarsUI').innerHTML = barsHtml;
+            }
+        }
+
+        // --- 4. CART INTEGRATION CODES ---
+        function addCurrentToCart() {
+            if (!targetedProduct) return;
+
+            let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+            let existingItem = cart.find(item => String(item.id) === String(targetedProduct.id) || String(item.id) === String(targetedProduct._id));
+            
+            let targetId = targetedProduct._id || targetedProduct.id;
+            let targetPrice = String(targetedProduct.price).replace('₹', '').trim();
+
+            if (existingItem) {
+                existingItem.qty += currentQty;
+            } else {
+                cart.push({
+                    id: targetId,
+                    name: targetedProduct.name,
+                    price: Number(targetPrice),
+                    img: targetedProduct.img,
+                    qty: currentQty,
+                    time: targetedProduct.time || '4 Hours',
+                    weight: targetedProduct.weight || '1 Kg'
+                });
+            }
+
+            localStorage.setItem('confettinCart', JSON.stringify(cart));
+            updateCartBadge();
+            
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="ri-check-line"></i> Added ${currentQty} item(s) to Bag!`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function updateCartBadge() {
+            let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+            let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cartCount');
+            badge.innerText = totalItems > 9 ? '9+' : totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>
