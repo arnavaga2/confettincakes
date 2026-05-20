@@ -21,6 +21,9 @@
     <meta property="twitter:image" content="https://res.cloudinary.com/do869nzhe/image/upload/w_1200,h_630,c_fill,q_auto,f_auto/v1779173182/Gemini_Generated_Image_12ebnm12ebnm12eb_g4ynyt.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#E23744">
     
     <style>
         /* CORE SETUP */
@@ -648,6 +651,13 @@
                 }
             }, 35); 
         }
+
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('PWA Service Worker Registered'));
+    });
+}
     </script>
 </body>
 </html>
