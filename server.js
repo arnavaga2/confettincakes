@@ -325,7 +325,7 @@ app.put('/api/auth/update', async (req, res) => {
             updateData.password = await bcrypt.hash(password, await bcrypt.genSalt(10));
         }
 
-        const updatedUser = await User.findOneAndUpdate({ phone: originalPhone }, updateData, { new: true });
+        const updatedUser = await User.findOneAndUpdate({ phone: originalPhone }, updateData, { returnDocument: 'after' });
         if (!updatedUser) return res.status(500).json({ error: "Failed to update user." });
 
         if (originalPhone !== phone) {
@@ -657,7 +657,7 @@ app.post('/api/admin/inventory/:id/rate', async (req, res) => {
         const updatedProduct = await Inventory.findByIdAndUpdate(
             productId,
             { $inc: { [updateField]: Number(count) } },
-            { new: true } // Returns the updated document
+            { returnDocument: 'after' } // Returns the updated document
         );
 
         if (!updatedProduct) {
