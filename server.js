@@ -145,8 +145,36 @@ const InventorySchema = new mongoose.Schema({
 const Inventory = mongoose.model('Inventory', InventorySchema);
 
 const SettingsSchema = new mongoose.Schema({
-    config: String // Keeping as stringified JSON for compatibility
+    // Keeping your original setup untouched so nothing breaks
+    config: String, 
+
+    // 🔥 THE NEW GALLERY UPGRADE 🔥
+    gallery: {
+        // Seasonal Theme Controls
+        theme: {
+            bgColor: { type: String, default: '#FAFAFA' },
+            accentColor: { type: String, default: '#E23744' },
+            textColor: { type: String, default: '#1C1C1C' },
+            customCSS: { type: String, default: '' } 
+        },
+        // Dynamic Texts
+        texts: {
+            heroTitle: { type: String, default: 'Our Masterpieces' },
+            heroSub: { type: String, default: 'A visual journey through our finest 100% eggless creations.' },
+            magicTitle: { type: String, default: 'Behind the Magic' },
+            magicDesc: { type: String, default: 'Every cake is a labor of love...' }
+        },
+        // The Actual Grid Images
+        items: [{
+            category: String, 
+            url: String,      
+            title: String,    
+            btnText: { type: String, default: 'Order Similar' },
+            link: { type: String, default: 'menu.html' }
+        }]
+    }
 });
+
 const Settings = mongoose.model('Settings', SettingsSchema);
 
 const PromoSchema = new mongoose.Schema({
@@ -270,15 +298,12 @@ app.post('/api/auth/signup', async (req, res) => {
     }
 });
 
-// 2. LOGIN API
+// 2. LOGIN API (Passwordless)
 app.post('/api/auth/login', async (req, res) => {
-    const { phone, password } = req.body;
+    const { phone } = req.body;
     try {
         const user = await User.findOne({ phone });
-        if (!user) return res.status(400).json({ error: "Incorrect phone or password." });
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ error: "Incorrect phone or password." });
+        if (!user) return res.status(400).json({ error: "Account not found. Please sign up." });
 
         const userObj = formatDoc(user);
         delete userObj.password;

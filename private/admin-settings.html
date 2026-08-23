@@ -66,9 +66,9 @@
         .add-row { display: flex; gap: 10px; margin-top: 15px; }
         
         .banner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .banner-item { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; }
-        .banner-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
-        .banner-del-btn { position: absolute; top: 5px; right: 5px; background: white; border: none; width: 24px; height: 24px; border-radius: 50%; color: #E53E3E; font-weight: 700; cursor: pointer; }
+        .banner-item { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; background: white; padding: 5px;}
+        .banner-item img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; display: block; }
+        .banner-del-btn { position: absolute; top: -5px; right: -5px; background: white; border: 1px solid #E2E8F0; width: 24px; height: 24px; border-radius: 50%; color: #E53E3E; font-weight: 700; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         .drop-area { border: 2px dashed #CBD5E0; border-radius: 12px; padding: 30px 20px; text-align: center; cursor: pointer; background: #F7FAFC; transition: 0.3s;}
         .drop-area.dragover { border-color: var(--accent); background: rgba(255, 107, 129, 0.05); }
@@ -193,10 +193,88 @@
 
         <div class="tabs-container">
             <button class="tab-btn active" onclick="switchTab('admin', this)">Admin</button>
+            <button class="tab-btn" onclick="switchTab('gallery', this)">🖼️ Gallery</button>
             <button class="tab-btn" onclick="switchTab('timings', this)">Shop Timings</button>
             <button class="tab-btn" onclick="switchTab('menu', this)">Menu View</button>
             <button class="tab-btn" onclick="switchTab('home', this)">Home Page</button>
             <button class="tab-btn" onclick="switchTab('legal', this)">Legal & SEO</button>
+        </div>
+
+        <div id="tab-gallery" class="tab-section">
+            <div class="settings-grid">
+                <div class="card">
+                    <h3>🎨 Seasonal Theme Colors</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Instantly change the look of the Gallery for Holi, Diwali, etc.</p>
+                    <div class="responsive-grid-third" style="margin-bottom: 15px;">
+                        <div class="input-group">
+                            <label>Background</label>
+                            <input type="color" id="gal-bg-color" style="padding: 2px; height: 40px;">
+                        </div>
+                        <div class="input-group">
+                            <label>Accent Button</label>
+                            <input type="color" id="gal-accent-color" style="padding: 2px; height: 40px;">
+                        </div>
+                        <div class="input-group">
+                            <label>Main Text</label>
+                            <input type="color" id="gal-text-color" style="padding: 2px; height: 40px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Custom CSS (Optional Effects)</label>
+                        <textarea id="gal-custom-css" rows="2" style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 8px;" placeholder="body { ... }"></textarea>
+                    </div>
+                    <button class="save-btn" onclick="saveGalleryTheme()">Save Theme Colors</button>
+                </div>
+
+                <div class="card">
+                    <h3>📝 Gallery Page Texts</h3>
+                    <div class="input-group">
+                        <label>Main Hero Title</label>
+                        <input type="text" id="gal-hero-title" placeholder="Our Masterpieces">
+                    </div>
+                    <div class="input-group">
+                        <label>Hero Subtitle</label>
+                        <input type="text" id="gal-hero-sub" placeholder="A visual journey...">
+                    </div>
+                    <div class="input-group">
+                        <label>Magic Section Title</label>
+                        <input type="text" id="gal-magic-title" placeholder="Behind the Magic">
+                    </div>
+                    <div class="input-group">
+                        <label>Magic Section Description</label>
+                        <textarea id="gal-magic-desc" rows="2" style="width: 100%; padding: 10px; border: 1px solid #E2E8F0; border-radius: 8px;"></textarea>
+                    </div>
+                    <button class="save-btn" onclick="saveGalleryTexts()">Save Texts</button>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📸 Image Library Manager</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Upload high-quality images. The category tags ensure they filter correctly on the main page.</p>
+
+                    <div id="gallery-items-list" class="banner-grid" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                        </div>
+
+                    <div style="border-top: 1px dashed #E2E8F0; padding-top: 20px; margin-top: 20px;">
+                        <div class="upload-area drop-area" id="gal-drop-area" onclick="document.getElementById('gal-file').click()" style="height: 150px; margin-bottom: 15px;">
+                            <p id="gal-prompt" style="font-weight: 600; font-size: 1.1rem; color: #4A5568;"><i class="ri-image-add-line" style="font-size: 2rem; display: block; margin-bottom: 5px;"></i> Click to add Cake Photo</p>
+                            <img id="gal-preview" src="" style="display:none; height: 110px; width: auto; max-width: 100%; border-radius: 8px; object-fit: contain; margin: 0 auto;">
+                            <input type="file" id="gal-file" hidden accept="image/*">
+                        </div>
+                        
+                        <div class="responsive-flex">
+                            <select id="gal-item-cat" style="width: 160px; font-weight: 600;">
+                                <option value="custom">Custom Cakes</option>
+                                <option value="celebration">Celebrations</option>
+                                <option value="brownies">Brownies</option>
+                            </select>
+                            <input type="text" id="gal-item-title" placeholder="Image Title (e.g. Vintage Floral)">
+                            <input type="text" id="gal-item-btn" placeholder="Btn Text" value="Order Similar">
+                            <input type="text" id="gal-item-link" placeholder="Btn Link" value="menu.html">
+                            <button class="add-btn" id="gal-add-btn" onclick="uploadAndAddGalleryItem()" style="padding: 12px 25px;">Upload Image</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="tab-admin" class="tab-section active">
@@ -479,10 +557,11 @@
         const CLOUD_NAME = "do869nzhe"; 
         const UPLOAD_PRESET = "bakery_uploads";  
 
-        let globalSettings = { home: {} };
+        let globalSettings = { home: {}, gallery: { theme: {}, texts: {}, items: [] } };
         let pendingBannerFile = null;
         let pendingVideoFile = null;
         let pendingQbFile = null;
+        let pendingGalFile = null;
 
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
@@ -499,19 +578,19 @@
                     globalSettings = { ...globalSettings, ...data }; 
 
                     if(!globalSettings.home) globalSettings.home = {};
+                    if(!globalSettings.gallery) globalSettings.gallery = { theme: {}, texts: {}, items: [] };
 
                     document.getElementById('admin-pins').value = globalSettings.pincodes || "110";
                     
-                    // Home Texts & WA Phone (now in Timings tab)
+                    // Home Texts
                     document.getElementById('home-wa-phone').value = globalSettings.home.whatsappPhone || "9365717848";
-                    
                     document.getElementById('home-vid').value = globalSettings.home.heroVideo || "";
                     document.getElementById('home-h1').value = globalSettings.home.heroTitle || "";
                     document.getElementById('home-sub').value = globalSettings.home.heroSub || "";
                     document.getElementById('home-sec1').value = globalSettings.home.sec1Title || "";
                     document.getElementById('home-sec2').value = globalSettings.home.sec2Title || "";
                     
-                    // Footer & Dev Credits
+                    // Footer
                     document.getElementById('home-footer').value = globalSettings.footerText || "";
                     document.getElementById('home-soc-handle').value = globalSettings.home.socialHandle || "@confettincakes";
                     document.getElementById('home-soc-link').value = globalSettings.home.socialLink || "https://instagram.com/confettincakes";
@@ -525,12 +604,27 @@
                     document.getElementById('usp3-title').value = globalSettings.home.usp3Title || "";
                     document.getElementById('usp3-desc').value = globalSettings.home.usp3Desc || "";
 
+                    // Gallery Pre-fill
+                    if(globalSettings.gallery.theme) {
+                        document.getElementById('gal-bg-color').value = globalSettings.gallery.theme.bgColor || '#FAFAFA';
+                        document.getElementById('gal-accent-color').value = globalSettings.gallery.theme.accentColor || '#E23744';
+                        document.getElementById('gal-text-color').value = globalSettings.gallery.theme.textColor || '#1C1C1C';
+                        document.getElementById('gal-custom-css').value = globalSettings.gallery.theme.customCSS || '';
+                    }
+                    if(globalSettings.gallery.texts) {
+                        document.getElementById('gal-hero-title').value = globalSettings.gallery.texts.heroTitle || '';
+                        document.getElementById('gal-hero-sub').value = globalSettings.gallery.texts.heroSub || '';
+                        document.getElementById('gal-magic-title').value = globalSettings.gallery.texts.magicTitle || '';
+                        document.getElementById('gal-magic-desc').value = globalSettings.gallery.texts.magicDesc || '';
+                    }
+
                     renderAnnouncements();
                     renderPromoCards();
                     renderBanners();
                     renderDiscountCodes();
                     renderQuickBites();
                     renderTimings(); 
+                    renderGalleryItems();
                 }
             } catch(err) {}
         }
@@ -540,10 +634,10 @@
             showToast(msg);
         }
 
+        // --- CORE SAVE FUNCTIONS ---
         function savePassword() { const v = document.getElementById('admin-pass').value; if(v) { globalSettings.adminPass = v; document.getElementById('admin-pass').value = ''; saveToServer("Password Updated!"); } }
         function savePincodes() { globalSettings.pincodes = document.getElementById('admin-pins').value; saveToServer("Zones Updated!"); }
         
-        // --- UPDATED TIMINGS SAVE LOGIC ---
         function saveTimings() {
             if(!globalSettings.timings) globalSettings.timings = {};
             daysOfWeek.forEach(day => {
@@ -554,11 +648,8 @@
                     flex: document.getElementById(`flex-${day}`).value
                 };
             });
-            
-            // Link WA Phone save to this button as well
             if(!globalSettings.home) globalSettings.home = {};
             globalSettings.home.whatsappPhone = document.getElementById('home-wa-phone').value;
-            
             saveToServer("Shop Timings & Contact Updated!");
         }
 
@@ -568,13 +659,11 @@
             globalSettings.home.heroSub = document.getElementById('home-sub').value;
             globalSettings.home.sec1Title = document.getElementById('home-sec1').value;
             globalSettings.home.sec2Title = document.getElementById('home-sec2').value;
-            
             globalSettings.footerText = document.getElementById('home-footer').value; 
             globalSettings.home.socialHandle = document.getElementById('home-soc-handle').value;
             globalSettings.home.socialLink = document.getElementById('home-soc-link').value;
             globalSettings.home.devName = document.getElementById('home-dev-name').value;
             globalSettings.home.devPhone = document.getElementById('home-dev-phone').value;
-
             globalSettings.home.usp1Title = document.getElementById('usp1-title').value;
             globalSettings.home.usp1Desc = document.getElementById('usp1-desc').value;
             globalSettings.home.usp2Title = document.getElementById('usp2-title').value;
@@ -585,6 +674,105 @@
         }
 
         function prevDef(e) { e.preventDefault(); e.stopPropagation(); }
+
+        // --- NEW: GALLERY MANAGEMENT LOGIC ---
+        function saveGalleryTheme() {
+            if(!globalSettings.gallery) globalSettings.gallery = {};
+            if(!globalSettings.gallery.theme) globalSettings.gallery.theme = {};
+            globalSettings.gallery.theme.bgColor = document.getElementById('gal-bg-color').value;
+            globalSettings.gallery.theme.accentColor = document.getElementById('gal-accent-color').value;
+            globalSettings.gallery.theme.textColor = document.getElementById('gal-text-color').value;
+            globalSettings.gallery.theme.customCSS = document.getElementById('gal-custom-css').value;
+            saveToServer("Gallery Theme Colors Saved!");
+        }
+
+        function saveGalleryTexts() {
+            if(!globalSettings.gallery) globalSettings.gallery = {};
+            if(!globalSettings.gallery.texts) globalSettings.gallery.texts = {};
+            globalSettings.gallery.texts.heroTitle = document.getElementById('gal-hero-title').value;
+            globalSettings.gallery.texts.heroSub = document.getElementById('gal-hero-sub').value;
+            globalSettings.gallery.texts.magicTitle = document.getElementById('gal-magic-title').value;
+            globalSettings.gallery.texts.magicDesc = document.getElementById('gal-magic-desc').value;
+            saveToServer("Gallery Texts Saved!");
+        }
+
+        function renderGalleryItems() {
+            const list = document.getElementById('gallery-items-list'); list.innerHTML = '';
+            if(!globalSettings.gallery || !globalSettings.gallery.items) return;
+            
+            globalSettings.gallery.items.forEach((item, i) => {
+                list.innerHTML += `
+                <div class="banner-item" style="padding: 10px; background: white;">
+                    <span class="css-promo-badge bg-dark" style="position: absolute; top: 15px; left: 15px; z-index: 10;">${item.category}</span>
+                    <img src="${item.url}" style="height: 140px; margin-bottom: 10px;">
+                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-dark);">${item.title}</div>
+                    <div style="font-size: 0.75rem; color: #718096; margin-top: 5px;">Btn: ${item.btnText}</div>
+                    <button class="banner-del-btn" onclick="removeGalleryItem(${i})" style="top: 5px; right: 5px;">×</button>
+                </div>`;
+            });
+        }
+
+        const galDrop = document.getElementById('gal-drop-area'); 
+        const galInput = document.getElementById('gal-file');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { galDrop.addEventListener(e, prevDef, false); });
+        ['dragenter', 'dragover'].forEach(e => galDrop.addEventListener(e, () => galDrop.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(e => galDrop.addEventListener(e, () => galDrop.classList.remove('dragover'), false));
+        galDrop.addEventListener('drop', (e) => { handleGalFile(e.dataTransfer.files[0]); }, false);
+        galInput.addEventListener('change', (e) => { handleGalFile(e.target.files[0]); });
+
+        function handleGalFile(file) {
+            if (!file || !file.type.startsWith('image/')) return showToast("Upload an image file!");
+            pendingGalFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('gal-preview').src = e.target.result; 
+                document.getElementById('gal-prompt').style.display = 'none'; 
+                document.getElementById('gal-preview').style.display = 'block'; 
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadAndAddGalleryItem() {
+            const title = document.getElementById('gal-item-title').value.trim();
+            const category = document.getElementById('gal-item-cat').value;
+            const btnText = document.getElementById('gal-item-btn').value.trim();
+            const link = document.getElementById('gal-item-link').value.trim();
+            
+            if(!title || !pendingGalFile) return showToast("Image and Title required!");
+            
+            const btn = document.getElementById('gal-add-btn');
+            btn.innerText = "UPLOADING ☁️..."; btn.disabled = true;
+            
+            const fd = new FormData(); 
+            fd.append('file', pendingGalFile); 
+            fd.append('upload_preset', UPLOAD_PRESET);
+            
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                if(!globalSettings.gallery.items) globalSettings.gallery.items = [];
+                globalSettings.gallery.items.unshift({ category, title, btnText, link, url: data.secure_url });
+                
+                document.getElementById('gal-item-title').value = '';
+                pendingGalFile = null;
+                document.getElementById('gal-preview').src = '';
+                document.getElementById('gal-preview').style.display = 'none';
+                document.getElementById('gal-prompt').style.display = 'block';
+                
+                renderGalleryItems();
+                saveToServer("Image Added to Gallery!");
+            } catch(err) { showToast("Upload failed"); }
+            
+            btn.innerText = "Upload Image"; btn.disabled = false;
+        }
+
+        function removeGalleryItem(i) {
+            globalSettings.gallery.items.splice(i, 1);
+            renderGalleryItems();
+            saveToServer("Image Removed from Gallery!");
+        }
 
         // --- SHOP TIMINGS GRID LOGIC ---
         const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -666,7 +854,7 @@
 
         function renderBanners() {
             const list = document.getElementById('banner-list'); list.innerHTML = '';
-            (globalSettings.banners || []).forEach((url, i) => { list.innerHTML += `<div class="banner-item"><img src="${url}"><button class="banner-del-btn" onclick="removeBanner(${i})">×</button></div>`; });
+            (globalSettings.banners || []).forEach((url, i) => { list.innerHTML += `<div class="banner-item"><img src="${url}" style="height: 80px;"><button class="banner-del-btn" style="top: 5px; right: 5px;" onclick="removeBanner(${i})">×</button></div>`; });
         }
         const bDrop = document.getElementById('banner-drop-area'); const bInput = document.getElementById('new-banner');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { bDrop.addEventListener(e, prevDef, false); });

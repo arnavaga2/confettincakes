@@ -17,7 +17,7 @@
             --border: #EAEAEA;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent;}
-        body { background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; padding-bottom: 70px; }
+        body { background-color: var(--bg-color); color: var(--text-dark); overflow-x: hidden; padding-bottom: 70px; transition: background-color 0.5s ease; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
         /* HEADER */
@@ -38,7 +38,7 @@
         .filter-btn.active { background: var(--text-dark); color: var(--white); border-color: var(--text-dark); box-shadow: 0 4px 15px rgba(0,0,0,0.15);}
 
         /* MASONRY GRID */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 0 20px; max-width: 1200px; margin: 0 auto; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 0 20px; max-width: 1200px; margin: 0 auto; min-height: 300px; }
         
         .gallery-item { position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.4s ease; background: var(--white); cursor: zoom-in;}
         .gallery-item.hide { display: none; }
@@ -116,8 +116,8 @@
     </header>
 
     <div class="gallery-hero">
-        <h1>Our Masterpieces</h1>
-        <p>A visual journey through our finest 100% eggless creations. Every bake tells a story.</p>
+        <h1 id="gal-hero-title">Our Masterpieces</h1>
+        <p id="gal-hero-sub">Loading...</p>
     </div>
 
     <div class="filters">
@@ -128,63 +128,13 @@
     </div>
 
     <div class="gallery-grid" id="main-gallery">
-        
-        <div class="gallery-item" data-cat="custom" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Vintage Floral</div>
-                <a href="menu.html" class="order-btn" onclick="event.stopPropagation();">Order Similar</a>
-            </div>
         </div>
-
-        <div class="gallery-item" data-cat="celebration" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1530105809756-3b3dfa364859?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Wedding Setups</div>
-                <a href="contact.html" class="order-btn" onclick="event.stopPropagation();">Book Event</a>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-cat="custom" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Dark Truffle Art</div>
-                <a href="menu.html" class="order-btn" onclick="event.stopPropagation();">Order Similar</a>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-cat="brownies" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Gourmet Brownies</div>
-                <a href="menu.html" class="order-btn" onclick="event.stopPropagation();">Order Similar</a>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-cat="celebration" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Birthday Joy</div>
-                <a href="contact.html" class="order-btn" onclick="event.stopPropagation();">Book Event</a>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-cat="custom" onclick="openLightbox(this)">
-            <img src="https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=800&q=80" class="gallery-img">
-            <div class="item-overlay">
-                <div class="item-title">Berries & Cream</div>
-                <a href="menu.html" class="order-btn" onclick="event.stopPropagation();">Order Similar</a>
-            </div>
-        </div>
-
-    </div>
 
     <div class="magic-section">
         <div class="magic-container">
             <div class="magic-text">
-                <h2>Behind the Magic</h2>
-                <p>Every cake is a labor of love. We source the finest natural ingredients, completely eggless, to ensure every bite is as ethical as it is delicious.</p>
-                <p>From the precise folding of our signature batter to the meticulous piping of fresh buttercream, step inside our kitchen to see how the magic happens.</p>
+                <h2 id="gal-magic-title">Behind the Magic</h2>
+                <p id="gal-magic-desc">Loading...</p>
             </div>
             <div class="magic-images">
                 <img src="https://images.unsplash.com/photo-1556910110-a5a63dfd393c?w=800&q=80" alt="Kitchen Process">
@@ -236,11 +186,9 @@
     <script>
         // --- SMART FILTER LOGIC ---
         function filterGallery(category, btnElement) {
-            // Update active button state
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
 
-            // Filter items
             const items = document.querySelectorAll('.gallery-item');
             items.forEach(item => {
                 if (category === 'all' || item.getAttribute('data-cat') === category) {
@@ -255,7 +203,6 @@
 
         // --- LIGHTBOX ENGINE ---
         function openLightbox(itemElement) {
-            // Extract the high-res image source from the clicked item
             const imgSrc = itemElement.querySelector('.gallery-img').src;
             const lightbox = document.getElementById('lightbox-modal');
             const lightboxImg = document.getElementById('lightbox-img');
@@ -263,7 +210,6 @@
             lightboxImg.src = imgSrc;
             lightbox.style.display = 'flex';
             
-            // Small delay to allow CSS transition to trigger smoothly
             setTimeout(() => lightbox.classList.add('active'), 10);
         }
 
@@ -271,12 +217,68 @@
             const lightbox = document.getElementById('lightbox-modal');
             lightbox.classList.remove('active');
             
-            // Wait for fade out before hiding completely
             setTimeout(() => {
                 lightbox.style.display = 'none';
                 document.getElementById('lightbox-img').src = '';
             }, 300);
         }
+
+        // --- DYNAMIC DATABASE ENGINE ---
+        async function loadGalleryData() {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    
+                    if (settings.gallery) {
+                        // 1. INJECT SEASONAL THEME (HOLI / DIWALI / VALENTINES)
+                        if(settings.gallery.theme) {
+                            const root = document.documentElement;
+                            root.style.setProperty('--bg-color', settings.gallery.theme.bgColor || '#FAFAFA');
+                            root.style.setProperty('--accent', settings.gallery.theme.accentColor || '#E23744');
+                            root.style.setProperty('--text-dark', settings.gallery.theme.textColor || '#1C1C1C');
+                            
+                            // Inject raw CSS for crazy seasonal effects (like floating colors)
+                            if(settings.gallery.theme.customCSS) {
+                                const styleTag = document.createElement('style');
+                                styleTag.innerHTML = settings.gallery.theme.customCSS;
+                                document.head.appendChild(styleTag);
+                            }
+                        }
+
+                        // 2. INJECT TEXTS
+                        if(settings.gallery.texts) {
+                            document.getElementById('gal-hero-title').innerText = settings.gallery.texts.heroTitle || 'Our Masterpieces';
+                            document.getElementById('gal-hero-sub').innerText = settings.gallery.texts.heroSub || 'A visual journey through our finest 100% eggless creations.';
+                            document.getElementById('gal-magic-title').innerText = settings.gallery.texts.magicTitle || 'Behind the Magic';
+                            document.getElementById('gal-magic-desc').innerText = settings.gallery.texts.magicDesc || 'Every cake is a labor of love. We source the finest natural ingredients, completely eggless, to ensure every bite is as ethical as it is delicious.';
+                        }
+
+                        // 3. BUILD THE MASONRY GRID
+                        if(settings.gallery.items && settings.gallery.items.length > 0) {
+                            const grid = document.getElementById('main-gallery');
+                            grid.innerHTML = settings.gallery.items.map(item => `
+                                <div class="gallery-item" data-cat="${item.category}" onclick="openLightbox(this)">
+                                    <img src="${item.url}" class="gallery-img">
+                                    <div class="item-overlay">
+                                        <div class="item-title">${item.title}</div>
+                                        <a href="${item.link}" class="order-btn" onclick="event.stopPropagation();">${item.btnText}</a>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            document.getElementById('main-gallery').innerHTML = '<p style="text-align:center; grid-column: 1/-1; color: var(--text-muted); padding: 40px;">Gallery images coming soon!</p>';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log("Failed to load dynamic gallery data.");
+                document.getElementById('gal-hero-sub').innerText = "Visuals currently unavailable.";
+            }
+        }
+
+        // Fire the engine when the page loads
+        window.addEventListener('load', loadGalleryData);
     </script>
 </body>
 </html>

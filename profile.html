@@ -121,7 +121,7 @@
                 <i class="ri-arrow-right-s-line menu-arrow"></i>
             </a>
             
-            <a href="menu.html" class="menu-item">
+            <a href="products.html" class="menu-item">
                 <div class="menu-left">
                     <i class="ri-restaurant-fill menu-icon" style="color: #3182CE; background: #EBF8FF;"></i>
                     <span class="menu-text">Explore Menu</span>
@@ -171,12 +171,10 @@
             <input type="number" id="ed-pin" placeholder="6-Digit Pincode" oninput="this.value = this.value.slice(0, 6); checkEditPincode()" required>
             <p id="ed-pin-error" class="error-msg">We don't deliver here yet.</p>
             
-            <div class="row">
+            <<div class="row">
                 <input type="text" id="ed-city" placeholder="City" readonly>
                 <input type="text" id="ed-state" placeholder="State" readonly>
             </div>
-            
-            <input type="password" id="ed-pass" placeholder="New Password (leave blank to keep old)">
             
             <button class="btn btn-save" style="margin-top: 15px;" onclick="saveProfileChanges()">Save Changes</button>
         </div>
@@ -265,16 +263,14 @@
             const user = JSON.parse(localStorage.getItem('confettinActiveUser'));
             if(!user) return;
 
-            originalPhone = user.phone; // Save this to identify the user in the backend!
+            originalPhone = user.phone; 
             
-            // Pre-fill fields
             document.getElementById('ed-name').value = user.name || '';
             document.getElementById('ed-phone').value = user.phone || '';
             document.getElementById('ed-address').value = user.address || '';
             document.getElementById('ed-pin').value = user.pin || '';
             document.getElementById('ed-city').value = user.city || '';
             document.getElementById('ed-state').value = user.state || '';
-            document.getElementById('ed-pass').value = '';
 
             const modal = document.getElementById('edit-modal');
             modal.style.display = 'flex';
@@ -287,30 +283,45 @@
             setTimeout(() => modal.style.display = 'none', 300);
         }
 
-        function checkEditPincode() {
+        async function checkEditPincode() {
             const pin = document.getElementById('ed-pin').value;
             const err = document.getElementById('ed-pin-error');
             const city = document.getElementById('ed-city');
             const state = document.getElementById('ed-state');
 
-            // Check against live database pins instead of hardcoded 110!
             const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
 
-            if(pin.length >= 3) {
+            if (pin.length === 6) {
                 const isValid = pinPrefixes.some(prefix => pin.startsWith(prefix));
-
-                if(isValid && pin.length === 6) {
+                
+                if (isValid) {
                     err.style.display = 'none';
-                    if(pin.startsWith('110')) {
-                        city.value = "New Delhi"; state.value = "Delhi";
-                    } else {
-                        // Allow typing for custom zones, just remove readonly
-                        city.removeAttribute("readonly"); state.removeAttribute("readonly");
+                    city.value = "Fetching..."; 
+                    state.value = "Fetching...";
+                    
+                    try {
+                        const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                        const data = await response.json();
+                        
+                        if (data[0].Status === "Success") {
+                            city.value = data[0].PostOffice[0].District;
+                            state.value = data[0].PostOffice[0].State;
+                        } else {
+                            city.value = ""; state.value = "";
+                            err.innerText = "Invalid Pincode.";
+                            err.style.display = 'block';
+                        }
+                    } catch (error) {
+                        city.value = ""; state.value = "";
                     }
-                } else if (pin.length === 6) {
+                } else {
+                    err.innerText = "We don't deliver here yet.";
                     err.style.display = 'block';
                     city.value = ""; state.value = "";
                 }
+            } else {
+                err.style.display = 'none';
+                city.value = ""; state.value = "";
             }
         }
 
@@ -321,7 +332,6 @@
             const pin = document.getElementById('ed-pin').value.trim();
             const city = document.getElementById('ed-city').value.trim();
             const state = document.getElementById('ed-state').value.trim();
-            const password = document.getElementById('ed-pass').value;
 
             if(!name || !phone || !address || !pin || !city) return showToast("Please fill all required fields.");
             if(!/^\d{10}$/.test(phone)) return showToast("Valid 10-digit phone required.");
@@ -331,23 +341,20 @@
                 return showToast("We don't deliver to this pincode yet.");
             }
             
-
             try {
                 const response = await fetch('/api/auth/update', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ originalPhone, name, phone, address, pin, city, state, password })
+                    body: JSON.stringify({ originalPhone, name, phone, address, pin, city, state })
                 });
 
                 const data = await response.json();
                 
                 if(response.ok) {
-                    // Update Local Storage with fresh data
                     localStorage.setItem('confettinActiveUser', JSON.stringify(data.user));
                     showToast("Profile Updated!");
                     closeEditModal();
                     
-                    // Update UI instantly
                     document.getElementById('user-name').innerText = data.user.name;
                     document.getElementById('user-phone').innerText = "+91 " + data.user.phone;
                     document.getElementById('user-initial').innerText = data.user.name.charAt(0).toUpperCase();

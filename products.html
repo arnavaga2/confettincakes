@@ -113,8 +113,8 @@
 <body>
 
     <header>
-        <a href="menu.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
-        <h2 class="page-title" id="dynamic-title">Menu</h2>
+        <a href="index.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
+        <h2 class="page-title" id="dynamic-title">Home</h2>
         
         <a href="cart.html" class="top-cart">
             <i class="ri-shopping-cart-2-line"></i>
@@ -179,6 +179,7 @@
 
         function applyFiltersAndRender() {
             let filteredProducts = [];
+            let isGrouped = false; // ✨ We added this flag to know when to show categories
 
             if(selectedCategory) {
                 document.getElementById('dynamic-title').innerText = selectedCategory;
@@ -194,9 +195,10 @@
                 document.getElementById('dynamic-title').innerText = "All Treats";
                 document.getElementById('dynamic-header').innerText = "Our Bakery Menu";
                 filteredProducts = inventory;
+                isGrouped = true; // ✨ Tell the renderer to group everything!
             }
 
-            renderGrid(filteredProducts);
+            renderGrid(filteredProducts, isGrouped);
             renderAnnouncements(filteredProducts);
         }
 
@@ -250,47 +252,69 @@
             bar.style.display = 'block';
         }
 
-        function renderGrid(productsToRender) {
+        function renderGrid(productsToRender, isGrouped = false) {
             const container = document.getElementById('product-container');
             container.innerHTML = '';
 
-            if(productsToRender.length > 0) {
-                productsToRender.forEach(product => {
-                    let displayPrice = String(product.price).includes('₹') ? product.price : '₹' + product.price;
-                    let cleanPrice = displayPrice.replace('₹', '').trim();
-                    
-                    const weightText = product.weight ? product.weight : "1 kg";
-                    const timeText = product.time ? product.time : "24 Hours";
-                    const itemId = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : 'prod-' + product.id;
+            // Helper function so we don't repeat the layout code!
+            const createCard = (product) => {
+                let displayPrice = String(product.price).includes('₹') ? product.price : '₹' + product.price;
+                const weightText = product.weight ? product.weight : "1 kg";
+                const timeText = product.time ? product.time : "24 Hours";
+                const itemId = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : 'prod-' + product.id;
 
-                    container.innerHTML += `
-                        <div class="product-card" id="${itemId}">
-                            <div class="img-container">
-                                <img src="${product.img}" class="product-img" loading="lazy">
+                return `
+                    <div class="product-card" id="${itemId}">
+                        <div class="img-container">
+                            <img src="${product.img}" class="product-img" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <div>
+                                <h3 class="product-name">${product.name}</h3>
+                                <div class="product-meta-row">
+                                    <span style="color: #FF6B81; font-size: 1.1rem; font-weight: 700;">${displayPrice}</span>
+                                    <span class="shining-weight">⚖️ ${weightText}</span>
+                                </div>
+                                <div class="product-prep">
+                                    <i class="ri-timer-line" style="font-size: 1rem; color: #FF6B81;"></i> 
+                                    Prep: ${timeText}
+                                </div>
                             </div>
-                            
-                            <div class="product-info">
-                                <div>
-                                    <h3 class="product-name">${product.name}</h3>
-                                    
-                                    <div class="product-meta-row">
-                                        <span style="color: #FF6B81; font-size: 1.1rem; font-weight: 700;">${displayPrice}</span>
-                                        <span class="shining-weight">⚖️ ${weightText}</span>
-                                    </div>
-                                    
-                                    <div class="product-prep">
-                                        <i class="ri-timer-line" style="font-size: 1rem; color: #FF6B81;"></i> 
-                                        Prep: ${timeText}
-                                    </div>
-                                </div>
-                                
-                                <div style="margin-top: 5px;">
-                                    <button class="add-btn" onclick="window.location.href='details.html?id=${product.id}'">VIEW DETAILS</button>
-                                </div>
+                            <div style="margin-top: 5px;">
+                                <button class="add-btn" onclick="window.location.href='details.html?id=${product.id}'">VIEW DETAILS</button>
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                `;
+            };
+
+            if(productsToRender.length > 0) {
+                if (isGrouped) {
+                    // Group the products by their category
+                    const grouped = productsToRender.reduce((acc, product) => {
+                        const cat = product.cat || 'other treats';
+                        if (!acc[cat]) acc[cat] = [];
+                        acc[cat].push(product);
+                        return acc;
+                    }, {});
+
+                    // Loop through the groups and build the beautiful headers
+                    Object.keys(grouped).sort().forEach(cat => {
+                        container.innerHTML += `
+                            <div style="grid-column: 1 / -1; margin-top: 25px; margin-bottom: 5px; border-bottom: 2px solid rgba(226, 55, 68, 0.2); padding-bottom: 8px;">
+                                <h2 style="font-size: 1.4rem; text-transform: capitalize; color: #1A1A1A;">${cat}</h2>
+                            </div>
+                        `;
+                        grouped[cat].forEach(product => {
+                            container.innerHTML += createCard(product);
+                        });
+                    });
+                } else {
+                    // Normal view (just one category or search results)
+                    productsToRender.forEach(product => {
+                        container.innerHTML += createCard(product);
+                    });
+                }
             } else {
                 container.innerHTML = `<div class="empty-state"><h3>No matches found</h3><p>We couldn't find any treats matching your criteria.</p></div>`;
             }

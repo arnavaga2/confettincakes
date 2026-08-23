@@ -222,6 +222,16 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
+        /* 🔥 DYNAMIC UNIFORM GRID (Imported from Menu) */
+        .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px 0 30px; }
+        .bento-card { position: relative; border-radius: 16px; overflow: hidden; background: var(--white); box-shadow: 0 8px 20px rgba(0,0,0,0.05); aspect-ratio: 1 / 1; text-decoration: none; transition: 0.3s ease; }
+        .bento-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(226, 55, 68, 0.2); }
+        .bento-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+        .bento-card:hover .bento-img { transform: scale(1.05); }
+        .card-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%); display: flex; flex-direction: column; justify-content: flex-end; height: 70%; pointer-events: none; }
+        .card-title { color: white; font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 2px; }
+        .card-subtitle { color: rgba(255,255,255,0.8); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+
     </style>
 </head>
 <body>
@@ -245,8 +255,8 @@
                 <p class="hero-subtitle" id="dy-sub">100% Eggless • Freshly Baked • Fast Delivery</p>
                 
                 <div class="hero-buttons">
-                    <a href="menu.html" class="primary-btn"><i class="ri-shopping-bag-3-fill"></i> Order Now</a>
-                    <a href="gallery.html" class="secondary-btn"><i class="ri-gallery-fill"></i> Visit Gallery</a>
+                    <a href="products.html" class="primary-btn"><i class="ri-shopping-bag-3-fill"></i> Order Now</a>
+                    <a href="products.html?category=hampers" class="secondary-btn" style="background: rgba(255, 107, 129, 0.15); border-color: #FF6B81; color: #FF6B81;"><i class="ri-gift-2-fill"></i> Rakhi Hampers</a>
                 </div>
             </div>
         </section>
@@ -256,26 +266,41 @@
                 <h2 class="section-title" id="dy-sec1">What's on your mind?</h2>
             </div>
             
-            <div class="category-scroll">
-                <a href="products.html?category=cakes" class="cat-item">
-                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=80" class="cat-img">
-                    <span class="cat-name">Cakes</span>
+            <div class="bento-grid">
+                <a href="products.html?category=cakes" class="bento-card">
+                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&q=80" class="bento-img">
+                    <div class="card-overlay">
+                        <h3 class="card-title">Cakes</h3>
+                        <span class="card-subtitle">Explore</span>
+                    </div>
                 </a>
-                <a href="products.html?category=cupcakes" class="cat-item">
-                    <img src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=300&q=80" class="cat-img">
-                    <span class="cat-name">Cupcakes</span>
+                <a href="products.html?category=cupcakes" class="bento-card">
+                    <img src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=500&q=80" class="bento-img">
+                    <div class="card-overlay">
+                        <h3 class="card-title">Cupcakes</h3>
+                        <span class="card-subtitle">Explore</span>
+                    </div>
                 </a>
-                <a href="products.html?category=cookies" class="cat-item">
-                    <img src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&q=80" class="cat-img">
-                    <span class="cat-name">Cookies</span>
+                <a href="products.html?category=cookies" class="bento-card">
+                    <img src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500&q=80" class="bento-img">
+                    <div class="card-overlay">
+                        <h3 class="card-title">Cookies</h3>
+                        <span class="card-subtitle">Explore</span>
+                    </div>
                 </a>
-                <a href="products.html?category=brownies" class="cat-item">
-                    <img src="https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=300&q=80" class="cat-img">
-                    <span class="cat-name">Brownies</span>
+                <a href="products.html?category=brownies" class="bento-card">
+                    <img src="https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=500&q=80" class="bento-img">
+                    <div class="card-overlay">
+                        <h3 class="card-title">Brownies</h3>
+                        <span class="card-subtitle">Explore</span>
+                    </div>
                 </a>
-                <a href="products.html?category=hampers" class="cat-item">
-                    <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&q=80" class="cat-img">
-                    <span class="cat-name">Gift Hampers</span>
+                <a href="products.html?category=hampers" class="bento-card">
+                    <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500&q=80" class="bento-img">
+                    <div class="card-overlay">
+                        <h3 class="card-title">Gift Hampers</h3>
+                        <span class="card-subtitle">Explore</span>
+                    </div>
                 </a>
             </div>
         </section>
@@ -283,7 +308,6 @@
         <section class="section-container">
             <div class="section-header">
                 <h2 class="section-title" id="dy-sec2">Trending Today</h2>
-                <a href="menu.html" class="view-all">See All Menu ➔</a>
             </div>
 
             <div class="product-scroll" id="trending-container">
@@ -336,9 +360,6 @@
         <a href="index.html" class="nav-item active">
             <i class="ri-home-smile-fill"></i><span class="nav-label">Home</span>
         </a>
-        <a href="menu.html" class="nav-item">
-            <i class="ri-restaurant-line"></i><span class="nav-label">Menu</span>
-        </a>
         <a href="orders.html" class="nav-item">
             <i class="ri-shopping-bag-3-line"></i><span class="nav-label">Orders</span>
         </a>
@@ -361,13 +382,11 @@
             <p id="pin-error" class="error-msg">We don't deliver here yet, coming soon...</p>
             
             <div class="row">
-                <input type="text" id="su-city" placeholder="City">
-                <input type="text" id="su-state" placeholder="State">
+                <input type="text" id="su-city" placeholder="City" readonly>
+                <input type="text" id="su-state" placeholder="State" readonly>
             </div>
             
-            <input type="password" id="su-pass" placeholder="Password" required>
-            <input type="password" id="su-pass2" placeholder="Confirm Password" required>
-            <p id="pass-error" class="error-msg">Passwords do not match!</p>
+            
 
             <button onclick="registerUser()">Sign Up</button>
             <div class="auth-footer">
@@ -381,8 +400,7 @@
             <p style="font-size: 0.9rem; color: #718096; margin-bottom: 20px;">Log in to track your cravings.</p>
             
             <input type="tel" id="si-phone" placeholder="Registered 10-Digit Phone" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
-            <input type="password" id="si-pass" placeholder="Password" required>
-            <p id="login-error" class="error-msg">Incorrect phone or password.</p>
+            <p id="login-error" class="error-msg">Account not found. Please sign up.</p>
 
             <button onclick="loginUser()">Login</button>
             <div class="auth-footer">
@@ -448,32 +466,45 @@
         }
 
         // --- DYNAMIC PINCODE LOGIC ---
-        function checkDynamicPincode() {
+        async function checkDynamicPincode() {
             const pin = document.getElementById('su-pin').value;
             const err = document.getElementById('pin-error');
             const city = document.getElementById('su-city');
             const state = document.getElementById('su-state');
 
-            // Use the live global variable instead of localStorage!
             const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
 
-            if(pin.length >= 3) {
+            if (pin.length === 6) {
                 const isValid = pinPrefixes.some(prefix => pin.startsWith(prefix));
-
-                if(isValid && pin.length === 6) {
+                
+                if (isValid) {
                     err.style.display = 'none';
-                    if(pin.startsWith('110')) {
-                        city.value = "New Delhi"; state.value = "Delhi";
-                        city.setAttribute("readonly", true); state.setAttribute("readonly", true);
-                    } else {
-                        // Allow typing for custom zones, just remove readonly
-                        city.removeAttribute("readonly"); state.removeAttribute("readonly");
+                    city.value = "Fetching..."; 
+                    state.value = "Fetching...";
+                    
+                    try {
+                        const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                        const data = await response.json();
+                        
+                        if (data[0].Status === "Success") {
+                            city.value = data[0].PostOffice[0].District;
+                            state.value = data[0].PostOffice[0].State;
+                        } else {
+                            city.value = ""; state.value = "";
+                            err.innerText = "Invalid Pincode.";
+                            err.style.display = 'block';
+                        }
+                    } catch (error) {
+                        city.value = ""; state.value = "";
                     }
-                } else if (pin.length === 6) {
+                } else {
+                    err.innerText = "We don't deliver here yet, coming soon...";
                     err.style.display = 'block';
                     city.value = ""; state.value = "";
-                    city.setAttribute("readonly", true); state.setAttribute("readonly", true);
                 }
+            } else {
+                err.style.display = 'none';
+                city.value = ""; state.value = "";
             }
         }
 
@@ -485,28 +516,36 @@
         }
 
         async function registerUser() {
-            const name = document.getElementById('su-name').value.trim(); const phone = document.getElementById('su-phone').value.trim(); const address = document.getElementById('su-address').value.trim(); const pin = document.getElementById('su-pin').value.trim(); const city = document.getElementById('su-city').value.trim(); const state = document.getElementById('su-state').value.trim(); const pass1 = document.getElementById('su-pass').value; const pass2 = document.getElementById('su-pass2').value;
+            const name = document.getElementById('su-name').value.trim(); const phone = document.getElementById('su-phone').value.trim(); const address = document.getElementById('su-address').value.trim(); const pin = document.getElementById('su-pin').value.trim(); const city = document.getElementById('su-city').value.trim(); const state = document.getElementById('su-state').value.trim(); 
 
-            if(!name || !phone || !address || !city || !state || !pin || !pass1 || !pass2) return showToast("Please fill out all fields!");
+            if(!name || !phone || !address || !city || !state || !pin) return showToast("Please fill out all fields!");
             if(!/^\d{10}$/.test(phone)) return showToast("Please enter a valid 10-digit phone number.");
             
             const pinPrefixes = globalAllowedPins.split(',').map(p => p.trim());
             if(!pinPrefixes.some(prefix => pin.startsWith(prefix)) || pin.length !== 6) {
                 return showToast("We don't deliver to this pincode yet.");
             }
-            if(pass1 !== pass2) { document.getElementById('pass-error').style.display = 'block'; return; }
 
             try {
-                const response = await fetch('/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone, address, pin, city, state, password: pass1 }) });
+                // Sending a placeholder password to keep the backend happy during signup
+                const response = await fetch('/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, phone, address, pin, city, state, password: "none" }) });
                 const data = await response.json();
                 if(response.ok) { localStorage.setItem('confettinActiveUser', JSON.stringify(data.user)); window.location.reload(); } else { showToast(data.error); }
             } catch (err) { showToast("Server connection failed."); }
         }
 
         async function loginUser() {
-            const phone = document.getElementById('si-phone').value; const password = document.getElementById('si-pass').value; const errorText = document.getElementById('login-error');
+            const phone = document.getElementById('si-phone').value.trim(); 
+            const errorText = document.getElementById('login-error');
+            
+            if(!/^\d{10}$/.test(phone)) {
+                errorText.innerText = "Please enter a valid 10-digit phone number.";
+                errorText.style.display = 'block';
+                return;
+            }
+
             try {
-                const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) });
+                const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
                 const data = await response.json();
                 if(response.ok) { localStorage.setItem('confettinActiveUser', JSON.stringify(data.user)); window.location.reload(); } else { errorText.innerText = data.error; errorText.style.display = 'block'; }
             } catch (err) { errorText.innerText = "Cannot connect to server."; errorText.style.display = 'block'; }

@@ -321,12 +321,9 @@
             }
 
             localStorage.setItem('confettinCart', JSON.stringify(cart));
-            updateCartBadge();
             
-            const toast = document.getElementById('toast');
-            toast.innerHTML = `<i class="ri-check-line"></i> Added ${currentQty} item(s) to Bag!`;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+            // Instantly redirect the user to the cart page
+            window.location.href = 'cart.html';
         }
 
         function updateCartBadge() {
