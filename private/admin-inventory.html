@@ -230,6 +230,16 @@
                         <input type="text" id="itemWeight" placeholder="Weight (e.g. 1kg)">
                     </div>
                     <input type="text" id="itemTime" placeholder="Prep Time (e.g. 5 Hours)">
+                    
+                    <!-- VARIANT UI ADDITION -->
+                    <div style="border: 1px dashed #CBD5E0; padding: 15px; border-radius: 8px; margin-bottom: 5px; background: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="font-size: 0.85rem; color: #4A5568;">Product Variants / Sizes</h4>
+                            <button type="button" onclick="addVariantField()" style="background: var(--sidebar-bg); color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">+ Add Variant</button>
+                        </div>
+                        <div id="variantsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    </div>
+
                     <div class="btn-row">
                         <button class="save-btn" id="saveBtn" onclick="saveItem()">SAVE TO INVENTORY</button>
                         <button class="reset-btn" onclick="resetForm()">RESET</button>
@@ -319,6 +329,34 @@
         let editingId = null; 
         let globalInventory = []; 
         let editingCatIndex = null; 
+
+        let activeVariants = [];
+
+        function addVariantField(weight = '', price = '', time = '') {
+            const container = document.getElementById('variantsContainer');
+            const idx = activeVariants.length;
+            activeVariants.push({ weight, price, time });
+            
+            const div = document.createElement('div');
+            div.className = 'row';
+            div.id = `var-${idx}`;
+            div.innerHTML = `
+                <input type="text" placeholder="Size/Weight" value="${weight}" onchange="updateVar(${idx}, 'weight', this.value)" style="flex: 1.5;">
+                <input type="number" placeholder="Price" value="${price}" onchange="updateVar(${idx}, 'price', this.value)" style="flex: 1;">
+                <input type="text" placeholder="Prep" value="${time}" onchange="updateVar(${idx}, 'time', this.value)" style="flex: 1;">
+                <button type="button" onclick="removeVariant(${idx})" style="background: #ef4444; color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function updateVar(idx, field, value) {
+            activeVariants[idx][field] = value;
+        }
+
+        function removeVariant(idx) {
+            document.getElementById(`var-${idx}`).remove();
+            activeVariants[idx] = null; 
+        }
 
         // --- AUTH LOGIC ---
         function logoutAdmin() {
@@ -591,7 +629,11 @@
         }
 
         async function saveItem() {
-            const name = document.getElementById('itemName').value; const desc = document.getElementById('itemDesc').value; const price = document.getElementById('itemPrice').value; const weight = document.getElementById('itemWeight').value; const time = document.getElementById('itemTime').value;
+            const name = document.getElementById('itemName').value; 
+            const desc = document.getElementById('itemDesc').value; 
+            const price = document.getElementById('itemPrice').value; 
+            const weight = document.getElementById('itemWeight').value; 
+            const time = document.getElementById('itemTime').value;
 
             if(!name || !price || !b64Image) return showToast("Required: Name, Price, and Image", "error");
 
@@ -602,8 +644,11 @@
                 let finalImageUrl = b64Image;
                 if (b64Image.startsWith('data:image')) { finalImageUrl = await uploadToCloudinary(b64Image); }
 
+                // Clean out deleted variants before saving
+                const validVariants = activeVariants.filter(v => v !== null && v.weight && v.price);
+
                 saveBtn.innerText = "SAVING TO DATABASE...";
-                const payload = { cat: category, name, desc, price, weight, time, img: finalImageUrl };
+                const payload = { cat: category, name, desc, price, weight, time, img: finalImageUrl, variants: validVariants };
 
                 if (editingId) {
                     await fetch('/api/admin/inventory/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -625,7 +670,18 @@
             if(!item) return;
 
             editingId = id;
-            document.getElementById('itemName').value = item.name || ''; document.getElementById('itemDesc').value = item.desc || ''; document.getElementById('itemPrice').value = item.price || ''; document.getElementById('itemWeight').value = item.weight || ''; document.getElementById('itemTime').value = item.time || '';
+            document.getElementById('itemName').value = item.name || ''; 
+            document.getElementById('itemDesc').value = item.desc || ''; 
+            document.getElementById('itemPrice').value = item.price || ''; 
+            document.getElementById('itemWeight').value = item.weight || ''; 
+            document.getElementById('itemTime').value = item.time || '';
+
+            // Load variants into UI
+            activeVariants = [];
+            document.getElementById('variantsContainer').innerHTML = '';
+            if(item.variants && item.variants.length > 0) {
+                item.variants.forEach(v => addVariantField(v.weight, v.price, v.time));
+            }
 
             b64Image = item.img || ''; 
             if(b64Image) {
@@ -637,6 +693,24 @@
             document.querySelector('.main-content').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function resetForm() {
+            editingId = null;
+            document.getElementById('itemName').value = ''; 
+            document.getElementById('itemDesc').value = ''; 
+            document.getElementById('itemPrice').value = ''; 
+            document.getElementById('itemWeight').value = ''; 
+            document.getElementById('itemTime').value = '';
+            
+            // Clear variants
+            activeVariants = [];
+            document.getElementById('variantsContainer').innerHTML = '';
+
+            document.getElementById('viewImg').style.display = 'none'; document.getElementById('viewImg').src = ''; document.getElementById('prompt').style.display = 'block';
+            b64Image = "";
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerText = "SAVE TO INVENTORY"; saveBtn.style.background = "var(--sidebar-bg)"; saveBtn.disabled = false;
+        }
+
         async function delItem(id) {
             if(confirm("Are you sure you want to delete this product?")) {
                 try {
@@ -645,15 +719,6 @@
                     showToast("Product deleted.", "error"); fetchInventory(); 
                 } catch(err) { showToast("Failed to delete.", "error"); }
             }
-        }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById('itemName').value = ''; document.getElementById('itemDesc').value = ''; document.getElementById('itemPrice').value = ''; document.getElementById('itemWeight').value = ''; document.getElementById('itemTime').value = '';
-            document.getElementById('viewImg').style.display = 'none'; document.getElementById('viewImg').src = ''; document.getElementById('prompt').style.display = 'block';
-            b64Image = "";
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.innerText = "SAVE TO INVENTORY"; saveBtn.style.background = "var(--sidebar-bg)"; saveBtn.disabled = false;
         }
 
         // =====================================

@@ -256,11 +256,27 @@
             const container = document.getElementById('product-container');
             container.innerHTML = '';
 
-            // Helper function so we don't repeat the layout code!
             const createCard = (product) => {
-                let displayPrice = String(product.price).includes('₹') ? product.price : '₹' + product.price;
-                const weightText = product.weight ? product.weight : "1 kg";
-                const timeText = product.time ? product.time : "24 Hours";
+                let displayPrice = product.price;
+                let weightText = product.weight ? product.weight : "1 kg";
+                let timeText = product.time ? product.time : "24 Hours";
+
+                // Merge base product and variants to calculate lowest price and total sizes
+                if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+                    let allVariants = [...product.variants];
+                    
+                    // Include the original base product as one of the sizes
+                    if (product.price && product.weight) {
+                        allVariants.push({ price: product.price, weight: product.weight, time: product.time });
+                    }
+                    
+                    const lowestPrice = Math.min(...allVariants.map(v => Number(v.price) || 0));
+                    displayPrice = lowestPrice;
+                    weightText = allVariants.length + " Sizes";
+                    timeText = "Varies";
+                }
+                
+                displayPrice = String(displayPrice).includes('₹') ? displayPrice : '₹' + displayPrice;
                 const itemId = product.name ? product.name.toLowerCase().replace(/\s+/g, '-') : 'prod-' + product.id;
 
                 return `

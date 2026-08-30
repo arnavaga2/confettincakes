@@ -133,6 +133,8 @@ const InventorySchema = new mongoose.Schema({
     weight: String,
     time: String,
     img: String,
+    variants: [{ weight: String, price: Number, time: String }],
+    images: [String],
     // 🔥 NEW: Added ratings object so the Amazon-style UI works
     ratings: {
         1: { type: Number, default: 0 },
@@ -234,7 +236,6 @@ async function initializeDefaultSettings() {
         needsUpdate = true;
     }
     if (!existingSettings.adminPass) existingSettings.adminPass = "cake";
-    if (!existingSettings.pincodes) existingSettings.pincodes = "110";
     if (!existingSettings.footerText) existingSettings.footerText = "&copy; 2026 CONFETTINCAKE. All rights reserved.";
 
     if (needsUpdate) {

@@ -146,6 +146,24 @@
             .tabs { top: 0; }
         }
 
+        .nav-cart-badge { 
+    position: absolute; 
+    top: 2px; 
+    right: 50%; 
+    transform: translateX(12px); /* Pushes it just to the right of the icon */
+    background: var(--accent); 
+    color: white; 
+    font-size: 0.6rem; 
+    font-weight: 700; 
+    width: 16px; 
+    height: 16px; 
+    border-radius: 50%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    border: 2px solid rgba(255, 255, 255, 0.95); 
+}
+
     </style>
 </head>
 <body>
@@ -205,9 +223,11 @@
         <a href="index.html" class="nav-item">
             <i class="ri-home-smile-line"></i><span class="nav-label">Home</span>
         </a>
-        <a href="menu.html" class="nav-item">
-            <i class="ri-restaurant-line"></i><span class="nav-label">Menu</span>
-        </a>
+        <a href="cart.html" class="nav-item" style="position: relative;">
+    <i class="ri-shopping-cart-2-line"></i>
+    <span class="nav-label">Cart</span>
+    <div class="nav-cart-badge" id="mobileCartCount" style="display: none;">0</div>
+</a>
         <a href="orders.html" class="nav-item active">
             <i class="ri-shopping-bag-3-fill"></i><span class="nav-label">Orders</span>
         </a>
@@ -595,6 +615,20 @@
                 closeModalBtn('ratingModal');
             }
         }
+
+        function updateMobileCartBadge() {
+    let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
+    let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+    const badge = document.getElementById('mobileCartCount');
+    
+    if (badge) {
+        badge.innerText = totalItems > 9 ? '9+' : totalItems;
+        badge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+}
+
+// Ensure it runs when the page loads
+document.addEventListener('DOMContentLoaded', updateMobileCartBadge);
     </script>
 </body>
 </html>

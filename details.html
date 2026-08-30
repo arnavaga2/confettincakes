@@ -136,6 +136,7 @@
         <div class="product-container">
             <div class="product-image-section">
                 <img src="" id="prodImage" class="main-image" alt="Bakery Delight">
+                <div id="imageSlider" style="display: flex; overflow-x: auto; gap: 10px; margin-top: 15px; scrollbar-width: none;"></div>
             </div>
 
             <div class="product-details-section">
@@ -145,8 +146,26 @@
                 <div class="price-row">
                     <div class="final-price" id="finalPrice">₹0</div>
                     <div class="shining-weight" id="prodWeight">⚖️ Loading...</div>
+                    <div id="variantSelector" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;"></div>
+                </div>
+                
+                <!-- MOVED LOGISTICS BOX ABOVE RATINGS -->
+                <div class="logistics-box">
+                    <div class="logistics-header" style="justify-content: space-between;">
+                        <span><i class="ri-map-pin-line"></i> Delivering to: <strong id="active-pin-display">...</strong></span>
+                        <button onclick="togglePinEdit()" style="background:none; border:none; color:#3182CE; font-weight:700; cursor:pointer; font-size:0.85rem;">Change</button>
+                    </div>
+                    
+                    <div id="pin-edit-row" style="display: none; margin-top: 10px; gap: 10px;">
+                        <input type="number" id="new-pin-input" placeholder="Enter 6-digit Pincode" style="padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-family: 'Poppins'; outline: none; width: 100%;">
+                        <button onclick="updateActivePincode()" style="background: var(--text-dark); color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 600; cursor: pointer;">Update</button>
+                    </div>
+
+                    <div id="pin-status-msg" style="margin-top: 10px; font-size: 0.85rem; font-weight: 600;"></div>
+                    <p class="logistics-text" id="logisticsText" style="margin-top: 10px;">Calculating logistics...</p>
                 </div>
 
+                <!-- RATING SUMMARY NOW BELOW LOGISTICS -->
                 <div class="rating-summary-box" id="ratingSummaryBox" style="display: none;">
                     <div class="rating-big-number">
                         <h2 id="avgRatingNumber">0.0</h2>
@@ -155,11 +174,6 @@
                     </div>
                     <div class="rating-divider"></div>
                     <div class="rating-bars" id="ratingBarsUI"></div>
-                </div>
-
-                <div class="logistics-box">
-                    <div class="logistics-header"><i class="ri-truck-line"></i> Preparation & Delivery</div>
-                    <p class="logistics-text" id="logisticsText">Calculating logistics...</p>
                 </div>
 
                 <div class="desc-box">
@@ -189,6 +203,7 @@
 
         let targetedProduct = null;
         let currentQty = 1;
+        let activeOrderPin = "";
 
         // --- 1. QUANTITY COUNTER ---
         function changeQty(amt) {
@@ -198,7 +213,60 @@
             document.getElementById('qtyInput').value = currentQty;
         }
 
-        // --- 2. DATA LOAD ENGINE ---
+        // --- 2. DELIVERY VALIDATION LOGIC ---
+        function togglePinEdit() {
+            const row = document.getElementById('pin-edit-row');
+            row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function updateActivePincode() {
+            const newPin = document.getElementById('new-pin-input').value.trim();
+            if (newPin.length !== 6) return alert("Please enter a valid 6-digit pincode.");
+            localStorage.setItem('confettinDeliveryPin', newPin);
+            togglePinEdit();
+            initDeliveryCheck();
+        }
+
+        async function initDeliveryCheck() {
+            const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
+            activeOrderPin = localStorage.getItem('confettinDeliveryPin') || (activeUser ? activeUser.pin : "");
+            
+            document.getElementById('active-pin-display').innerText = activeOrderPin || "Please set a pincode";
+
+            if (activeOrderPin && targetedProduct) {
+                const settingsRes = await fetch('/api/settings');
+                const settings = await settingsRes.json();
+                
+                const zones = settings.deliveryZones || { prefixes: [], categories: {}, products: {} };
+                const localPrefixes = Array.isArray(zones.prefixes) ? zones.prefixes : [];
+                
+                const isUserLocal = localPrefixes.some(prefix => String(activeOrderPin).startsWith(prefix));
+                const prodOverride = (zones.products || {})[targetedProduct.id || targetedProduct._id];
+                const catRule = (zones.categories || {})[targetedProduct.cat ? targetedProduct.cat.toLowerCase() : ''];
+                const isItemNational = prodOverride ? (prodOverride === 'national') : (catRule === 'national');
+
+                const statusMsg = document.getElementById('pin-status-msg');
+                const btn = document.querySelector('.btn-cart');
+
+                if (!isItemNational && !isUserLocal) {
+                    statusMsg.innerHTML = `<span style="color: #E53E3E;"><i class="ri-error-warning-fill"></i> Not deliverable to ${activeOrderPin}. Available locally for prefixes: ${localPrefixes.join(', ')}</span>`;
+                    btn.style.background = '#E2E8F0';
+                    btn.style.color = '#A0AEC0';
+                    btn.style.borderColor = '#E2E8F0';
+                    btn.innerHTML = '<i class="ri-map-pin-off-fill"></i> Cannot Deliver Here';
+                    btn.disabled = true;
+                } else {
+                    statusMsg.innerHTML = `<span style="color: #48BB78;"><i class="ri-checkbox-circle-fill"></i> Available for delivery to ${activeOrderPin}!</span>`;
+                    btn.style.background = 'rgba(255, 107, 129, 0.1)';
+                    btn.style.color = 'var(--accent-color)';
+                    btn.style.borderColor = 'var(--accent-color)';
+                    btn.innerHTML = '<i class="ri-shopping-cart-2-fill"></i> Add To Bag';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // --- 3. DATA LOAD ENGINE ---
         window.onload = async () => {
             updateCartBadge();
             if (!productId) return;
@@ -221,9 +289,36 @@
         function populateProductFields(item) {
             document.getElementById('prodName').innerText = item.name;
             document.getElementById('prodImage').src = item.img;
-            document.getElementById('finalPrice').innerText = `₹${item.price}`;
-            document.getElementById('prodWeight').innerHTML = `⚖️ <span style="color:#718096; font-weight:500; margin-right:4px;">Weight:</span> ${item.weight || '1 Kg'}`;
-            document.getElementById('descText').innerText = item.desc || "A 100% eggless premium bake, meticulously handcrafted using the finest natural ingredients to deliver absolute textural perfection and flavor.";
+            document.getElementById('descText').innerText = item.desc;
+            
+            // Image Slider Logic
+            if (item.images && item.images.length > 0) {
+                let allImages = [item.img, ...item.images];
+                document.getElementById('imageSlider').innerHTML = allImages.map(img => 
+                    `<img src="${img}" style="width: 70px; height: 70px; border-radius: 10px; cursor: pointer; object-fit: cover; border: 1px solid #EAEAEA;" onclick="document.getElementById('prodImage').src='${img}'">`
+                ).join('');
+            }
+
+            // Variant Selector Logic
+            if (item.variants && item.variants.length > 0) {
+                document.getElementById('prodWeight').style.display = 'none';
+                
+                let allVariants = [];
+                if (item.price && item.weight) {
+                    allVariants.push({ price: item.price, weight: item.weight, time: item.time });
+                }
+                allVariants = allVariants.concat(item.variants);
+                window.currentVariants = allVariants; 
+                
+                document.getElementById('variantSelector').innerHTML = allVariants.map((v, idx) =>
+                    `<button class="variant-btn" id="var-btn-${idx}" onclick="selectVariant(${idx})" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--accent-color); background: ${idx === 0 ? 'var(--accent-color)' : 'transparent'}; color: ${idx === 0 ? 'white' : 'var(--text-dark)'}; font-weight: 600; cursor: pointer;">${v.weight}</button>`
+                ).join('');
+                
+                selectVariant(0); 
+            } else {
+                document.getElementById('finalPrice').innerText = `₹${item.price}`;
+                document.getElementById('prodWeight').innerHTML = `⚖️ <span style="color:#718096; font-weight:500; margin-right:4px;">Weight:</span> ${item.weight}`;
+            }
 
             // 🧠 SMART CATEGORY & LOGISTICS GENERATOR
             let rawCat = item.cat ? item.cat.toLowerCase() : 'treats';
@@ -235,9 +330,7 @@
             else if (rawCat.endsWith('s')) singularCat = rawCat.slice(0, -1);
             else singularCat = rawCat;
             
-            // Capitalize first letter
             singularCat = singularCat.charAt(0).toUpperCase() + singularCat.slice(1);
-
             document.getElementById('prodCatTag').innerText = `PREMIUM ${singularCat.toUpperCase()}`;
 
             let prepTime = item.time || '4 Hours';
@@ -245,9 +338,12 @@
 
             // Boot up the rating engine
             renderRatingsEngine(item.ratings);
+
+            // 🔥 TRIGGER THE PINCODE CHECK 🔥
+            initDeliveryCheck();
         }
 
-        // --- 3. DYNAMIC REVIEW CALCULATION ENGINE ---
+        // --- 4. DYNAMIC REVIEW CALCULATION ENGINE ---
         function renderRatingsEngine(ratingsObj) {
             const r = {
                 1: ratingsObj?.[1] || 0,
@@ -296,7 +392,7 @@
             }
         }
 
-        // --- 4. CART INTEGRATION CODES ---
+        // --- 5. CART INTEGRATION CODES ---
         function addCurrentToCart() {
             if (!targetedProduct) return;
 
@@ -316,13 +412,12 @@
                     img: targetedProduct.img,
                     qty: currentQty,
                     time: targetedProduct.time || '4 Hours',
-                    weight: targetedProduct.weight || '1 Kg'
+                    weight: targetedProduct.weight || '1 Kg',
+                    cat: targetedProduct.cat // Saving category for the cart sweeper validation
                 });
             }
 
             localStorage.setItem('confettinCart', JSON.stringify(cart));
-            
-            // Instantly redirect the user to the cart page
             window.location.href = 'cart.html';
         }
 
@@ -332,6 +427,18 @@
             const badge = document.getElementById('cartCount');
             badge.innerText = totalItems > 9 ? '9+' : totalItems;
             badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+
+        function selectVariant(index) {
+            const variant = window.currentVariants[index];
+            document.getElementById('finalPrice').innerText = `₹${variant.price}`;
+            document.getElementById('logisticsText').innerText = `This size requires approx. ${variant.time} of preparation time.`;
+            
+            document.querySelectorAll('.variant-btn').forEach((btn, i) => {
+                btn.style.background = i === index ? 'var(--accent-color)' : 'transparent';
+                btn.style.color = i === index ? 'white' : 'var(--text-dark)';
+            });
+            window.selectedVariantIndex = index;
         }
     </script>
 </body>

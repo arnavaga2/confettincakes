@@ -104,6 +104,7 @@
     <main id="cart-container"></main>
 
     <div class="sticky-checkout" id="sticky-checkout" style="display: none;">
+        <div id="cart-delivery-error" style="display: none; position: absolute; top: -65px; left: 0; width: 100%; background: #FFF5F5; border-top: 1px solid #FED7D7; color: #C53030; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 -4px 10px rgba(0,0,0,0.05);"></div>
         <div class="checkout-total-col">
             <span>To Pay</span>
             <strong id="bottom-total">₹0</strong>
@@ -133,29 +134,21 @@
         let waPhone = "9365717848"; 
         const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         
-        const DELIVERY_FEE = 40;
-        const PACKAGING_FEE = 15; 
-        
         let appliedPromo = { code: "", discountPct: 0 }; 
         let itemToRemoveIndex = null;
         let finalGrandTotal = 0;
         let maxBakeHours = 0;
         let pushedToTomorrow = false; 
 
-        function timeToDec(timeStr) {
-            if (!timeStr) return 0;
-            let parts = timeStr.split(':');
-            return parseInt(parts[0]) + (parseInt(parts[1]) / 60);
-        }
-
-        function decToTime(dec) {
-            let h = Math.floor(dec);
-            let m = Math.round((dec - h) * 60);
-            if (m === 60) { h++; m = 0; }
+        // Helper to cleanly format times like "02:30 PM"
+        function formatTimeAMPM(dateObj) {
+            let h = dateObj.getHours();
+            let m = dateObj.getMinutes();
             let ampm = h >= 12 ? 'PM' : 'AM';
-            let dispH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-            let dispM = m.toString().padStart(2, '0');
-            return `${dispH}:${dispM} ${ampm}`;
+            h = h % 12;
+            h = h ? h : 12;
+            m = m.toString().padStart(2, '0');
+            return `${h}:${m} ${ampm}`;
         }
 
         async function fetchSettingsAndRender() {
@@ -176,7 +169,7 @@
             renderCart();
         }
 
-        function renderCart() {
+        async function renderCart() {
             const container = document.getElementById('cart-container');
             const stickyBar = document.getElementById('sticky-checkout');
             
@@ -198,31 +191,53 @@
             let subtotal = 0;
             maxBakeHours = 0; 
 
+            // FETCH DELIVERY RULES ONCE
+            let zones = { prefixes: [], categories: {}, products: {} };
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                zones = settings.deliveryZones || { prefixes: [], categories: {}, products: {} };
+            } catch(e) { console.warn("Could not fetch delivery zones for cart validation."); }
+            
+            const localPrefixes = Array.isArray(zones.prefixes) ? zones.prefixes : [];
+            const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
+            const activeOrderPin = localStorage.getItem('confettinDeliveryPin') || (activeUser ? activeUser.pin : "");
+            const isUserLocal = localPrefixes.some(prefix => String(activeOrderPin).startsWith(prefix));
+
+            let hasInvalidItems = false;
+
             cart.forEach((item, index) => {
-                subtotal += (item.price * item.qty);
+                // VALIDATE THIS SPECIFIC ITEM
+                const prodOverride = (zones.products || {})[item.id];
+                const catRule = (zones.categories || {})[item.cat ? item.cat.toLowerCase() : ''];
+                const isItemNational = prodOverride ? (prodOverride === 'national') : (catRule === 'national');
+                const isInvalid = !isItemNational && !isUserLocal;
                 
-                // 🔥 FIXED SYNTAX SCANNER (Removed extra backslashes introduced by markdown format leak)
+                if (isInvalid) hasInvalidItems = true;
+                if (!isInvalid) subtotal += (item.price * item.qty); // Don't charge for invalid items
+                
                 let timeStr = String(item.time || "0");
                 let match = timeStr.match(/\d+(\.\d+)?/); 
                 let timeNum = match ? parseFloat(match[0]) : 0;
-                
-                if (timeNum > maxBakeHours) maxBakeHours = timeNum;
+                if (!isInvalid && timeNum > maxBakeHours) maxBakeHours = timeNum;
 
                 itemsHTML += `
-                    <div class="cart-item">
+                    <div class="cart-item" style="${isInvalid ? 'opacity: 0.6; background: #FFF5F5; padding: 10px; border-radius: 8px;' : ''}">
                         <img src="${item.img}" class="item-img">
                         <div class="item-details">
                             <div class="item-header">
-                                <h4 class="item-name">${item.name}</h4>
+                                <h4 class="item-name" style="${isInvalid ? 'text-decoration: line-through;' : ''}">${item.name}</h4>
                                 <span class="item-price">₹${item.price * item.qty}</span>
                             </div>
-                            <div class="item-actions">
+                            ${isInvalid ? `<div style="color: #E53E3E; font-size: 0.75rem; font-weight: 600; margin-top: 5px;"><i class="ri-error-warning-fill"></i> Not deliverable to ${activeOrderPin || 'this location'}</div>` : ''}
+                            <div class="item-actions" style="margin-top: 5px;">
                                 <button class="remove-btn" onclick="triggerRemove(${index})">Remove</button>
+                                ${!isInvalid ? `
                                 <div class="qty-controls">
                                     <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
                                     <span class="qty-num">${item.qty}</span>
                                     <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                                </div>
+                                </div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -252,26 +267,18 @@
             let savedNote = localStorage.getItem('confettinCartNote') || "";
             let preferencesHTML = `
                 <div class="section-card" style="padding: 15px 20px;">
-                    <div class="instruction-box">
+                    <div class="instruction-box" style="margin-bottom: 0;">
                         <i class="ri-message-3-line"></i>
                         <input type="text" id="delivery-note" placeholder="Any instructions for the baker?" value="${savedNote}" onchange="saveNote()">
-                    </div>
-                    
-                    <div class="cutlery-toggle">
-                        <div class="cutlery-text">
-                            <h4><i class="ri-leaf-fill" style="color: #48BB78;"></i> Don't send cutlery</h4>
-                            <p>Thank you for helping us reduce plastic waste.</p>
-                        </div>
-                        <div class="checkbox-wrapper-2">
-                            <input type="checkbox" class="sc-gJwTLC ikxBAC" id="cutlery-check">
-                        </div>
                     </div>
                 </div>
             `;
 
             let discountAmount = 0;
             if (appliedPromo.discountPct > 0) { discountAmount = Math.round(subtotal * (appliedPromo.discountPct / 100)); }
-            finalGrandTotal = (subtotal - discountAmount) + DELIVERY_FEE + PACKAGING_FEE;
+            
+            // Clean calculation: No extra fees.
+            finalGrandTotal = subtotal > 0 ? (subtotal - discountAmount) : 0;
 
             let billHTML = `
                 <div class="section-card">
@@ -284,8 +291,6 @@
 
                     <div class="summary-row"><span>Item Total</span><span>₹${subtotal}</span></div>
                     ${appliedPromo.discountPct > 0 ? `<div class="summary-row discount-row"><span>Item Discount (${appliedPromo.code})</span><span>- ₹${discountAmount}</span></div>` : ''}
-                    <div class="summary-row"><span>Packaging Charges</span><span>₹${PACKAGING_FEE}</span></div>
-                    <div class="summary-row"><span>Delivery Fee</span><span>₹${DELIVERY_FEE}</span></div>
                     <div class="summary-total"><span>Grand Total</span><span>₹${finalGrandTotal}</span></div>
                 </div>
             `;
@@ -299,61 +304,70 @@
                 msgBox.style.display = 'block';
             }
 
+            // Lock Checkout if mixed cart error exists
+            const checkoutBtn = document.querySelector('.checkout-btn');
+            if (hasInvalidItems) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.style.background = '#E2E8F0';
+                checkoutBtn.style.color = '#A0AEC0';
+                checkoutBtn.innerHTML = 'Remove Invalid Items <i class="ri-lock-fill"></i>';
+            } else {
+                checkoutBtn.disabled = false;
+                checkoutBtn.style.background = 'var(--accent-color)';
+                checkoutBtn.style.color = 'white';
+                checkoutBtn.innerHTML = 'Place Order <i class="ri-arrow-right-s-line"></i>';
+            }
+
             initDatePicker();
         }
 
+        // --- NEW BULLETPROOF TIME ENGINE ---
         function initDatePicker() {
             const dateSelect = document.getElementById('delivery-date');
             if(!dateSelect) return;
             dateSelect.innerHTML = ''; 
             
             let now = new Date();
-            let currentDecimal = now.getHours() + (now.getMinutes() / 60);
+            // Calculate absolute time order will be ready
+            let readyDate = new Date(now.getTime() + (maxBakeHours * 60 * 60 * 1000));
             
             let addedDays = 0;
             let dayOffset = 0;
             pushedToTomorrow = false;
-
-            let todayStr = daysOfWeek[now.getDay()];
-            let tToday = shopSchedule[todayStr];
-
-            if (tToday && tToday.isOpen) {
-                let flexCutoff = timeToDec(tToday.flex);
-                let earliestFinish = currentDecimal + maxBakeHours;
-                
-                if (earliestFinish > flexCutoff) {
-                    pushedToTomorrow = true;
-                    dayOffset = 1; 
-                }
-            } else {
-                pushedToTomorrow = true;
-                dayOffset = 1; 
-            }
+            let foundFirstDay = false;
 
             while(addedDays < 5 && dayOffset < 14) { 
-                let targetDate = new Date();
-                targetDate.setDate(targetDate.getDate() + dayOffset);
-                let dayStr = daysOfWeek[targetDate.getDay()];
+                let checkDate = new Date();
+                checkDate.setDate(now.getDate() + dayOffset);
+                let dayStr = daysOfWeek[checkDate.getDay()];
                 let t = shopSchedule[dayStr];
 
-                if (!t || !t.isOpen) {
-                    dayOffset++; 
-                    continue; 
-                }
+                if (t && t.isOpen) {
+                    let flexParts = t.flex.split(':');
+                    let dayFlexEnd = new Date(checkDate);
+                    dayFlexEnd.setHours(parseInt(flexParts[0]), parseInt(flexParts[1]), 0, 0);
 
-                let dateLabel = targetDate.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-                let option = document.createElement('option');
-                option.value = dayOffset; 
-                option.text = dayOffset === 0 ? `Today (${dateLabel})` : (dayOffset === 1 ? `Tomorrow (${dateLabel})` : dateLabel);
-                dateSelect.add(option);
-                
-                addedDays++;
+                    // Only add the day if the order can be ready before the shop's absolute final flex time
+                    if (readyDate <= dayFlexEnd) {
+                        if(!foundFirstDay) {
+                            foundFirstDay = true;
+                            if (dayOffset > 0) pushedToTomorrow = true; 
+                        }
+                        
+                        let dateLabel = checkDate.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+                        let option = document.createElement('option');
+                        option.value = dayOffset; 
+                        option.text = dayOffset === 0 ? `Today (${dateLabel})` : (dayOffset === 1 ? `Tomorrow (${dateLabel})` : dateLabel);
+                        dateSelect.add(option);
+                        addedDays++;
+                    }
+                }
                 dayOffset++;
             }
             
             const noticeBox = document.getElementById('timing-notice');
             if (pushedToTomorrow) {
-                noticeBox.innerHTML = `🌙 <strong>Notice:</strong> Your order time passes our closing time. Please select a delivery time for tomorrow's day.`;
+                noticeBox.innerHTML = `🌙 <strong>Notice:</strong> Your order prep time passes today's hours. Please select a delivery time for an available upcoming day.`;
                 noticeBox.style.display = 'block';
             } else {
                 noticeBox.style.display = 'none';
@@ -374,64 +388,76 @@
             timeSelect.innerHTML = '';
             
             if (!pushedToTomorrow) noticeBox.style.display = 'none';
-
             localStorage.setItem('confettinTimeAnomaly', 'false');
 
             let now = new Date();
-            let currentDecimal = now.getHours() + (now.getMinutes() / 60);
+            let readyDate = new Date(now.getTime() + (maxBakeHours * 60 * 60 * 1000));
             let offset = parseInt(document.getElementById('delivery-date').value);
             
             let targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() + offset);
+            targetDate.setDate(now.getDate() + offset);
             let dayStr = daysOfWeek[targetDate.getDay()];
             let t = shopSchedule[dayStr];
 
             if (!t) return;
 
-            let openTime = timeToDec(t.open);
-            let closeTime = timeToDec(t.close);
-            let flexTime = timeToDec(t.flex);
+            let openParts = t.open.split(':');
+            let closeParts = t.close.split(':');
+            let flexParts = t.flex.split(':');
 
-            let earliestFinish = currentDecimal + maxBakeHours;
-            let startSlot = openTime;
+            let shopOpen = new Date(targetDate);
+            shopOpen.setHours(parseInt(openParts[0]), parseInt(openParts[1]), 0, 0);
 
-            // SCENARIO 1: IT IS TODAY
-            if (offset === 0) {
-                if (earliestFinish > closeTime && earliestFinish <= flexTime) {
-                    noticeBox.innerHTML = `⚠️ <strong>Late Evening Notice:</strong> Your order passes our closing time but we may deliver it. <a href="https://wa.me/91${waPhone}" target="_blank" style="color: #48BB78; text-decoration: underline; font-weight: bold;"><i class="ri-whatsapp-line"></i> Message us on WhatsApp</a> for clarification before placing the order.`;
-                    noticeBox.style.display = 'block';
+            let shopClose = new Date(targetDate);
+            shopClose.setHours(parseInt(closeParts[0]), parseInt(closeParts[1]), 0, 0);
 
+            let shopFlex = new Date(targetDate);
+            shopFlex.setHours(parseInt(flexParts[0]), parseInt(flexParts[1]), 0, 0);
+
+            // Determine earliest start time
+            let availableStart = new Date(Math.max(shopOpen.getTime(), readyDate.getTime()));
+
+            // Round up to nearest 30 mins safely
+            let minutes = availableStart.getMinutes();
+            if (minutes > 0 && minutes <= 30) {
+                availableStart.setMinutes(30, 0, 0);
+            } else if (minutes > 30) {
+                availableStart.setHours(availableStart.getHours() + 1);
+                availableStart.setMinutes(0, 0, 0);
+            }
+
+            // The last normal 30-min slot starts 30 mins before closing
+            let lastStandardSlotStart = new Date(shopClose.getTime() - (30 * 60 * 1000));
+
+            // Check if available start falls strictly inside the late evening flex gap
+            if (availableStart > lastStandardSlotStart && availableStart <= shopFlex) {
+                noticeBox.innerHTML = `⚠️ <strong>Late Evening Notice:</strong> Your order passes our standard delivery hours but we may deliver it. <a href="https://wa.me/91${waPhone}" target="_blank" style="color: #48BB78; text-decoration: underline; font-weight: bold;"><i class="ri-whatsapp-line"></i> Message us on WhatsApp</a> for clarification before placing the order.`;
+                noticeBox.style.display = 'block';
+
+                let endSlot = new Date(availableStart.getTime() + (30 * 60 * 1000));
+                let option = document.createElement('option');
+                option.value = `Late Evening (${formatTimeAMPM(availableStart)} - ${formatTimeAMPM(endSlot)})`;
+                option.text = option.value;
+                timeSelect.add(option);
+                
+                localStorage.setItem('confettinTimeAnomaly', 'true');
+            } else {
+                if (availableStart > lastStandardSlotStart) {
                     let option = document.createElement('option');
-                    option.value = `Late Evening (${decToTime(earliestFinish)} - ${decToTime(earliestFinish + 0.5)})`;
-                    option.text = option.value;
+                    option.value = "";
+                    option.text = "No slots available this day";
+                    option.disabled = true;
                     timeSelect.add(option);
-                    
-                    localStorage.setItem('confettinTimeAnomaly', 'true');
-                } 
-                else if (earliestFinish <= closeTime) {
-                    startSlot = Math.max(openTime, Math.ceil(earliestFinish * 2) / 2);
-                    
-                    for (let h = startSlot; h <= closeTime - 0.5; h += 0.5) {
+                } else {
+                    let currentSlot = new Date(availableStart);
+                    while (currentSlot <= lastStandardSlotStart) {
+                        let endSlot = new Date(currentSlot.getTime() + (30 * 60 * 1000));
                         let option = document.createElement('option');
-                        option.value = `${decToTime(h)} - ${decToTime(h + 0.5)}`;
+                        option.value = `${formatTimeAMPM(currentSlot)} - ${formatTimeAMPM(endSlot)}`;
                         option.text = option.value;
                         timeSelect.add(option);
+                        currentSlot = new Date(currentSlot.getTime() + (30 * 60 * 1000));
                     }
-                }
-            } 
-            // SCENARIO 2: IT IS TOMORROW OR LATER
-            else {
-                if (offset === 1 && pushedToTomorrow) {
-                    startSlot = openTime + maxBakeHours;
-                }
-                
-                startSlot = Math.max(openTime, Math.ceil(startSlot * 2) / 2);
-
-                for (let h = startSlot; h <= closeTime - 0.5; h += 0.5) {
-                    let option = document.createElement('option');
-                    option.value = `${decToTime(h)} - ${decToTime(h + 0.5)}`;
-                    option.text = option.value;
-                    timeSelect.add(option);
                 }
             }
 
@@ -439,13 +465,14 @@
             if (savedTime && Array.from(timeSelect.options).some(opt => opt.value === savedTime)) {
                 timeSelect.value = savedTime;
             }
-            checkTimeAnomaly(); 
         }
 
         function checkTimeAnomaly() {
             const noticeBox = document.getElementById('timing-notice');
             if (localStorage.getItem('confettinTimeAnomaly') === 'true') {
                 noticeBox.style.display = 'block';
+            } else {
+                noticeBox.style.display = 'none';
             }
         }
 
@@ -475,15 +502,67 @@
         }
 
         function showToast(message) { const toast = document.getElementById('toast'); toast.innerText = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+        
+        async function validateDeliveryRules(cartItems, userPincode) {
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                
+                const zones = settings.deliveryZones || { prefixes: [], categories: {}, products: {} };
+                const localPrefixes = Array.isArray(zones.prefixes) ? zones.prefixes : [];
+                
+                const isUserLocal = localPrefixes.some(prefix => String(userPincode).startsWith(prefix));
 
-        function processCheckout() {
+                for (let item of cartItems) {
+                    const prodOverride = (zones.products || {})[item.id];
+                    const catRule = (zones.categories || {})[item.cat ? item.cat.toLowerCase() : ''];
+                    const isItemNational = prodOverride ? (prodOverride === 'national') : (catRule === 'national');
+                    
+                    if (!isItemNational && !isUserLocal) {
+                        return { valid: false, error: `Sorry! "${item.name}" cannot be shipped outside our local delivery zone.` };
+                    }
+                }
+                return { valid: true };
+            } catch(err) {
+                return { valid: true };
+            }
+        }
+
+        async function processCheckout() {
             const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
-            if (!activeUser) { showToast("Please log in to place an order!"); setTimeout(() => { window.location.href = 'index.html'; }, 2000); return; }
+            
+            if (!activeUser) { 
+                showToast("Please log in to place an order!"); 
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000); 
+                return; 
+            }
 
             const dateSelect = document.getElementById('delivery-date');
             const timeSelect = document.getElementById('delivery-time');
             
-            if (timeSelect.disabled || timeSelect.value === "") { showToast("Please select a valid Delivery Date & Time."); return; }
+            if (timeSelect.disabled || timeSelect.value === "") { 
+                showToast("Please select a valid Delivery Date & Time."); 
+                return; 
+            }
+
+            const checkoutBtn = document.querySelector('.checkout-btn');
+            checkoutBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Checking...';
+            checkoutBtn.disabled = true;
+
+            // Fetch the temporary order pincode the user might have set on the Details page
+            const activeOrderPin = localStorage.getItem('confettinDeliveryPin') || activeUser.pin;
+            const validation = await validateDeliveryRules(cart, activeOrderPin);
+            const errorBox = document.getElementById('cart-delivery-error');
+            
+            if (!validation.valid) {
+                checkoutBtn.innerHTML = 'Place Order <i class="ri-arrow-right-s-line"></i>';
+                checkoutBtn.disabled = false;
+                errorBox.innerText = validation.error;
+                errorBox.style.display = 'block';
+                return; 
+            }
+            
+            errorBox.style.display = 'none';
 
             const selectedDateText = dateSelect.options[dateSelect.selectedIndex].text;
             localStorage.setItem('confettinCartDateVal', dateSelect.value); 

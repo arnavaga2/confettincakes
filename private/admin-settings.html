@@ -146,6 +146,25 @@
             .timing-day { grid-column: 1 / -1; font-size: 1.1rem; border-bottom: 1px dashed #CBD5E0; padding-bottom: 5px; color: var(--accent); }
             .timing-row > div:nth-child(2) { grid-column: 1 / -1; margin-bottom: 10px; background: white; padding: 8px; border-radius: 6px; border: 1px solid #E2E8F0; }
         }
+
+        /* 🔥 DELIVERY ZONES UI (From GT) */
+        .pincode-chip { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(59, 130, 246, 0.1); }
+        .pincode-chip i.del-icon { cursor: pointer; color: #ef4444; transition: 0.2s; font-size: 1.1rem; }
+        .pincode-chip i.del-icon:hover { transform: scale(1.2); }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ef4444; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .cat-accordion { background: white; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+        .cat-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #F7FAFC; font-weight: 700; color: var(--text-dark); text-transform: capitalize; cursor: pointer; }
+        .cat-body { padding: 15px; display: none; border-top: 1px dashed #E2E8F0; background: white; }
+        .cat-body.open { display: block; }
+        .prod-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #F1F5F9; }
+        .prod-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -193,6 +212,7 @@
 
         <div class="tabs-container">
             <button class="tab-btn active" onclick="switchTab('admin', this)">Admin</button>
+            <button class="tab-btn" onclick="switchTab('delivery', this)">🚚 Delivery Zones</button>
             <button class="tab-btn" onclick="switchTab('gallery', this)">🖼️ Gallery</button>
             <button class="tab-btn" onclick="switchTab('timings', this)">Shop Timings</button>
             <button class="tab-btn" onclick="switchTab('menu', this)">Menu View</button>
@@ -277,6 +297,35 @@
             </div>
         </div>
 
+        <div id="tab-delivery" class="tab-section">
+            <div class="settings-grid">
+                
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📍 Local Delivery Pincodes (3-Digit Prefixes)</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Add the first 3 digits of pincodes (e.g., 110 for Delhi). Items marked "Local" can only be delivered here.</p>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="number" id="new-pin-prefix" placeholder="Enter 3-digit prefix (e.g. 110)" class="input-box" style="max-width: 250px;">
+                        <button class="add-btn" onclick="addDeliveryPrefix()">+ Add Prefix</button>
+                    </div>
+                    
+                    <div id="pincode-chips-container" style="display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; background: #f8fafc; border: 1px dashed #CBD5E0; border-radius: 8px; min-height: 60px;">
+                        <!-- Chips inject here -->
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📦 Product & Category Routing</h3>
+                    <p class="helper-text" style="margin-bottom: 20px;">Toggle categories or specific products. Green = ✈️ Pan-India. Pink = 📍 Local Only.</p>
+                    
+                    <div id="delivery-categories-container">
+                        <div style="text-align: center; padding: 20px;"><i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <div id="tab-admin" class="tab-section active">
             <div class="settings-grid">
                 <div class="card">
@@ -288,14 +337,6 @@
                     <button class="save-btn" onclick="savePassword()">Update Password</button>
                 </div>
                 
-                <div class="card">
-                    <h3>🛵 Delivery Zones</h3>
-                    <div class="input-group">
-                        <label>Accepted Pincode Prefixes</label>
-                        <input type="text" id="admin-pins" placeholder="e.g., 110, 111">
-                    </div>
-                    <button class="save-btn" onclick="savePincodes()">Update Zones</button>
-                </div>
                 
                 <div class="card" style="grid-column: 1 / -1;">
                     <h3>🎟️ Promo & Discount Codes</h3>
@@ -311,6 +352,35 @@
                         <button class="add-btn" onclick="addDiscountCode()">Add Code</button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="tab-delivery" class="tab-section">
+            <div class="settings-grid">
+                
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📍 Local Delivery Zones (3-Digit Prefixes)</h3>
+                    <p class="helper-text" style="margin-bottom: 15px;">Add the first 3 digits of pincodes (e.g., 110 for Delhi). Items marked "Local" can only be delivered here.</p>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="number" id="new-pin-prefix" placeholder="Enter 3-digit prefix (e.g. 110)" style="padding: 12px; border: 1px solid #E2E8F0; border-radius: 8px; max-width: 250px; outline: none;">
+                        <button class="add-btn" onclick="addDeliveryPrefix()">+ Add Prefix</button>
+                    </div>
+                    
+                    <div id="pincode-chips-container" style="display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; background: #f8fafc; border: 1px dashed #CBD5E0; border-radius: 8px; min-height: 60px;">
+                        <!-- Chips inject here -->
+                    </div>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📦 Product Routing (Local vs. Pan-India)</h3>
+                    <p class="helper-text" style="margin-bottom: 20px;">Green = ✈️ Pan-India Delivery. Red = 📍 Local Only.</p>
+                    
+                    <div id="delivery-categories-container">
+                        <div style="text-align: center; padding: 20px; color: #A0AEC0;">Loading catalog...</div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -580,17 +650,22 @@
                     if(!globalSettings.home) globalSettings.home = {};
                     if(!globalSettings.gallery) globalSettings.gallery = { theme: {}, texts: {}, items: [] };
 
-                    document.getElementById('admin-pins').value = globalSettings.pincodes || "110";
+                    // 🔥 DELIVERY ZONES INITIALIZATION 
+                    if (!globalSettings.deliveryZones) globalSettings.deliveryZones = {};
+                    localPrefixes = Array.isArray(globalSettings.deliveryZones.prefixes) ? globalSettings.deliveryZones.prefixes : ["110"];
+                    categoryZones = globalSettings.deliveryZones.categories || {};
+                    productZoneOverrides = globalSettings.deliveryZones.products || {};
                     
-                    // Home Texts
+                    renderPrefixChips();
+                    fetchInventoryForSettings(); 
+                    // 🔥 END DELIVERY INIT
+
                     document.getElementById('home-wa-phone').value = globalSettings.home.whatsappPhone || "9365717848";
                     document.getElementById('home-vid').value = globalSettings.home.heroVideo || "";
                     document.getElementById('home-h1').value = globalSettings.home.heroTitle || "";
                     document.getElementById('home-sub').value = globalSettings.home.heroSub || "";
                     document.getElementById('home-sec1').value = globalSettings.home.sec1Title || "";
                     document.getElementById('home-sec2').value = globalSettings.home.sec2Title || "";
-                    
-                    // Footer
                     document.getElementById('home-footer').value = globalSettings.footerText || "";
                     document.getElementById('home-soc-handle').value = globalSettings.home.socialHandle || "@confettincakes";
                     document.getElementById('home-soc-link').value = globalSettings.home.socialLink || "https://instagram.com/confettincakes";
@@ -604,7 +679,6 @@
                     document.getElementById('usp3-title').value = globalSettings.home.usp3Title || "";
                     document.getElementById('usp3-desc').value = globalSettings.home.usp3Desc || "";
 
-                    // Gallery Pre-fill
                     if(globalSettings.gallery.theme) {
                         document.getElementById('gal-bg-color').value = globalSettings.gallery.theme.bgColor || '#FAFAFA';
                         document.getElementById('gal-accent-color').value = globalSettings.gallery.theme.accentColor || '#E23744';
@@ -626,7 +700,140 @@
                     renderTimings(); 
                     renderGalleryItems();
                 }
-            } catch(err) {}
+            } catch(err) { console.error("Load Data Error:", err); }
+        }
+
+        let localPrefixes = [];
+        let categoryZones = {}; 
+        let productZoneOverrides = {}; 
+        let allInventory = [];
+
+        async function fetchInventoryForSettings() {
+            try {
+                const res = await fetch('/api/inventory');
+                if(res.ok) {
+                    allInventory = await res.json();
+                    if(!Array.isArray(allInventory)) allInventory = [];
+                    renderDeliveryCategories();
+                }
+            } catch(e) { 
+                document.getElementById('delivery-categories-container').innerHTML = '<div style="color:#E53E3E; padding:20px;">Database connection failed.</div>';
+            }
+        }
+
+        function renderPrefixChips() {
+            const container = document.getElementById('pincode-chips-container');
+            if(!container) return;
+            
+            container.innerHTML = '';
+            if (!Array.isArray(localPrefixes) || localPrefixes.length === 0) {
+                localPrefixes = []; 
+                container.innerHTML = '<span style="color:#A0AEC0; font-size:0.85rem;">No local restrictions set.</span>';
+                return;
+            }
+            
+            localPrefixes.forEach(prefix => {
+                container.innerHTML += `
+                    <div class="pincode-chip">
+                        <i class="ri-map-pin-2-fill" style="color: #3b82f6;"></i> ${prefix}***
+                        <i class="ri-close-circle-fill del-icon" onclick="removeDeliveryPrefix('${prefix}')"></i>
+                    </div>
+                `;
+            });
+        }
+
+        function addDeliveryPrefix() {
+            const val = document.getElementById('new-pin-prefix').value.trim();
+            if (!val || val.length !== 3) return showToast("Enter exactly a 3-digit prefix.");
+            if (localPrefixes.includes(val)) return showToast("Prefix already exists.");
+            localPrefixes.push(val);
+            document.getElementById('new-pin-prefix').value = '';
+            renderPrefixChips();
+            saveDeliverySettings();
+        }
+
+        function removeDeliveryPrefix(prefix) {
+            localPrefixes = localPrefixes.filter(p => p !== prefix);
+            renderPrefixChips();
+            saveDeliverySettings();
+        }
+
+        function renderDeliveryCategories() {
+            const container = document.getElementById('delivery-categories-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const safeCategories = globalSettings.categories || ["cakes", "cupcakes", "cookies", "brownies", "pastries", "hampers"];
+            const categories = safeCategories.map(c => typeof c === 'string' ? c : c.name);
+
+            categories.forEach(cat => {
+                const isCatNational = categoryZones[cat] === 'national'; 
+                const catProducts = allInventory.filter(p => (p.cat || '').toLowerCase() === cat.toLowerCase());
+
+                let productRows = '';
+                catProducts.forEach(prod => {
+                    const override = productZoneOverrides[prod.id];
+                    const isProdNational = override ? (override === 'national') : isCatNational;
+                    
+                    productRows += `
+                        <div class="prod-row">
+                            <div style="font-size: 0.9rem; color: #4A5568;"><img src="${prod.img || ''}" style="width:25px; height:25px; border-radius:4px; object-fit:cover; vertical-align:middle; margin-right:8px; background:#E2E8F0;"> ${prod.name}</div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:0.75rem; color:${isProdNational ? '#10b981' : '#ef4444'}; font-weight:700;">${isProdNational ? '✈️ PAN-INDIA' : '📍 LOCAL'}</span>
+                                <label class="switch">
+                                    <input type="checkbox" ${isProdNational ? 'checked' : ''} onchange="toggleProductZone('${prod.id}', this.checked, '${cat}')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="cat-accordion">
+                        <div class="cat-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                            <div>${cat} <span style="font-size:0.75rem; color:#A0AEC0; font-weight:normal; margin-left:10px;">(${catProducts.length} items)</span></div>
+                            <div style="display:flex; align-items:center; gap:10px;" onclick="event.stopPropagation()">
+                                <span style="font-size:0.8rem; color:${isCatNational ? '#10b981' : '#ef4444'}; font-weight:700;">${isCatNational ? 'ALL PAN-INDIA' : 'ALL LOCAL'}</span>
+                                <label class="switch">
+                                    <input type="checkbox" ${isCatNational ? 'checked' : ''} onchange="toggleCategoryZone('${cat}', this.checked)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="cat-body">${productRows || '<div style="font-size:0.85rem; color:#A0AEC0;">No products in this category yet.</div>'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleCategoryZone(cat, isNational) {
+            categoryZones[cat] = isNational ? 'national' : 'local';
+            allInventory.filter(p => (p.cat || '').toLowerCase() === cat.toLowerCase()).forEach(p => {
+                delete productZoneOverrides[p.id];
+            });
+            saveDeliverySettings();
+            renderDeliveryCategories(); 
+        }
+
+        function toggleProductZone(prodId, isNational, parentCat) {
+            const masterRule = categoryZones[parentCat] === 'national';
+            const desiredStatus = isNational ? 'national' : 'local';
+            if (desiredStatus === (masterRule ? 'national' : 'local')) {
+                delete productZoneOverrides[prodId]; 
+            } else {
+                productZoneOverrides[prodId] = desiredStatus; 
+            }
+            saveDeliverySettings();
+            renderDeliveryCategories();
+        }
+
+        async function saveDeliverySettings() {
+            if (!globalSettings.deliveryZones) globalSettings.deliveryZones = {};
+            globalSettings.deliveryZones.prefixes = Array.isArray(localPrefixes) ? localPrefixes : [];
+            globalSettings.deliveryZones.categories = categoryZones || {};
+            globalSettings.deliveryZones.products = productZoneOverrides || {};
+            await saveToServer("Delivery Zones Saved!");
         }
 
         async function saveToServer(msg) {
@@ -636,7 +843,6 @@
 
         // --- CORE SAVE FUNCTIONS ---
         function savePassword() { const v = document.getElementById('admin-pass').value; if(v) { globalSettings.adminPass = v; document.getElementById('admin-pass').value = ''; saveToServer("Password Updated!"); } }
-        function savePincodes() { globalSettings.pincodes = document.getElementById('admin-pins').value; saveToServer("Zones Updated!"); }
         
         function saveTimings() {
             if(!globalSettings.timings) globalSettings.timings = {};
