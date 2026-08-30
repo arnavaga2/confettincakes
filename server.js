@@ -31,7 +31,21 @@ if (!MONGODB_URI) {
         .catch(err => console.error("❌ MongoDB Connection Error:", err));
 }
 
+const https = require('https');
 
+function startKeepAlive() {
+    // 🔥 Replace this with your actual Confetti N Cake Render URL
+    const url = 'https://confettincakes-2h95.onrender.com'; 
+    
+    // Pings every 12 minutes (Render sleeps after 15 minutes of inactivity)
+    setInterval(() => {
+        https.get(url, (res) => {
+            console.log(`[Keep-Alive] Pinged server. Status: ${res.statusCode}`);
+        }).on('error', (err) => {
+            console.error(`[Keep-Alive] Ping failed: ${err.message}`);
+        });
+    }, 12 * 60 * 1000); 
+}
 
 // ==========================================
 // 👑 VIP ADMIN ROUTES 
@@ -686,4 +700,5 @@ const PORT = process.env.PORT || 5000;
 // Render requires binding to 0.0.0.0
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running live on port ${PORT}`);
+    startKeepAlive(); // 🔥 Starts the anti-sleep ping loop
 });
