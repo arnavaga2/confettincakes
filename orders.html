@@ -310,12 +310,9 @@
 
         // --- FETCH ORDERS ---
         window.onload = () => {
-            activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
-            if (!activeUser) {
-                showLoginPrompt();
-            } else {
-                fetchLiveOrders();
-            }
+            // Load the guest checkout data instead of the old login data
+            activeUser = JSON.parse(localStorage.getItem('confettinSavedAddress'));
+            fetchLiveOrders();
         };
 
         async function fetchLiveOrders() {
@@ -520,7 +517,8 @@
                 }
 
                 // WhatsApp Support Logic
-                const waMessage = `Hi, I need help with my ConfettinCake order #${order.id}. Name: ${activeUser.name}.`;
+                const guestName = activeUser && activeUser.name ? activeUser.name : 'Customer';
+                const waMessage = `Hi, I need help with my ConfettinCake order #${order.id}. Name: ${guestName}.`;
                 const waLink = `https://wa.me/919365717848?text=${encodeURIComponent(waMessage)}`;
 
                 // Extract Clean Address
