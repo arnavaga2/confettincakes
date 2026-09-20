@@ -169,7 +169,7 @@
 <body>
 
     <header>
-        <a href="profile.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
+        <a href="index.html" class="back-btn"><i class="ri-arrow-left-s-line"></i></a>
         <h1 class="page-title">My Orders</h1>
     </header>
 
@@ -230,9 +230,6 @@
 </a>
         <a href="orders.html" class="nav-item active">
             <i class="ri-shopping-bag-3-fill"></i><span class="nav-label">Orders</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <i class="ri-user-smile-line"></i><span class="nav-label">Profile</span>
         </a>
     </nav>
 
@@ -322,32 +319,38 @@
         };
 
         async function fetchLiveOrders() {
-            const wrapper = document.getElementById('orders-wrapper');
-            wrapper.innerHTML = '<p style="text-align: center; margin-top: 60px; color: var(--text-muted);"><i class="ri-loader-4-line ri-spin" style="font-size: 2.5rem; margin-bottom:10px; color: var(--accent); display: inline-block;"></i><br>Fetching your sweet treats...</p>';
+            // 1. Look for the guest data saved during checkout
+            const savedGuest = JSON.parse(localStorage.getItem('confettinSavedAddress'));
+            
+            // 2. If they haven't saved info or placed an order on this browser, show the empty state
+            if (!savedGuest || !savedGuest.phone) {
+                showGuestPrompt();
+                return;
+            }
 
-            const searchPhone = encodeURIComponent(activeUser.phone);
+            const rawPhone = savedGuest.phone;
+
+            const wrapper = document.getElementById('orders-wrapper');
+            wrapper.innerHTML = '<p style="text-align: center; margin-top: 40px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom:10px;"></i><br>Fetching your orders...</p>';
 
             try {
-                const res = await fetch(`/api/my-orders?phone=${searchPhone}`);
-                if(res.ok) {
-                    const data = await res.json();
-                    globalLiveOrders = data.reverse(); // Newest first
-                    handleSearch(); 
-                } else {
-                    showEmptyState();
-                }
+                // 3. Fetch from the Confettincakes backend using the guest's phone number
+                const res = await fetch(`${API_URL}/orders/${rawPhone}`);
+                const data = await res.json();
+                globalLiveOrders = data;
+                handleSearch(); 
             } catch (err) {
-                showEmptyState("Could not connect to the bakery.");
+                wrapper.innerHTML = '<p style="text-align: center; color: #ef4444;">Failed to connect to the server.</p>';
             }
         }
 
-        function showLoginPrompt() {
+        function showGuestPrompt() {
             document.getElementById('orders-wrapper').innerHTML = `
                 <div class="empty-orders">
-                    <div class="empty-icon-wrapper"><i class="ri-lock-2-line"></i></div>
-                    <h2 style="color: var(--primary-dark); font-family: 'Playfair Display', serif;">Please Log In</h2>
-                    <p style="margin-top: 10px; font-size: 0.9rem; margin-bottom: 25px; color: var(--text-muted);">You need to be logged in to view your order history.</p>
-                    <button class="btn-shop" onclick="window.location.href='index.html'">Secure Login</button>
+                    <i class="fa-solid fa-cookie-bite"></i>
+                    <h2 style="color: var(--primary-navy);">No Orders Found</h2>
+                    <p style="margin-top: 10px; font-size: 0.95rem; margin-bottom: 20px;">Place an order and save your details at checkout to track it here!</p>
+                    <button class="btn-shop" onclick="window.location.href='index.html'">View Menu</button>
                 </div>
             `;
             document.querySelector('.tabs').style.display = 'none';

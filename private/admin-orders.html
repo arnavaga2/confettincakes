@@ -162,7 +162,6 @@
             <li><a href="admin-dashboard.html">Dashboard</a></li>
             <li><a href="admin-inventory.html">Inventory</a></li>
             <li><a href="admin-orders.html" class="active">Orders</a></li>
-            <li><a href="admin-users.html">Users</a></li>
             <li><a href="admin-settings.html">Settings</a></li>
         </ul>
         <button class="logout-btn" onclick="logoutAdmin()">Secure Logout</button>
@@ -182,9 +181,6 @@
         </a>
         <a href="admin-orders.html" class="active">
             <i class="ri-shopping-bag-3-line"></i><span>Orders</span>
-        </a>
-        <a href="admin-users.html">
-            <i class="ri-group-line"></i><span>Users</span>
         </a>
         <a href="admin-settings.html">
             <i class="ri-settings-3-line"></i><span>Settings</span>
@@ -305,7 +301,10 @@
                         </div>
                         <div class="order-details">
                             ${itemsList}
-                            ${noteHTML} <span class="order-total">${order.total}</span>
+                            ${noteHTML} 
+<span class="order-total" style="color: ${order.total.includes('PAID') ? '#48BB78' : 'var(--accent)'};">
+    ${order.total.includes('PAID') ? '<i class="ri-secure-payment-line"></i> ' : ''}${order.total}
+</span>
                         </div>
                         <div class="action-group">
                             <div class="status-select-group">

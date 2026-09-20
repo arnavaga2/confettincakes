@@ -99,13 +99,16 @@
         .checkout-input:focus { border-color: var(--accent-color); background: white; }
         .checkout-input[readonly] { background: #EDF2F7; color: #718096; cursor: not-allowed; }
         .input-row { display: flex; gap: 10px; }
-        .save-info-label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #4A5568; font-weight: 500; margin-top: 5px; cursor: pointer;}
-        .save-info-label input { width: 16px; height: 16px; accent-color: var(--accent-color); cursor: pointer;}
+        .save-info-label { 
+            display: flex; align-items: center; gap: 10px; font-size: 0.9rem; 
+            color: #1A1A1A; font-weight: 600; margin-top: 15px; cursor: pointer;
+            background: #F0FFF4; padding: 12px 15px; border-radius: 10px;
+            border: 1px solid #C6F6D5; transition: 0.2s;
+        }
+        .save-info-label:hover { background: #E6FFFA; }
+        .save-info-label input { width: 18px; height: 18px; accent-color: #48BB78; cursor: pointer;}
 
     </style>
-
-    <!-- Google Maps API for Distance Calculation -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE"></script>
 
 </head>
 <body>

@@ -159,6 +159,8 @@
             .usp-banner { flex-direction: column; align-items: flex-start; padding: 20px; gap: 20px; margin: 30px 20px; }
             .usp-icon { width: 50px; height: 50px; font-size: 1.5rem; }
             .mobile-nav { display: flex; } 
+            #splash-brand { font-size: 1.8rem !important; letter-spacing: 2px !important; }
+            .menu-controls { flex-direction: row; }
         }
 
         /* ✨ ZOMATO-STYLE SHINING STICKER */
@@ -321,7 +323,7 @@
     <!-- NANZ STYLE WELCOME SPLASH SCREEN -->
     <div id="splash-screen">
         <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="font-family: 'Playfair Display', serif; font-size: 2.8rem; letter-spacing: 3px; margin: 0; font-weight: 600;">CONFETTINCAKES</h1>
+            <h1 id="splash-brand" style="font-family: 'Playfair Display', serif; font-size: 2.8rem; letter-spacing: 3px; margin: 0; font-weight: 600;">CONFETTINCAKES</h1>
             <p style="font-size: 0.9rem; letter-spacing: 5px; margin: 5px 0 0 0; text-transform: uppercase; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 10px; display: inline-block;">Bakehouse</p>
         </div>
         
@@ -382,9 +384,23 @@
             </div>
         </section>
 
-        <section class="menu-accordion-section" id="full-menu-container">
-            <div style="text-align: center; padding: 40px; color: #A0AEC0;">
-                <i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i><br>Loading Menu...
+        <section class="menu-accordion-section">
+            <div class="menu-controls" id="menu-controls" style="display: none; gap: 10px; margin-bottom: 20px;">
+                <div style="flex-grow: 1; position: relative;">
+                    <i class="ri-search-line" style="position: absolute; left: 12px; top: 12px; color: #A0AEC0;"></i>
+                    <input type="text" id="menuSearch" placeholder="Search for cakes, brownies..." style="width: 100%; padding: 12px 12px 12px 35px; border: 1px solid #EAEAEA; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif;">
+                </div>
+                <select id="priceFilter" style="padding: 12px; border: 1px solid #EAEAEA; border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif; background: white; color: #4A2E1B; font-weight: 500;">
+                    <option value="default">Sort</option>
+                    <option value="low">Low to High</option>
+                    <option value="high">High to Low</option>
+                </select>
+            </div>
+            
+            <div id="full-menu-container">
+                <div style="text-align: center; padding: 40px; color: #A0AEC0;">
+                    <i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i><br>Loading Menu...
+                </div>
             </div>
         </section>
     </main>
@@ -425,9 +441,6 @@
 </a>
         <a href="orders.html" class="nav-item">
             <i class="ri-shopping-bag-3-line"></i><span class="nav-label">Orders</span>
-        </a>
-        <a href="profile.html" class="nav-item">
-            <i class="ri-user-smile-line"></i><span class="nav-label">Profile</span>
         </a>
     </nav>
 
@@ -488,6 +501,8 @@
             }
         };
 
+        let globalMenuItems = [];
+
         async function loadFullMenu() {
             const container = document.getElementById('full-menu-container');
             container.innerHTML = '<div style="text-align: center; padding: 40px; color: #A0AEC0;"><i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i><br>Loading Menu...</div>';
@@ -495,14 +510,101 @@
             try {
                 const res = await fetch('/api/inventory');
                 if (!res.ok) throw new Error("Fetch failed");
-                const allItems = await res.json();
+                globalMenuItems = await res.json();
                 
-                // FILTER ENGINE: Only show items matching their Pickup/Delivery choice
-                const validItems = allItems.filter(item => {
-                    if (!item.fulfillment || item.fulfillment.length === 0) return true; // Legacy items show everywhere
-                    return item.fulfillment.includes(activeFulfillment);
-                });
+                // Unhide the search controls once data is loaded
+                document.getElementById('menu-controls').style.display = 'flex';
+                
+                // Attach event listeners for instant filtering
+                document.getElementById('menuSearch').addEventListener('input', renderMenu);
+                document.getElementById('priceFilter').addEventListener('change', renderMenu);
 
+                renderMenu(); // Initial render
+            } catch(err) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: #A0AEC0;">Could not load menu.</p>';
+            }
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('full-menu-container');
+            const searchTerm = document.getElementById('menuSearch').value.toLowerCase().trim();
+            const priceSort = document.getElementById('priceFilter').value;
+
+            // 1. Filter by fulfillment choice and search term
+            let validItems = globalMenuItems.filter(item => {
+                const matchesFulfillment = (!item.fulfillment || item.fulfillment.length === 0) || item.fulfillment.includes(activeFulfillment);
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm) || (item.desc && item.desc.toLowerCase().includes(searchTerm));
+                return matchesFulfillment && matchesSearch;
+            });
+
+            if (validItems.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding: 40px; color: #A0AEC0;">No items match your search.</div>';
+                return;
+            }
+
+            // Helper function to build the HTML for a single item card
+            const buildItemCard = (prod) => {
+                const prodId = prod.id || prod._id;
+                let badgeHtml = '';
+                if (prod.badge) {
+                    let badgeClass = 'badge-recommended';
+                    if (prod.badge === 'New!') badgeClass = 'badge-new';
+                    if (prod.badge === 'Must Try') badgeClass = 'badge-must-try';
+                    if (prod.badge === 'Popular') badgeClass = 'badge-popular';
+                    badgeHtml = `<div class="menu-item-badge ${badgeClass}">${prod.badge}</div>`;
+                }
+
+                return `
+                    <a href="details.html?id=${prodId}" class="menu-item-card">
+                        <img src="${prod.img}" class="menu-item-img" onerror="this.src='https://via.placeholder.com/130?text=No+Image'">
+                        <div class="menu-item-info">
+                            <div>
+                                ${badgeHtml}
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div class="menu-item-title">${prod.name}</div>
+                                    <div class="veg-icon" style="margin-left: 10px; margin-top: 2px;" title="100% Eggless"></div>
+                                </div>
+                                <div class="menu-item-desc">${prod.desc || ''}</div>
+                            </div>
+                            <div class="menu-item-bottom">
+                                <div class="menu-item-price">₹${prod.price}</div>
+                                <button class="menu-item-add">ADD+</button>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            };
+
+            let menuHtml = '';
+
+            // 2. DISPLAY MODE INTERCEPTOR: Flat List vs Categorized
+            if (priceSort !== 'default') {
+                
+                // Sort the global array based on selection
+                if (priceSort === 'low') {
+                    validItems.sort((a, b) => Number(a.price) - Number(b.price));
+                } else if (priceSort === 'high') {
+                    validItems.sort((a, b) => Number(b.price) - Number(a.price));
+                }
+
+                // Render all items in a single, un-collapsible "Sorted Results" block
+                menuHtml += `
+                <div class="menu-category">
+                    <div class="menu-cat-header" style="cursor: default;">
+                        <h2>All Items (Sorted)</h2>
+                    </div>
+                    <div class="menu-cat-body" style="max-height: 50000px;">
+                `;
+                
+                validItems.forEach(prod => {
+                    menuHtml += buildItemCard(prod);
+                });
+                
+                menuHtml += `</div></div>`;
+
+            } else {
+                
+                // Default Mode: Group by category
                 const groupedMenu = {};
                 validItems.forEach(item => {
                     const cat = item.cat ? item.cat : 'Specials';
@@ -510,13 +612,14 @@
                     groupedMenu[cat].push(item);
                 });
 
-                let menuHtml = '';
                 let isFirstCategory = true;
-                
+                const isSearching = searchTerm.length > 0;
+
                 for (const [category, items] of Object.entries(groupedMenu)) {
-                    // Only open the first one to prevent lag
-                    const initialMaxHeight = isFirstCategory ? '5000px' : '0px';
-                    const initialArrow = isFirstCategory ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line';
+                    // Force open if the user is searching, otherwise only open the first one
+                    const shouldBeOpen = isSearching || isFirstCategory;
+                    const initialMaxHeight = shouldBeOpen ? '50000px' : '0px';
+                    const initialArrow = shouldBeOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line';
 
                     menuHtml += `
                     <div class="menu-category">
@@ -528,48 +631,15 @@
                     `;
                     
                     items.forEach(prod => {
-                        const prodId = prod.id || prod._id;
-                        
-                        // Badge Engine
-                        let badgeHtml = '';
-                        if (prod.badge) {
-                            let badgeClass = 'badge-recommended';
-                            if (prod.badge === 'New!') badgeClass = 'badge-new';
-                            if (prod.badge === 'Must Try') badgeClass = 'badge-must-try';
-                            if (prod.badge === 'Popular') badgeClass = 'badge-popular';
-                            badgeHtml = `<div class="menu-item-badge ${badgeClass}">${prod.badge}</div>`;
-                        }
-
-                        // Updated layout with Flexbox to push the Veg Icon to the right
-                        menuHtml += `
-                            <a href="details.html?id=${prodId}" class="menu-item-card">
-                                <img src="${prod.img}" class="menu-item-img" onerror="this.src='https://via.placeholder.com/130?text=No+Image'">
-                                <div class="menu-item-info">
-                                    <div>
-                                        ${badgeHtml}
-                                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                            <div class="menu-item-title">${prod.name}</div>
-                                            <div class="veg-icon" style="margin-left: 10px; margin-top: 2px;" title="100% Eggless"></div>
-                                        </div>
-                                        <div class="menu-item-desc">${prod.desc || ''}</div>
-                                    </div>
-                                    <div class="menu-item-bottom">
-                                        <div class="menu-item-price">₹${prod.price}</div>
-                                        <button class="menu-item-add">ADD+</button>
-                                    </div>
-                                </div>
-                            </a>
-                        `;
+                        menuHtml += buildItemCard(prod);
                     });
                     
                     menuHtml += `</div></div>`;
                     isFirstCategory = false; 
                 }
-
-                container.innerHTML = menuHtml || '<div style="text-align:center; padding: 40px;">No items available for this order type.</div>';
-            } catch(err) {
-                container.innerHTML = '<p style="text-align: center; padding: 20px; color: #A0AEC0;">Could not load menu.</p>';
             }
+
+            container.innerHTML = menuHtml;
         }
 
         // --- BOTTOM SHEET CONTROLS ---
