@@ -149,20 +149,12 @@
                     <div id="variantSelector" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;"></div>
                 </div>
                 
-                <!-- MOVED LOGISTICS BOX ABOVE RATINGS -->
-                <div class="logistics-box">
-                    <div class="logistics-header" style="justify-content: space-between;">
-                        <span><i class="ri-map-pin-line"></i> Delivering to: <strong id="active-pin-display">...</strong></span>
-                        <button onclick="togglePinEdit()" style="background:none; border:none; color:#3182CE; font-weight:700; cursor:pointer; font-size:0.85rem;">Change</button>
+                <!-- DELIVERY BADGE LOGISTICS BOX -->
+                <div class="logistics-box" style="padding: 15px; border-radius: 12px;">
+                    <div id="delivery-badge" style="display:inline-flex; align-items:center; gap:6px; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">
+                        <i class="ri-loader-4-line ri-spin"></i> Checking delivery zones...
                     </div>
-                    
-                    <div id="pin-edit-row" style="display: none; margin-top: 10px; gap: 10px;">
-                        <input type="number" id="new-pin-input" placeholder="Enter 6-digit Pincode" style="padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-family: 'Poppins'; outline: none; width: 100%;">
-                        <button onclick="updateActivePincode()" style="background: var(--text-dark); color: white; border: none; padding: 0 15px; border-radius: 8px; font-weight: 600; cursor: pointer;">Update</button>
-                    </div>
-
-                    <div id="pin-status-msg" style="margin-top: 10px; font-size: 0.85rem; font-weight: 600;"></div>
-                    <p class="logistics-text" id="logisticsText" style="margin-top: 10px;">Calculating logistics...</p>
+                    <p class="logistics-text" id="logisticsText">Calculating prep time...</p>
                 </div>
 
                 <!-- RATING SUMMARY NOW BELOW LOGISTICS -->
@@ -203,7 +195,7 @@
 
         let targetedProduct = null;
         let currentQty = 1;
-        let activeOrderPin = "";
+        
 
         // --- 1. QUANTITY COUNTER ---
         function changeQty(amt) {
@@ -213,57 +205,51 @@
             document.getElementById('qtyInput').value = currentQty;
         }
 
-        // --- 2. DELIVERY VALIDATION LOGIC ---
-        function togglePinEdit() {
-            const row = document.getElementById('pin-edit-row');
-            row.style.display = row.style.display === 'none' ? 'flex' : 'none';
-        }
-
-        function updateActivePincode() {
-            const newPin = document.getElementById('new-pin-input').value.trim();
-            if (newPin.length !== 6) return alert("Please enter a valid 6-digit pincode.");
-            localStorage.setItem('confettinDeliveryPin', newPin);
-            togglePinEdit();
-            initDeliveryCheck();
-        }
-
-        async function initDeliveryCheck() {
-            const activeUser = JSON.parse(localStorage.getItem('confettinActiveUser'));
-            activeOrderPin = localStorage.getItem('confettinDeliveryPin') || (activeUser ? activeUser.pin : "");
+        // --- 2. DYNAMIC DELIVERY BADGE LOGIC ---
+        async function checkDeliveryZone(item) {
+            const badge = document.getElementById('delivery-badge');
+            const btn = document.querySelector('.btn-cart');
             
-            document.getElementById('active-pin-display').innerText = activeOrderPin || "Please set a pincode";
-
-            if (activeOrderPin && targetedProduct) {
+            try {
                 const settingsRes = await fetch('/api/settings');
                 const settings = await settingsRes.json();
                 
                 const zones = settings.deliveryZones || { prefixes: [], categories: {}, products: {} };
-                const localPrefixes = Array.isArray(zones.prefixes) ? zones.prefixes : [];
+                const prodOverride = (zones.products || {})[item.id || item._id];
                 
-                const isUserLocal = localPrefixes.some(prefix => String(activeOrderPin).startsWith(prefix));
-                const prodOverride = (zones.products || {})[targetedProduct.id || targetedProduct._id];
-                const catRule = (zones.categories || {})[targetedProduct.cat ? targetedProduct.cat.toLowerCase() : ''];
+                // Ensure we check the exact same category format you use in admin
+                const catName = String(item.cat || '').toLowerCase().trim();
+                const catRule = (zones.categories || {})[catName] 
+                             || (zones.categories || {})[catName.endsWith('s') ? catName.slice(0, -1) : catName + 's'] 
+                             || 'local';
+                             
                 const isItemNational = prodOverride ? (prodOverride === 'national') : (catRule === 'national');
-
-                const statusMsg = document.getElementById('pin-status-msg');
-                const btn = document.querySelector('.btn-cart');
-
-                if (!isItemNational && !isUserLocal) {
-                    statusMsg.innerHTML = `<span style="color: #E53E3E;"><i class="ri-error-warning-fill"></i> Not deliverable to ${activeOrderPin}. Available locally for prefixes: ${localPrefixes.join(', ')}</span>`;
-                    btn.style.background = '#E2E8F0';
-                    btn.style.color = '#A0AEC0';
-                    btn.style.borderColor = '#E2E8F0';
-                    btn.innerHTML = '<i class="ri-map-pin-off-fill"></i> Cannot Deliver Here';
-                    btn.disabled = true;
+                
+                if (isItemNational) {
+                    badge.innerHTML = '<i class="ri-flight-takeoff-line"></i> Pan India delivery available';
+                    badge.style.background = '#EBF8FF'; 
+                    badge.style.color = '#2B6CB0'; 
+                    badge.style.border = '1px solid #BEE3F8';
                 } else {
-                    statusMsg.innerHTML = `<span style="color: #48BB78;"><i class="ri-checkbox-circle-fill"></i> Available for delivery to ${activeOrderPin}!</span>`;
-                    btn.style.background = 'rgba(255, 107, 129, 0.1)';
-                    btn.style.color = 'var(--accent-color)';
-                    btn.style.borderColor = 'var(--accent-color)';
-                    btn.innerHTML = '<i class="ri-shopping-cart-2-fill"></i> Add To Bag';
-                    btn.disabled = false;
+                    badge.innerHTML = '<i class="ri-map-pin-2-fill"></i> Deliverable in Delhi';
+                    badge.style.background = '#F0FFF4'; 
+                    badge.style.color = '#2F855A'; 
+                    badge.style.border = '1px solid #C6F6D5';
                 }
+            } catch (err) {
+                // Safe fallback if network fails
+                badge.innerHTML = '<i class="ri-map-pin-2-fill"></i> Deliverable in Delhi';
+                badge.style.background = '#F0FFF4';
+                badge.style.color = '#2F855A';
+                badge.style.border = '1px solid #C6F6D5';
             }
+            
+            // Ensure the Add To Bag button is always unlocked for guests
+            btn.style.background = 'rgba(255, 107, 129, 0.1)';
+            btn.style.color = 'var(--accent-color)';
+            btn.style.borderColor = 'var(--accent-color)';
+            btn.innerHTML = '<i class="ri-shopping-cart-2-fill"></i> Add To Bag';
+            btn.disabled = false;
         }
 
         // --- 3. DATA LOAD ENGINE ---
@@ -339,8 +325,8 @@
             // Boot up the rating engine
             renderRatingsEngine(item.ratings);
 
-            // 🔥 TRIGGER THE PINCODE CHECK 🔥
-            initDeliveryCheck();
+            // 🔥 TRIGGER THE DELIVERY ZONE BADGE 🔥
+            checkDeliveryZone(item);
         }
 
         // --- 4. DYNAMIC REVIEW CALCULATION ENGINE ---

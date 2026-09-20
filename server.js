@@ -6,6 +6,14 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer'); // Make sure you have this installed if you use emails!
 
+const crypto = require('crypto');
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
 const app = express();
 
 // --- MIDDLEWARE ---
@@ -149,6 +157,8 @@ const InventorySchema = new mongoose.Schema({
     img: String,
     variants: [{ weight: String, price: Number, time: String }],
     images: [String],
+    fulfillment: { type: [String], default: ['pickup', 'delivery'] }, // <--- Add this!
+    badge: { type: String, default: '' },
     // 🔥 NEW: Added ratings object so the Amazon-style UI works
     ratings: {
         1: { type: Number, default: 0 },
@@ -550,6 +560,58 @@ app.post('/api/promos/validate', async (req, res) => {
         res.json({ message: "Promo applied!", discount: promo.discount });
     } catch (err) {
         res.status(500).json({ error: "Database error." });
+    }
+});
+
+// ==========================================
+// 💳 RAZORPAY TAMPER-PROOF APIS
+// ==========================================
+
+// 1. Create a tamper-proof Razorpay Order ID
+app.post('/api/payment/create-order', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: "Invalid order amount." });
+        }
+
+        const options = {
+            amount: Math.round(Number(amount) * 100), // Converted to paisa
+            currency: "INR",
+            receipt: 'rcpt_' + Date.now().toString().slice(-8)
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json({
+            id: order.id,
+            amount: order.amount,
+            currency: order.currency
+        });
+    } catch (err) {
+        console.error("Razorpay Order Creation Error:", err);
+        res.status(500).json({ error: "Unable to initiate payment gateway." });
+    }
+});
+
+// 2. Cryptographically verify signature after payment completion
+app.post('/api/payment/verify', (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+        const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest('hex');
+
+        if (expectedSignature === razorpay_signature) {
+            return res.json({ verified: true, paymentId: razorpay_payment_id });
+        } else {
+            return res.status(400).json({ verified: false, error: "Signature mismatch. Tampering detected." });
+        }
+    } catch (err) {
+        console.error("Razorpay Verification Error:", err);
+        res.status(500).json({ error: "Internal verification failure." });
     }
 });
 
