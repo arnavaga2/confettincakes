@@ -83,6 +83,26 @@
         .qty-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 1.4rem; color: var(--text-dark); transition: 0.2s; display: flex; justify-content: center; align-items: center;}
         .qty-btn:hover { background: #E2E8F0; }
         .qty-input { width: 45px; text-align: center; border: none; background: transparent; font-weight: 700; font-size: 1.1rem; color: var(--text-dark); pointer-events: none;}
+        
+
+        /* ADD-ONS UI */
+        .addons-section { margin-bottom: 25px; display: none; }
+        .addons-heading { font-size: 0.95rem; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; }
+        .addon-item { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; transition: 0.3s; cursor: pointer; }
+        .addon-item.active { border-color: #3182CE; background: #EBF8FF; }
+        .addon-info { display: flex; flex-direction: column; }
+        .addon-name { font-weight: 600; font-size: 0.95rem; color: var(--text-dark); }
+        .addon-price { font-size: 0.8rem; color: var(--text-muted); font-weight: 500;}
+        
+        .toggle-switch { position: relative; width: 42px; height: 24px; background: #CBD5E0; border-radius: 20px; transition: 0.3s; flex-shrink: 0; pointer-events: none;}
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle-switch.active { background: #3182CE; }
+        .toggle-switch.active::after { transform: translateX(18px); }
+
+        .addon-qty-controls { display: none; align-items: center; gap: 8px; background: white; border: 1px solid #90CDF4; border-radius: 8px; padding: 2px 8px; }
+        .addon-item.active .addon-qty-controls.show-qty { display: flex; }
+        .aq-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #3182CE; font-weight: bold; width: 24px; display: flex; align-items: center; justify-content: center; }
+        .aq-val { font-size: 0.95rem; font-weight: 700; min-width: 15px; text-align: center; color: var(--text-dark); }
 
         /* UPGRADED METALLIC WEIGHT PILL */
         .shining-weight { display: inline-flex; align-items: center; gap: 4px; background: #F7FAFC; padding: 6px 14px; border-radius: 20px; border: 1px solid #CBD5E0; color: #1A1A1A; font-size: 0.95rem; font-weight: 700; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
@@ -148,6 +168,12 @@
                     <div class="shining-weight" id="prodWeight">⚖️ Loading...</div>
                     <div id="variantSelector" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;"></div>
                 </div>
+
+                <!-- ADD-ONS UI -->
+                <div class="addons-section" id="addonsSection">
+                    <h4 class="addons-heading">Enhance Your Treat</h4>
+                    <div id="addonsList"></div>
+                </div>
                 
                 <!-- DELIVERY BADGE LOGISTICS BOX -->
                 <div class="logistics-box" style="padding: 15px; border-radius: 12px;">
@@ -195,6 +221,8 @@
 
         let targetedProduct = null;
         let currentQty = 1;
+        let selectedVariantPrice = 0;
+        let activeAddonsState = {}; // Tracks addon quantities
         
 
         // --- 1. QUANTITY COUNTER ---
@@ -302,8 +330,41 @@
                 
                 selectVariant(0); 
             } else {
-                document.getElementById('finalPrice').innerText = `₹${item.price}`;
+                selectedVariantPrice = Number(String(item.price).replace(/[^0-9]/g, ''));
                 document.getElementById('prodWeight').innerHTML = `⚖️ <span style="color:#718096; font-weight:500; margin-right:4px;">Weight:</span> ${item.weight}`;
+                updateDisplayPrice(); // Sets the initial price
+            }
+
+            // --- RENDER DYNAMIC ADD-ONS ---
+            if (item.addons && item.addons.length > 0) {
+                document.getElementById('addonsSection').style.display = 'block';
+                let addonsHtml = '';
+                
+                item.addons.forEach((addon, idx) => {
+                    activeAddonsState[idx] = 0; // Default state is off
+                    
+                    let qtyControls = addon.allowMultiple ? `
+                        <div class="addon-qty-controls show-qty">
+                            <button class="aq-btn" onclick="changeAddonQty(${idx}, -1, event)">-</button>
+                            <span class="aq-val" id="aq-val-${idx}">1</span>
+                            <button class="aq-btn" onclick="changeAddonQty(${idx}, 1, event)">+</button>
+                        </div>
+                    ` : '';
+
+                    addonsHtml += `
+                        <div class="addon-item" id="addon-box-${idx}" onclick="toggleAddon(${idx})">
+                            <div class="addon-info">
+                                <span class="addon-name">${addon.name}</span>
+                                <span class="addon-price">+₹${addon.price}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                ${qtyControls}
+                                <div class="toggle-switch" id="addon-toggle-${idx}"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('addonsList').innerHTML = addonsHtml;
             }
 
             // 🧠 SMART CATEGORY & LOGISTICS GENERATOR
@@ -383,28 +444,122 @@
             if (!targetedProduct) return;
 
             let cart = JSON.parse(localStorage.getItem('confettinCart')) || [];
-            let existingItem = cart.find(item => String(item.id) === String(targetedProduct.id) || String(item.id) === String(targetedProduct._id));
             
             let targetId = targetedProduct._id || targetedProduct.id;
-            let targetPrice = String(targetedProduct.price).replace('₹', '').trim();
+            let targetPrice = selectedVariantPrice;
+            let finalWeight = targetedProduct.weight || '1 Kg';
+            let finalTime = targetedProduct.time || '4 Hours';
+            let finalName = targetedProduct.name;
+
+            // Apply selected variant
+            if (window.currentVariants && window.selectedVariantIndex !== undefined) {
+                const selVar = window.currentVariants[window.selectedVariantIndex];
+                finalWeight = selVar.weight;
+                finalTime = selVar.time;
+            }
+
+            // Append Add-ons to Name & Price
+            let addonStrings = [];
+            if (targetedProduct.addons) {
+                targetedProduct.addons.forEach((addon, idx) => {
+                    let aQty = activeAddonsState[idx];
+                    if (aQty > 0) {
+                        targetPrice += (Number(addon.price) * aQty);
+                        let aName = aQty > 1 ? `${aQty}x ${addon.name}` : addon.name;
+                        addonStrings.push(aName);
+                    }
+                });
+            }
+
+            // Format for cart display
+            if (addonStrings.length > 0) {
+                finalName += ` (+ ${addonStrings.join(', ')})`;
+                // Add a hash to the ID so customized cakes don't merge with plain cakes in the cart
+                targetId += '-' + btoa(addonStrings.join('')).substring(0, 6);
+            }
+
+            let existingItem = cart.find(item => String(item.id) === String(targetId));
 
             if (existingItem) {
                 existingItem.qty += currentQty;
             } else {
                 cart.push({
                     id: targetId,
-                    name: targetedProduct.name,
+                    name: finalName,
                     price: Number(targetPrice),
                     img: targetedProduct.img,
                     qty: currentQty,
-                    time: targetedProduct.time || '4 Hours',
-                    weight: targetedProduct.weight || '1 Kg',
-                    cat: targetedProduct.cat // Saving category for the cart sweeper validation
+                    time: finalTime,
+                    weight: finalWeight,
+                    cat: targetedProduct.cat
                 });
             }
 
             localStorage.setItem('confettinCart', JSON.stringify(cart));
             window.location.href = 'cart.html';
+        }
+
+        function toggleAddon(idx) {
+            const box = document.getElementById(`addon-box-${idx}`);
+            const toggle = document.getElementById(`addon-toggle-${idx}`);
+            
+            if (activeAddonsState[idx] > 0) {
+                // Turn off
+                activeAddonsState[idx] = 0;
+                box.classList.remove('active');
+                toggle.classList.remove('active');
+            } else {
+                // Turn on
+                activeAddonsState[idx] = 1;
+                box.classList.add('active');
+                toggle.classList.add('active');
+                
+                const valDisplay = document.getElementById(`aq-val-${idx}`);
+                if(valDisplay) valDisplay.innerText = "1";
+            }
+            updateDisplayPrice();
+        }
+
+        function changeAddonQty(idx, amt, event) {
+            event.stopPropagation(); // Prevents clicking the + from turning off the whole add-on
+            if (activeAddonsState[idx] === 0) return; 
+            
+            let newQty = activeAddonsState[idx] + amt;
+            if (newQty < 1) {
+                toggleAddon(idx); // Smoothly turn off if they subtract down to 0
+                return;
+            }
+            
+            activeAddonsState[idx] = newQty;
+            document.getElementById(`aq-val-${idx}`).innerText = newQty;
+            updateDisplayPrice();
+        }
+
+        function updateDisplayPrice() {
+            let total = selectedVariantPrice;
+            
+            if (targetedProduct && targetedProduct.addons) {
+                targetedProduct.addons.forEach((addon, idx) => {
+                    if (activeAddonsState[idx] > 0) {
+                        total += (Number(addon.price) * activeAddonsState[idx]);
+                    }
+                });
+            }
+            
+            document.getElementById('finalPrice').innerText = `₹${total}`;
+        }
+
+        function selectVariant(index) {
+            const variant = window.currentVariants[index];
+            selectedVariantPrice = Number(String(variant.price).replace(/[^0-9]/g, ''));
+            document.getElementById('logisticsText').innerText = `This size requires approx. ${variant.time} of preparation time.`;
+            
+            document.querySelectorAll('.variant-btn').forEach((btn, i) => {
+                btn.style.background = i === index ? 'var(--accent-color)' : 'transparent';
+                btn.style.color = i === index ? 'white' : 'var(--text-dark)';
+            });
+            window.selectedVariantIndex = index;
+            updateDisplayPrice(); // Recalculates total if an add-on is already toggled on
         }
 
         function updateCartBadge() {
@@ -415,17 +570,7 @@
             badge.style.display = totalItems > 0 ? 'flex' : 'none';
         }
 
-        function selectVariant(index) {
-            const variant = window.currentVariants[index];
-            document.getElementById('finalPrice').innerText = `₹${variant.price}`;
-            document.getElementById('logisticsText').innerText = `This size requires approx. ${variant.time} of preparation time.`;
-            
-            document.querySelectorAll('.variant-btn').forEach((btn, i) => {
-                btn.style.background = i === index ? 'var(--accent-color)' : 'transparent';
-                btn.style.color = i === index ? 'white' : 'var(--text-dark)';
-            });
-            window.selectedVariantIndex = index;
-        }
+        
     </script>
 </body>
 </html>

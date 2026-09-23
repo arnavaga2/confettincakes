@@ -256,6 +256,15 @@
                         <div id="variantsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
                     </div>
 
+                    <!-- ADD-ONS UI ADDITION -->
+                    <div style="border: 1px dashed #CBD5E0; padding: 15px; border-radius: 8px; margin-bottom: 15px; background: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="font-size: 0.85rem; color: #4A5568;">Product Add-ons</h4>
+                            <button type="button" onclick="addAddonField()" style="background: var(--sidebar-bg); color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">+ Add Add-on</button>
+                        </div>
+                        <div id="addonsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    </div>
+
                     <div class="btn-row">
                         <button class="save-btn" id="saveBtn" onclick="saveItem()">SAVE TO INVENTORY</button>
                         <button class="reset-btn" onclick="resetForm()">RESET</button>
@@ -372,6 +381,36 @@
         function removeVariant(idx) {
             document.getElementById(`var-${idx}`).remove();
             activeVariants[idx] = null; 
+        }
+
+        let activeAddons = [];
+
+        function addAddonField(name = '', price = '', allowMultiple = false) {
+            const container = document.getElementById('addonsContainer');
+            const idx = activeAddons.length;
+            activeAddons.push({ name, price, allowMultiple });
+            
+            const div = document.createElement('div');
+            div.className = 'row';
+            div.id = `addon-${idx}`;
+            div.innerHTML = `
+                <input type="text" placeholder="Add-on Name (e.g. Topper)" value="${name}" onchange="updateAddon(${idx}, 'name', this.value)" style="flex: 2;">
+                <input type="number" placeholder="Price (₹)" value="${price}" onchange="updateAddon(${idx}, 'price', this.value)" style="flex: 1;">
+                <label style="flex: 1.5; display: flex; align-items: center; font-size: 0.8rem; color: #4A5568; gap: 5px; background: white; padding: 0 10px; border: 1px solid #E2E8F0; border-radius: 8px;">
+                    <input type="checkbox" ${allowMultiple ? 'checked' : ''} onchange="updateAddon(${idx}, 'allowMultiple', this.checked)" style="width: 16px; height: 16px;"> Allow Multiple
+                </label>
+                <button type="button" onclick="removeAddon(${idx})" style="background: #ef4444; color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">X</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function updateAddon(idx, field, value) {
+            activeAddons[idx][field] = value;
+        }
+
+        function removeAddon(idx) {
+            document.getElementById(`addon-${idx}`).remove();
+            activeAddons[idx] = null; 
         }
 
         // --- AUTH LOGIC ---
@@ -667,10 +706,14 @@
                 if (b64Image.startsWith('data:image')) { finalImageUrl = await uploadToCloudinary(b64Image); }
 
                 const validVariants = activeVariants.filter(v => v !== null && v.weight && v.price);
+                const validAddons = activeAddons.filter(a => a !== null && a.name && a.price);
 
                 saveBtn.innerText = "SAVING TO DATABASE...";
-                // Include fulfillment and badge in payload
-                const payload = { cat: category, name, desc, price, weight, time, img: finalImageUrl, variants: validVariants, fulfillment, badge };
+                
+                const payload = { 
+                    cat: category, name, desc, price, weight, time, img: finalImageUrl, 
+                    variants: validVariants, addons: validAddons, fulfillment, badge 
+                };
 
                 if (editingId) {
                     await fetch('/api/admin/inventory/' + editingId, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -710,7 +753,13 @@
                 item.variants.forEach(v => addVariantField(v.weight, v.price, v.time));
             }
 
-            b64Image = item.img || ''; 
+            activeAddons = [];
+            document.getElementById('addonsContainer').innerHTML = '';
+            if(item.addons && item.addons.length > 0) {
+                item.addons.forEach(a => addAddonField(a.name, a.price, a.allowMultiple));
+            }
+
+            b64Image = item.img || '';
             if(b64Image) {
                 document.getElementById('viewImg').src = b64Image;
                 document.getElementById('viewImg').style.display = 'block';
@@ -733,6 +782,8 @@
             
             activeVariants = [];
             document.getElementById('variantsContainer').innerHTML = '';
+            activeAddons = [];
+            document.getElementById('addonsContainer').innerHTML = '';
             document.getElementById('viewImg').style.display = 'none'; document.getElementById('viewImg').src = ''; document.getElementById('prompt').style.display = 'block';
             b64Image = "";
             const saveBtn = document.getElementById('saveBtn');

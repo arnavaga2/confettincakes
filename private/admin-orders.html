@@ -6,7 +6,7 @@
     <title>Admin Orders | CONFETTINCAKE</title>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         if(localStorage.getItem('isAdminLoggedIn') !== 'true') {
             window.location.replace('../admin-login.html'); 
@@ -69,88 +69,76 @@
         
         /* PER-ORDER EXPORT BUTTONS */
         .per-order-exports { display: flex; gap: 5px; margin-top: 10px; }
-        .btn-mini { flex: 1; padding: 8px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
-        .btn-excel { background: #E6FFFA; color: #319795; border: 1px solid #B2F5EA; }
-        .btn-pdf { background: #FFF5F5; color: #E53E3E; border: 1px solid #FEB2B2; }
+        .btn-mini { flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px;}
+        .btn-pdf { background: #FFF5F5; color: #E53E3E; border: 1px solid #FEB2B2; transition: 0.2s;}
+        .btn-pdf:hover { background: #E53E3E; color: white; }
         .btn-del { background: white; color: #A0AEC0; border: 1px solid #E2E8F0; margin-top: 5px;}
+
+        /* NEW DOWNLOAD PDF BUTTON */
+        .btn-download { background: #EBF8FF; color: #2B6CB0; border: 1px solid #90CDF4; transition: 0.2s;}
+        .btn-download:hover { background: #2B6CB0; color: white; }
+
+        /* 🔥 NEW BADGES & BOXES */
+        .schedule-box { background: #EBF8FF; border: 1px solid #90CDF4; color: #2B6CB0; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .glow-note { background: #FFF5F5; border: 1px dashed #FC8181; box-shadow: 0 0 12px rgba(252, 129, 129, 0.25); color: #C53030; padding: 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 12px; position: relative; overflow: hidden; font-weight: 500;}
+        .glow-note::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent); animation: noteShimmer 2.5s infinite; }
+        @keyframes noteShimmer { 100% { left: 200%; } }
+        
+        .item-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 8px 0; border-bottom: 1px dashed #E2E8F0; color: #4A5568;}
+        .item-row:last-child { border-bottom: none; }
+        .item-name { font-weight: 600; color: var(--text-dark); margin-bottom: 2px;}
+        .item-price-sub { font-weight: 700; color: var(--text-dark); }
 
         /* EMPTY STATE */
         .empty-state { text-align: center; padding: 50px 20px; color: #A0AEC0; font-weight: 600; background: white; border-radius: 12px; border: 1px dashed #CBD5E0;}
 
         /* TOAST NOTIFICATION */
-        #custom-toast {
-            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
-            background: #2D3748; color: white; padding: 15px 30px; border-radius: 8px;
-            font-weight: 600; font-size: 0.95rem; z-index: 10000; opacity: 0;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
+        #custom-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #2D3748; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; z-index: 10000; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         #custom-toast.show { bottom: 40px; opacity: 1; }
         #custom-toast.success { border-left: 5px solid #48BB78; }
         #custom-toast.error { border-left: 5px solid #F56565; }
 
         /* 🖨️ PRINT BRAND (Hidden on screen, visible on PDF) */
-        .print-brand { display: none; text-align: center; font-size: 2.2rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 2px dashed #E2E8F0; padding-bottom: 15px; font-family: 'Playfair Display', serif;}
+        .print-brand { display: none; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 2px; margin-bottom: 20px; border-bottom: 2px dashed #000; padding-bottom: 15px; font-family: Arial, sans-serif;}
 
         /* --- MOBILE APP OVERRIDES --- */
         .mobile-bottom-nav { display: none; }
         .mobile-top-bar { display: none; }
 
         @media (max-width: 768px) {
-            /* Hide Desktop Sidebar */
             .sidebar { display: none !important; }
             body { flex-direction: column; }
-            
-            /* Mobile Top Bar */
-            .mobile-top-bar {
-                display: flex; justify-content: space-between; align-items: center;
-                background: white; padding: 15px 20px; border-bottom: 1px solid #E2E8F0;
-                position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            }
+            .mobile-top-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-bottom: 1px solid #E2E8F0; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
             .mobile-top-bar .brand { margin-bottom: 0; color: #1A1A1A; font-size: 1.1rem; font-family: 'Playfair Display', serif; font-weight: 700; letter-spacing: 1px;}
             .mobile-top-bar .brand span { color: var(--accent); }
             .mobile-top-bar .logout-btn-mobile { background: none; border: none; color: #E53E3E; font-size: 1.4rem; cursor: pointer;}
-
-            /* Adjust Main Content Area */
             .main-content { width: 100% !important; padding: 85px 15px 90px 15px !important; }
             .header h1 { font-size: 1.5rem; }
-
-            /* Mobile Bottom Navigation */
-            .mobile-bottom-nav {
-                display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
-                background: #1A1A1A; padding: 12px 10px 25px 10px; 
-                justify-content: space-between; z-index: 9999;
-                border-top-left-radius: 20px; border-top-right-radius: 20px;
-                box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
-            }
-            .mobile-bottom-nav a {
-                color: #718096; text-decoration: none; display: flex; flex-direction: column;
-                align-items: center; font-size: 0.65rem; font-weight: 600; gap: 5px;
-                width: 20%; transition: 0.3s;
-            }
+            .mobile-bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; width: 100%; background: #1A1A1A; padding: 12px 10px 25px 10px; justify-content: space-between; z-index: 9999; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.15); }
+            .mobile-bottom-nav a { color: #718096; text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: 600; gap: 5px; width: 20%; transition: 0.3s; }
             .mobile-bottom-nav a i { font-size: 1.4rem; }
             .mobile-bottom-nav a.active { color: var(--accent); }
-
-            /* Stack Order Cards into a perfect column layout */
             .order-card { grid-template-columns: 1fr; gap: 12px; padding: 15px; }
-            .customer-info, .order-details, .action-group { 
-                border-top: 1px dashed #E2E8F0; 
-                padding-top: 12px; 
-            }
+            .customer-info, .order-details, .action-group { border-top: 1px dashed #E2E8F0; padding-top: 12px; }
             .order-total { font-size: 1.4rem; }
         }
 
-        /* MAGIC PDF PRINT CSS */
+        /* MAGIC PDF PRINT CSS (CLEAN, NO WEIRD FONTS) */
         @media print {
-            body { background: white; }
-            .sidebar, .header, .filter-tabs, .action-group, .empty-state, .mobile-top-bar, .mobile-bottom-nav { display: none !important; }
-            .main-content { padding: 0; width: 100% !important; }
+            body { background: white; font-family: Arial, Helvetica, sans-serif !important; }
+            .sidebar, .header, .filter-tabs, .action-group, .empty-state, .mobile-top-bar, .mobile-bottom-nav, #custom-toast { display: none !important; }
+            .main-content { padding: 0; width: 100% !important; overflow: visible; }
             .order-card { display: none; } 
-            .order-card.print-active { display: block; box-shadow: none; border: 2px solid #000; page-break-inside: avoid; margin: 0; padding: 40px;}
+            .order-card.print-active { display: block; box-shadow: none; border: none; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif !important;}
             
-            .order-card.print-active .print-brand { display: block; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .print-brand { display: block; }
+            .glow-note { box-shadow: none; border: 1px solid #000; background: transparent; color: #000; animation: none; padding: 10px; }
+            .glow-note::before { display: none; }
+            .schedule-box { background: transparent; border: 1px solid #000; color: #000; }
+            .item-row { border-bottom: 1px solid #eee; }
+            .order-total { font-size: 20px; color: #000 !important; margin-top: 15px; padding-top: 10px;}
+            
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color: #000 !important; }
         }
     </style>
 </head>
@@ -259,52 +247,104 @@
             container.innerHTML = '';
 
             filteredOrders.slice().reverse().forEach(order => {
-                let parsedItems = [];
-                try { parsedItems = JSON.parse(order.items); } catch(e) { parsedItems = []; }
-                let itemsList = parsedItems.map(i => `<strong>${i.qty}x</strong> ${i.name}`).join('<br>');
+                // 1. Time & Date Formatting
+                let placedDate = order.date;
+                try {
+                    let d = order.createdAt ? new Date(order.createdAt) : new Date(order.date);
+                    if (!isNaN(d)) placedDate = d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+                } catch(e) {}
 
-                // ⚡ THE UNPACKING TRICK: Detect the secret separator and extract the note
+                // 2. Unpack Address, Schedule, and Note
                 let rawAddress = order.customerAddress || "N/A";
                 let address = rawAddress;
-                let noteText = order.note || "";
+                let noteText = "";
+                let scheduleText = "Not Scheduled";
 
-                if(rawAddress.includes("|||NOTE:")) {
+                if (rawAddress.includes("||| NOTE:")) {
+                    let parts = rawAddress.split("||| NOTE:");
+                    address = parts[0].trim();
+                    noteText = parts[1].trim();
+                } else if (rawAddress.includes("|||NOTE:")) {
                     let parts = rawAddress.split("|||NOTE:");
-                    address = parts[0];     // The real address
-                    noteText = parts[1];    // The smuggled note
+                    address = parts[0].trim();
+                    noteText = parts[1].trim();
                 }
 
-                let phone = order.customerPhone || "N/A";
-                let pin = order.customerPin || "N/A";
+                if (address.includes("||| SCHEDULE:")) {
+                    let parts = address.split("||| SCHEDULE:");
+                    address = parts[0].trim();
+                    scheduleText = parts[1].trim();
+                }
 
-                // Render the bright red high-visibility box if a note exists
-                let noteHTML = noteText ? `
-                    <div style="background: #FFF5F5; border: 1px dashed #FEB2B2; padding: 10px; border-radius: 8px; margin-top: 12px; margin-bottom: 12px; color: #C53030; font-size: 0.85rem;">
-                        <strong style="display: block; margin-bottom: 3px;"><i class="ri-message-3-fill"></i> Customer Instructions:</strong>
+                // 3. Format Cart Items (Products + Addons + Subtotals)
+                let parsedItems = [];
+                try { parsedItems = JSON.parse(order.items); } catch(e) { parsedItems = []; }
+                
+                let itemsHTML = parsedItems.map(i => {
+                    let subtotal = (i.price * i.qty);
+                    return `
+                        <div class="item-row">
+                            <div>
+                                <div class="item-name">${i.qty}x ${i.name}</div>
+                                <div style="font-size: 0.75rem; color: #718096;">@ ₹${i.price} each</div>
+                            </div>
+                            <div class="item-price-sub">₹${subtotal}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 4. Clean the Grand Total & Tags
+                let displayTotal = order.total.split(' (')[0];
+                let isPaid = order.total.includes('PAID');
+                let paymentBadge = isPaid ? `<span style="font-size:0.75rem; background:#F0FFF4; color:#2F855A; padding:4px 8px; border-radius:6px; border:1px solid #C6F6D5; font-weight:700;"><i class="ri-secure-payment-line"></i> PREPAID ONLINE</span>` : '';
+
+                // 5. Generate Dynamic UI Components
+                let noteHTML = noteText && noteText !== "None" ? `
+                    <div class="glow-note">
+                        <strong style="display: block; margin-bottom: 4px; color: #9B2C2C;"><i class="ri-alert-fill"></i> Customer Instructions:</strong>
                         ${noteText}
                     </div>
                 ` : '';
 
+                let scheduleHTML = `
+                    <div class="schedule-box">
+                        <i class="ri-calendar-check-fill" style="font-size:1.1rem;"></i> 
+                        <div><span style="font-size:0.7rem; display:block; color:#4299E1; text-transform:uppercase;">Fulfillment Schedule</span>${scheduleText}</div>
+                    </div>
+                `;
+                
+                let orderTypeStr = address.includes('DELIVERY') ? '🛵 Delivery Order' : '🏪 Self Pick-Up';
+                let cleanAddressDisplay = address.replace('[DELIVERY] ', '').replace('[SELF PICK-UP] ', '');
+
                 const card = `
                     <div class="order-card" id="card-${order.id}">
                         <div class="print-brand" style="grid-column: 1 / -1;">
-                            CONFETTI<span style="color: red;">N</span>CAKE
+                            CONFETTINCAKE
+                            <div style="font-size: 14px; font-weight: normal; margin-top: 5px;">Official Order Receipt</div>
                         </div>
                         <div>
-                            <div class="order-id">${order.id}</div>
-                            <div class="order-date">${order.date}</div>
+                            <div class="order-id">#${order.id}</div>
+                            <div class="order-date">${placedDate}</div>
                         </div>
                         <div class="customer-info">
                             <h4>${order.customer}</h4>
-                            <p><span>📞 Phone:</span> ${phone}</p>
-                            <p><span>📍 Address:</span> ${address}, ${pin}</p>
+                            <p style="margin-bottom: 5px;"><span>📞 Phone:</span> ${order.customerPhone || "N/A"}</p>
+                            <p><span>📍 Address:</span> ${cleanAddressDisplay}, ${order.customerPin || ''}</p>
+                            <p style="margin-top:8px; font-weight:700; color:#3182CE; font-size:0.8rem; text-transform:uppercase;">${orderTypeStr}</p>
                         </div>
                         <div class="order-details">
-                            ${itemsList}
+                            ${scheduleHTML}
                             ${noteHTML} 
-<span class="order-total" style="color: ${order.total.includes('PAID') ? '#48BB78' : 'var(--accent)'};">
-    ${order.total.includes('PAID') ? '<i class="ri-secure-payment-line"></i> ' : ''}${order.total}
-</span>
+                            
+                            <div style="background: #F7FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                                <div style="font-size: 0.75rem; color: #A0AEC0; text-transform: uppercase; font-weight: 700; margin-bottom: 8px; letter-spacing: 1px;">Order Summary</div>
+                                ${itemsHTML}
+                            </div>
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 2px dashed #E2E8F0; padding-top: 10px;">
+                                <span class="order-total" style="color: var(--primary-dark); font-size: 1.3rem;">${displayTotal}</span>
+                                ${paymentBadge}
+                            </div>
                         </div>
                         <div class="action-group">
                             <div class="status-select-group">
@@ -318,8 +358,8 @@
                                 <button class="update-btn" onclick="updateStatus('${order.id}')">Update Status</button>
                             </div>
                             <div class="per-order-exports">
-                                <button class="btn-mini btn-excel" onclick="exportSingleExcel('${order.id}')">Excel</button>
-                                <button class="btn-mini btn-pdf" onclick="exportSinglePDF('${order.id}')">PDF Receipt</button>
+                                <button class="btn-mini btn-pdf" onclick="exportSinglePDF('${order.id}')"><i class="ri-printer-line"></i> Print</button>
+                                <button class="btn-mini btn-download" onclick="downloadSinglePDF('${order.id}')"><i class="ri-download-2-line"></i> PDF</button>
                             </div>
                             <button class="btn-mini btn-del" onclick="deleteOrder('${order.id}')">Delete Order</button>
                         </div>
@@ -369,42 +409,34 @@
             }
         }
 
-        // --- 6. EXPORTS ---
-        function exportSingleExcel(orderId) {
-            const o = liveOrders.find(x => x.id === orderId);
-            if(!o) return;
+        function downloadSinglePDF(orderId) {
+            const cardElement = document.getElementById(`card-${orderId}`);
+            const actionGroup = cardElement.querySelector('.action-group');
             
-            let safeTotal = String(o.total).replace('₹', '').replace(',', '');
-            
-            let parsedItems = [];
-            try { parsedItems = JSON.parse(o.items); } catch(e) { parsedItems = []; }
-            let itemsString = parsedItems.map(i => `${i.qty}x ${i.name}`).join(' | ');
+            // Format for PDF capture
+            cardElement.classList.add('print-active');
+            cardElement.style.border = 'none'; // Clean edges for the file
+            cardElement.style.padding = '30px'; 
+            if (actionGroup) actionGroup.style.display = 'none'; // Hide buttons from the PDF
 
-            // Ensure the smuggled note doesn't break the Excel export
-            let rawAddress = o.customerAddress || "N/A";
-            let address = rawAddress;
-            let noteText = o.note || "None";
+            const options = {
+                margin:       0.5,
+                filename:     `ConfettinCake_Order_${orderId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
 
-            if(rawAddress.includes("|||NOTE:")) {
-                let parts = rawAddress.split("|||NOTE:");
-                address = parts[0];
-                noteText = parts[1];
-            }
-            
-            let safeNote = noteText.replace(/"/g, '""');
+            showToast("Generating PDF...", "success");
 
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Order ID,Date,Customer,Phone,Address,Items,Instructions,Total,Status\n";
-            csvContent += `${o.id},${o.date},${o.customer},${o.customerPhone},"${address}-${o.customerPin || 'N/A'}","${itemsString}","${safeNote}",${safeTotal},${o.status}\n`;
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Receipt_${orderId}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("Excel receipt generated", "success");
+            // Generate and download
+            html2pdf().set(options).from(cardElement).save().then(() => {
+                // Restore standard UI
+                cardElement.classList.remove('print-active');
+                cardElement.style.border = '';
+                cardElement.style.padding = '';
+                if (actionGroup) actionGroup.style.display = 'flex';
+            });
         }
 
         function exportSinglePDF(orderId) {
@@ -422,6 +454,8 @@
             toast.classList.add('show', type);
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
+
+        
 
         window.onload = fetchOrders;
     </script>

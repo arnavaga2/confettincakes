@@ -162,6 +162,7 @@ const InventorySchema = new mongoose.Schema({
     time: String,
     img: String,
     variants: [{ weight: String, price: Number, time: String }],
+    addons: [{ name: String, price: Number, allowMultiple: Boolean }],
     images: [String],
     fulfillment: { type: [String], default: ['pickup', 'delivery'] }, // <--- Add this!
     badge: { type: String, default: '' },
