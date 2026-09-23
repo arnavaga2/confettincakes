@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXEwKKw3lBwmTnwywsyaX_ZOemriqOAz4"></script>
     
     <style>
         :root { --bg-cream: #F4F7FE; --text-dark: #1A1A1A; --accent-color: #FF6B81; --card-bg: #FFFFFF; --success: #48BB78; }
@@ -139,9 +140,7 @@
     <main>
         <div class="section-header">Delivery Details</div>
         <div class="map-card">
-            <div class="map-graphic">
-                <iframe id="live-google-map" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen="" aria-hidden="false" tabindex="0" src=""></iframe>
-            </div>
+            <div class="map-graphic" id="live-google-map"></div>
             <div class="address-details">
                 <div class="address-icon"><i class="ri-home-4-fill"></i></div>
                 <div class="address-text">
@@ -208,12 +207,68 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // --- NEW GOOGLE MAPS ROUTING FUNCTION (WITH CACHING) ---
+        function initPaymentMap(customerAddress) {
+            const map = new google.maps.Map(document.getElementById('live-google-map'), {
+                disableDefaultUI: true,
+                styles: [ { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] } ]
+            });
+
+            // 1. CHECK CACHE FIRST TO PREVENT API CHARGES
+            const cacheKey = 'confettinMap_' + customerAddress.replace(/\s/g, '');
+            const cachedLocation = sessionStorage.getItem(cacheKey);
+
+            if (cachedLocation) {
+                const loc = JSON.parse(cachedLocation);
+                const pos = new google.maps.LatLng(loc.lat, loc.lng);
+                map.setCenter(pos);
+                map.setZoom(15);
+                new google.maps.Marker({ map: map, position: pos });
+                return; // Stops execution here, Google APIs are not called
+            }
+
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                polylineOptions: { strokeColor: '#FF6B81', strokeWeight: 5, strokeOpacity: 0.9 }
+            });
+
+            const request = {
+                origin: "H.no-39, pocket-7, sector-22, Rohini, Delhi",
+                destination: customerAddress,
+                travelMode: google.maps.TravelMode.DRIVING
+            };
+
+            directionsService.route(request, function(result, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // 2. SAVE SUCCESSFUL DESTINATION COORDINATES TO CACHE
+                    const endLoc = result.routes[0].legs[0].end_location;
+                    sessionStorage.setItem(cacheKey, JSON.stringify({ lat: endLoc.lat(), lng: endLoc.lng() }));
+                } else {
+                    const geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({ address: customerAddress }, function(geoResults, geoStatus) {
+                        if (geoStatus === 'OK') {
+                            const geoLoc = geoResults[0].geometry.location;
+                            map.setCenter(geoLoc);
+                            map.setZoom(15);
+                            new google.maps.Marker({ map: map, position: geoLoc });
+                            
+                            // 2. SAVE FALLBACK LOCATION TO CACHE
+                            sessionStorage.setItem(cacheKey, JSON.stringify({ lat: geoLoc.lat(), lng: geoLoc.lng() }));
+                        }
+                    });
+                }
+            });
+        }
+
         // 1. LOAD GUEST TRANSACTION DATA
         const activeTx = JSON.parse(sessionStorage.getItem('confettinActiveTx'));
         const orderType = sessionStorage.getItem('confettinOrderType') || 'delivery';
         
         if(!activeTx) {
-            window.location.replace('cart.html'); // Kick them back to cart if they bypassed it
+            window.location.replace('cart.html'); 
         } else {
             const firstName = activeTx.name.split(' ')[0];
             document.getElementById('display-name').innerText = firstName;
@@ -226,8 +281,7 @@
                     H.no-39, pocket-7, sector-22, Rohini, Delhi<br>
                     Customer: ${activeTx.name} (+91 ${activeTx.phone})
                 `;
-                const mapUrl = `https://maps.google.com/maps?q=Sector%2022%2C%20Rohini%2C%20Delhi&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-                document.getElementById('live-google-map').src = mapUrl;
+                initPaymentMap("Sector 22, Rohini, Delhi"); // Triggers the new map API
             } else {
                 document.getElementById('display-address').innerHTML = `
                     ${activeTx.address}, ${activeTx.city}<br>
@@ -235,8 +289,7 @@
                     Contact: +91 ${activeTx.phone}
                 `;
                 const fullAddressForMap = `${activeTx.address}, ${activeTx.city}, ${activeTx.state} ${activeTx.pin}`;
-                const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddressForMap)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-                document.getElementById('live-google-map').src = mapUrl;
+                initPaymentMap(fullAddressForMap); // Triggers the new map API and draws the route
             }
         }
 
@@ -321,13 +374,16 @@
                     return showToast(orderData.error || "Unable to initiate payment.");
                 }
 
-                // Step 2: Open checkout locked to the generated order ID
-                const options = {
-                    "key": "rzp_live_TeNE53yELnBIo2",
-                    "amount": orderData.amount,
-                    "currency": orderData.currency,
-                    "name": "Confettincakes",
-                    "description": "Bakery Order",
+                // Fetch the key safely from your server
+const configRes = await fetch('/api/config/razorpay');
+const { key } = await configRes.json();
+
+const options = {
+    "key": key, // Uses the fetched key
+    "amount": orderData.amount,
+    "currency": orderData.currency,
+    "name": "ConfettiNCakes",
+    "description": "Bakery Order",
                     "image": "https://cdn-icons-png.flaticon.com/512/11358/11358893.png",
                     "order_id": orderData.id,
                     "handler": async function (response) {

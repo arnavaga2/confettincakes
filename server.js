@@ -55,6 +55,12 @@ function startKeepAlive() {
     }, 12 * 60 * 1000); 
 }
 
+//Razorpay password
+
+app.get('/api/config/razorpay', (req, res) => {
+    res.json({ key: process.env.RAZORPAY_KEY_ID });
+});
+
 // ==========================================
 // 👑 VIP ADMIN ROUTES 
 // ==========================================

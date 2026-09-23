@@ -107,6 +107,24 @@
         }
         .save-info-label:hover { background: #E6FFFA; }
         .save-info-label input { width: 18px; height: 18px; accent-color: #48BB78; cursor: pointer;}
+        
+        /* FREE DELIVERY ANIMATION & LOCATION BUTTON */
+        .free-delivery-toast {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            background: #48BB78; color: white; padding: 25px 35px; border-radius: 20px;
+            text-align: center; box-shadow: 0 15px 40px rgba(72, 187, 120, 0.4);
+            z-index: 11000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .free-delivery-toast.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .free-delivery-toast i { font-size: 3.5rem; margin-bottom: 10px; display: block; }
+        .free-delivery-toast h3 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 5px; }
+        
+        .location-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+            padding: 12px; margin-bottom: 15px; background: #EBF8FF; color: #3182CE;
+            border: 1px dashed #90CDF4; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .location-btn:hover { background: #BEE3F8; }
 
     </style>
 
@@ -141,6 +159,22 @@
                 <button class="modal-btn btn-cancel" onclick="closeRemoveModal()">Keep</button>
                 <button class="modal-btn btn-confirm" onclick="confirmRemove()">Remove</button>
             </div>
+        </div>
+    </div>
+    
+    <!-- PROFESSIONAL LOCATION MODAL -->
+    <div class="modal-overlay" id="location-modal" style="z-index: 11000; display: none;">
+        <div class="modal-box" style="position: relative;">
+            <button onclick="closeLocationModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #A0AEC0;"><i class="ri-close-line"></i></button>
+            <div style="font-size: 3rem; color: #3182CE; margin-bottom: 10px;"><i class="ri-map-pin-user-fill"></i></div>
+            <h3 style="font-family: 'Poppins', sans-serif;">Share Your Location</h3>
+            <p style="font-size: 0.85rem; color: #718096; margin-bottom: 25px;">Allow access to your location to automatically check delivery coverage and calculate exact shipping fees from the Sprinklersncakes bakehouse.</p>
+            <button id="modal-loc-btn" onclick="executeRealLocation()" style="width: 100%; padding: 14px; background: #3182CE; color: white; border: none; border-radius: 12px; font-weight: 600; font-family: 'Poppins'; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; transition: 0.3s; box-shadow: 0 4px 15px rgba(49, 130, 206, 0.3);">
+                <i class="ri-focus-3-line"></i> Allow Location Access
+            </button>
+            <button onclick="closeLocationModal()" style="width: 100%; padding: 14px; background: transparent; color: #718096; border: none; font-weight: 600; font-family: 'Poppins'; cursor: pointer; margin-top: 5px;">
+                Enter Address Manually
+            </button>
         </div>
     </div>
 
@@ -193,6 +227,12 @@
             
             if (Object.keys(shopSchedule).length === 0) {
                 daysOfWeek.forEach(day => { shopSchedule[day] = { isOpen: true, open: "10:00", close: "20:00", flex: "22:30" }; });
+            }
+            renderCart();
+            
+            // Auto-trigger the modal if it is a delivery order and they have no saved address
+            if (orderType === 'delivery' && !localStorage.getItem('confettinSavedAddress')) {
+                setTimeout(showLocationModal, 600);
             }
             renderCart();
         }
@@ -275,7 +315,11 @@
             } else {
                 logisticsHTML = `
                     <div class="section-card">
-                        <h3 class="bill-title"><i class="ri-map-pin-line" style="color: var(--accent-color);"></i> Delivery Details</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 class="bill-title" style="margin-bottom: 0;"><i class="ri-map-pin-line" style="color: var(--accent-color);"></i> Delivery Details</h3>
+                            <span onclick="showLocationModal()" style="font-size: 0.8rem; color: #3182CE; cursor: pointer; font-weight: 600;"><i class="ri-focus-3-line"></i> Auto-Detect</span>
+                        </div>
+                        
                         <input type="text" id="cust-name" class="checkout-input" placeholder="Full Name">
                         <input type="tel" id="cust-phone" class="checkout-input" placeholder="10-Digit Phone Number" maxlength="10">
                         <input type="number" id="cust-pin" class="checkout-input" placeholder="6-Digit Pincode" onkeyup="checkCartPincode()">
@@ -321,7 +365,24 @@
                     document.getElementById('cust-phone').value = savedData.phone || '';
                     document.getElementById('cust-pin').value = savedData.pin || '';
                     document.getElementById('cust-address').value = savedData.address || '';
-                    if (savedData.pin) checkCartPincode(); 
+                    
+                    // Instantly restore everything without making ANY api calls
+                    if (savedData.fee !== undefined) {
+                        document.getElementById('cust-city').value = savedData.city || '';
+                        document.getElementById('cust-state').value = savedData.state || '';
+                        deliveryFee = savedData.fee;
+                        isFeeCalculated = true;
+                        
+                        const feeDisplay = document.getElementById('delivery-fee-display');
+                        if (deliveryFee === 0) {
+                            if (feeDisplay) feeDisplay.innerHTML = `<span style="color:#48BB78; font-weight:700;">FREE (Saved)</span>`;
+                        } else {
+                            if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (Saved)`;
+                        }
+                        updateGrandTotal();
+                    } else if (savedData.pin) {
+                        checkCartPincode(); 
+                    }
                 }
             }
         }
@@ -402,7 +463,102 @@
             }
         }
 
-        // 🔥 BULLETPROOF GOOGLE MAPS CALCULATOR
+     
+        // 🔥 MODAL CONTROLS
+        function showLocationModal() {
+            document.getElementById('location-modal').style.display = 'flex';
+        }
+        
+        function closeLocationModal() {
+            document.getElementById('location-modal').style.display = 'none';
+        }
+
+        // 🔥 NEW: ROBUST LOCATION FETCHER
+        function executeRealLocation() {
+            const btn = document.getElementById('modal-loc-btn');
+            btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Locating...';
+
+            if (!navigator.geolocation) {
+                showToast("Geolocation is not supported by your browser.");
+                btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    if (typeof google === 'undefined' || !google.maps) {
+                        showToast("Google Maps script blocked or not loaded.");
+                        btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                        return;
+                    }
+
+                    // Strict manual timeout to prevent the script from getting stuck silently
+                    let geocodeFinished = false;
+                    setTimeout(() => {
+                        if (!geocodeFinished) {
+                            showToast("Google Maps API took too long to respond. Enter manually.");
+                            btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                        }
+                    }, 8000);
+
+                    const geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+                        geocodeFinished = true; 
+                        
+                        if (status === "OK" && results && results[0]) {
+                            let pin = '', city = '', state = '';
+                            results[0].address_components.forEach(comp => {
+                                if (comp.types.includes("postal_code")) pin = comp.long_name;
+                                if (comp.types.includes("locality") || comp.types.includes("administrative_area_level_3")) city = comp.long_name;
+                                if (comp.types.includes("administrative_area_level_1")) state = comp.long_name;
+                            });
+
+                            document.getElementById('cust-address').value = results[0].formatted_address;
+                            if (pin) document.getElementById('cust-pin').value = pin;
+                            if (city) document.getElementById('cust-city').value = city;
+                            if (state) document.getElementById('cust-state').value = state;
+
+                            closeLocationModal();
+                            btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                            
+                            // Automatically calculate delivery fee based on filled data
+                            checkCartPincode();
+                        } else {
+                            showToast("Address not found. Please enter manually.");
+                            btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                        }
+                    });
+                },
+                (error) => {
+                    let msg = "Location error.";
+                    if (error.code === 1) msg = "Please allow location access in your browser pop-up.";
+                    if (error.code === 2) msg = "Position unavailable. Check your Wi-Fi/GPS signal.";
+                    if (error.code === 3) msg = "Location request timed out.";
+                    showToast(msg);
+                    btn.innerHTML = '<i class="ri-focus-3-line"></i> Allow Location Access';
+                },
+                { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+            );
+        }
+
+        // 🔥 ANIMATION TRIGGER
+        function triggerFreeDeliveryAnimation() {
+            let animBox = document.getElementById('free-del-anim');
+            if(!animBox) {
+                animBox = document.createElement('div');
+                animBox.id = 'free-del-anim';
+                animBox.className = 'free-delivery-toast';
+                animBox.innerHTML = '<i class="ri-gift-2-line"></i><h3>Congratulations!</h3><p style="font-weight:600;">You are within 5km.<br>Delivery is FREE!</p>';
+                document.body.appendChild(animBox);
+            }
+            animBox.classList.add('show');
+            setTimeout(() => animBox.classList.remove('show'), 3500);
+        }
+
+        // 🔥 UPDATED DISTANCE CALCULATOR WITH CACHING
         function calculateDeliveryFee() {
             if (orderType !== 'delivery' || subtotal === 0) return;
 
@@ -414,12 +570,27 @@
             if (!address || !city || !pin || !isCartValid) return;
 
             const feeDisplay = document.getElementById('delivery-fee-display');
+            const origin = "H.no-39, pocket-7, sector-22, Rohini, Delhi, India";
+            const destination = `${address}, ${city}, ${state}, ${pin}, India`;
+
+            // 1. CHECK CACHE FIRST TO PREVENT EXTRA API CHARGES
+            const cachedData = JSON.parse(sessionStorage.getItem('confettinSavedDistance') || '{}');
+            if (cachedData.address === destination) {
+                deliveryFee = cachedData.fee;
+                isFeeCalculated = true;
+                if (deliveryFee === 0) {
+                    if (feeDisplay) feeDisplay.innerHTML = `<span style="color:#48BB78; font-weight:700;">FREE (Under 5km)</span>`;
+                } else {
+                    if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (Cached)`;
+                }
+                updateGrandTotal();
+                return; // Stop here, do not call Google!
+            }
+
             if (feeDisplay) feeDisplay.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Calculating...';
 
             try {
-                const origin = "H.no-39, pocket-7, sector-22, Rohini, Delhi, India";
-                const destination = `${address}, ${city}, ${state}, ${pin}, India`;
-
+                // 2. ONLY CALL GOOGLE IF ADDRESS IS NEW
                 const service = new google.maps.DistanceMatrixService();
                 service.getDistanceMatrix({
                     origins: [origin],
@@ -428,15 +599,23 @@
                     unitSystem: google.maps.UnitSystem.METRIC,
                 }, (response, status) => {
                     try {
-                        // Strict safety check in case billing blocked the request
-                        if (status === 'OK' && response && response.rows && response.rows[0] && response.rows[0].elements[0].status === 'OK') {
+                        if (status === 'OK' && response?.rows[0]?.elements[0]?.status === 'OK') {
                             const distanceMeters = response.rows[0].elements[0].distance.value;
                             const distanceKm = distanceMeters / 1000;
-                            deliveryFee = Math.round(distanceKm * 13);
+                            
+                            if (distanceKm <= 5) {
+                                deliveryFee = 0;
+                                if (feeDisplay) feeDisplay.innerHTML = `<span style="color:#48BB78; font-weight:700;">FREE (Under 5km)</span>`;
+                                triggerFreeDeliveryAnimation();
+                            } else {
+                                deliveryFee = Math.round(distanceKm * 13);
+                                if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (${distanceKm.toFixed(1)} km)`;
+                            }
+                            
                             isFeeCalculated = true;
-                            if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (${distanceKm.toFixed(1)} km)`;
+                            // Save result to cache for next time they navigate back
+                            sessionStorage.setItem('confettinSavedDistance', JSON.stringify({ address: destination, fee: deliveryFee }));
                         } else {
-                            // API Key exists, but request denied (e.g. billing hold)
                             deliveryFee = 50; isFeeCalculated = true;
                             if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (Standard)`;
                         }
@@ -447,8 +626,6 @@
                     updateGrandTotal();
                 });
             } catch(err) {
-                // Failsafe if Google script completely failed to load
-                console.error("Maps API Error", err);
                 deliveryFee = 50; isFeeCalculated = true;
                 if (feeDisplay) feeDisplay.innerText = `₹${deliveryFee} (Standard)`;
                 updateGrandTotal();
@@ -624,7 +801,7 @@
                 if (!isCartValid) return showToast("Resolve pincode delivery errors before checking out.");
 
                 if (document.getElementById('save-address-cb').checked) {
-                    localStorage.setItem('confettinSavedAddress', JSON.stringify({ name, phone, pin, address, city, state }));
+                    localStorage.setItem('confettinSavedAddress', JSON.stringify({ name, phone, pin, address, city, state, fee: deliveryFee }));
                 } else {
                     localStorage.removeItem('confettinSavedAddress');
                 }
