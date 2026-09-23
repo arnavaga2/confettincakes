@@ -522,10 +522,11 @@
                 const waLink = `https://wa.me/919365717848?text=${encodeURIComponent(waMessage)}`;
 
                 // Extract Clean Address
-                let cleanAddress = order.customerAddress;
-                if(cleanAddress && cleanAddress.includes("|||NOTE:")) {
-                    cleanAddress = cleanAddress.split("|||NOTE:")[0];
-                }
+                // 1. Format Address nicely (Replaces the "|||" dividers with clean line breaks)
+                let cleanAddress = (order.customerAddress || "").replace(/ \|\|\| /g, '<br>');
+
+                // 2. Clean up the total string to remove "(PAID_ONLINE)"
+                let displayTotal = order.total.split(' (')[0];
 
                 wrapper.innerHTML += `
                     <div class="order-card">
@@ -546,15 +547,17 @@
                         </div>
                         <div class="delivery-details" id="delivery-${order.id}">
                             <strong>Delivered To:</strong><br>
-                            ${cleanAddress}, ${order.customerPin}<br>
+                            <!-- Removed the redundant order.customerPin from the end -->
+                            ${cleanAddress}<br>
                             +91 ${order.customerPhone}<br><br>
                             <strong>Payment Method:</strong><br>
-                            Online / Cash on Delivery
+                            Prepaid
                         </div>
 
                         <div class="order-total-row">
                             <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Grand Total</span>
-                            <span class="order-total">${order.total}</span>
+                            <!-- Applied inline styles to make the text a clean, dark color instead of red -->
+                            <span class="order-total" style="color: var(--primary-dark); font-size: 1.15rem;">${displayTotal}</span>
                         </div>
 
                         <div class="action-buttons">
